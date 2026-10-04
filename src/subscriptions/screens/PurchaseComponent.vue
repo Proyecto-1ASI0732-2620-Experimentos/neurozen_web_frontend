@@ -1,395 +1,151 @@
 <template>
-  <div class="purchase-container">
-    <!-- Toast Notification -->
-    <ToastComponent
-      ref="toast"
-      :message="$t('subscriptions.purchase.success')"
-      :subtitle="$t('subscriptions.purchase.redirecting')"
-      type="success"
-    />
+  <div class="nz-page max-w-4xl">
+    <PageHeader :title="$t('subscriptions.purchase.title')" :subtitle="$t('subscriptions.purchase.description')" back="/subscriptions" />
 
-    <div class="min-h-screen bg-gradient-to-b from-green-50 to-white py-12 px-4">
-      <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-12">
-          <h1 class="text-4xl font-bold text-gray-800 mb-4">
-            {{ $t('subscriptions.purchase.title') }}
-          </h1>
-          <p class="text-gray-600">
-            {{ $t('subscriptions.purchase.description') }}
-          </p>
-        </div>
+    <EmptyState v-if="!planValid" icon="fas fa-circle-question" :title="$t('subscriptions.purchase.notSpecified')" :message="$t('subscriptions.purchase.choosePlan')">
+      <router-link :to="{ name: 'Subscriptions' }" class="nz-btn-primary mt-2">{{ $t('subscriptions.purchase.backToPlans') }}</router-link>
+    </EmptyState>
 
-        <!-- Plan Selected -->
-        <div class="bg-white rounded-2xl shadow-lg p-8 border-2 border-green-500 mb-8">
-          <div class="flex justify-between items-center">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-800 mb-2">
-                {{ planName }}
-              </h2>
-              <p class="text-gray-600">{{ $t('subscriptions.purchase.plan') }}</p>
-            </div>
-
-            <div class="text-right">
-              <p class="text-3xl font-bold text-green-600">
-                {{ planPrice }}
-              </p>
-              <p class="text-sm text-gray-500">{{ $t('subscriptions.purchase.perMonth') }}</p>
-            </div>
+    <div v-else class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <form class="nz-card space-y-6 p-5 sm:p-6" novalidate @submit.prevent="handleSubmit">
+        <fieldset class="grid gap-4 sm:grid-cols-2">
+          <legend class="mb-3 text-lg font-bold">{{ $t('subscriptions.purchase.paymentInfo') }}</legend>
+          <div>
+            <label class="nz-label" for="p-first">{{ $t('subscriptions.purchase.form.name') }}</label>
+            <input id="p-first" v-model.trim="form.firstName" autocomplete="given-name" class="nz-input" :class="{ 'nz-input-error': errors.firstName }" />
+            <p v-if="errors.firstName" class="nz-field-error">{{ errors.firstName }}</p>
           </div>
-        </div>
-
-        <!-- Purchase Form -->
-        <div class="bg-white rounded-2xl shadow-lg p-8">
-          <h3 class="text-2xl font-semibold text-gray-800 mb-6">
-            {{ $t('subscriptions.purchase.paymentInfo') }}
-          </h3>
-
-          <form @submit.prevent="handleSubmit" class="space-y-6">
-            <!-- Personal Information -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label
-                  for="firstName"
-                  class="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  {{ $t('subscriptions.purchase.form.name') }}
-                </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  v-model="form.firstName"
-                  required
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                  :placeholder="$t('subscriptions.purchase.form.namePlaceholder')"
-                />
-              </div>
-              <div>
-                <label
-                  for="lastName"
-                  class="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  {{ $t('subscriptions.purchase.form.lastName') }}
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  v-model="form.lastName"
-                  required
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                  :placeholder="$t('subscriptions.purchase.form.lastNamePlaceholder')"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                for="email"
-                class="block text-sm font-medium text-gray-700 mb-2"
-              >
-                {{ $t('subscriptions.purchase.form.email') }}
-              </label>
-              <input
-                type="email"
-                id="email"
-                v-model="form.email"
-                required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                :placeholder="$t('subscriptions.purchase.form.emailPlaceholder')"
-              />
-            </div>
-
-            <!-- Card Information -->
-            <div class="border-t pt-6">
-              <h4 class="text-lg font-semibold text-gray-800 mb-4">
-                {{ $t('subscriptions.purchase.cardInfo') }}
-              </h4>
-
-              <div class="space-y-4">
-                <div>
-                  <label
-                    for="cardNumber"
-                    class="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    {{ $t('subscriptions.purchase.form.card') }}
-                  </label>
-                  <input
-                    type="text"
-                    id="cardNumber"
-                    v-model="form.cardNumber"
-                    @input="formatCardNumber"
-                    required
-                    maxlength="19"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                    :placeholder="$t('subscriptions.purchase.form.cardPlaceholder')"
-                  />
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      for="expiry"
-                      class="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      {{ $t('subscriptions.purchase.form.expiry') }}
-                    </label>
-                    <input
-                      type="text"
-                      id="expiry"
-                      v-model="form.expiry"
-                      @input="formatExpiry"
-                      required
-                      maxlength="5"
-                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                      :placeholder="$t('subscriptions.purchase.form.expiryPlaceholder')"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      for="cvv"
-                      class="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      {{ $t('subscriptions.purchase.form.cvv') }}
-                    </label>
-                    <input
-                      type="text"
-                      id="cvv"
-                      v-model="form.cvv"
-                      @input="formatCVV"
-                      required
-                      maxlength="4"
-                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                      :placeholder="$t('subscriptions.purchase.form.cvvPlaceholder')"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button
-              type="submit"
-              :disabled="processing"
-              class="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              <span v-if="!processing">{{ $t('subscriptions.purchase.form.submit') }}</span>
-              <span v-else class="flex items-center justify-center gap-2">
-                <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Procesando...
-              </span>
-            </button>
-          </form>
-
-          <!-- Security Info -->
-          <div class="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-            <span>{{ $t('subscriptions.purchase.securePayment') }}</span>
+          <div>
+            <label class="nz-label" for="p-last">{{ $t('subscriptions.purchase.form.lastName') }}</label>
+            <input id="p-last" v-model.trim="form.lastName" autocomplete="family-name" class="nz-input" :class="{ 'nz-input-error': errors.lastName }" />
+            <p v-if="errors.lastName" class="nz-field-error">{{ errors.lastName }}</p>
           </div>
-        </div>
+          <div class="sm:col-span-2">
+            <label class="nz-label" for="p-email">{{ $t('subscriptions.purchase.form.email') }}</label>
+            <input id="p-email" v-model.trim="form.email" type="email" autocomplete="email" class="nz-input" :class="{ 'nz-input-error': errors.email }" />
+            <p v-if="errors.email" class="nz-field-error">{{ errors.email }}</p>
+          </div>
+        </fieldset>
 
-        <!-- Back Link -->
-        <div class="text-center mt-8">
-          <router-link
-            to="/subscriptions"
-            class="text-green-600 hover:text-green-700 font-medium transition-colors duration-200"
-          >
-            ← {{ $t('subscriptions.purchase.backToPlans') }}
-          </router-link>
-        </div>
-      </div>
+        <fieldset class="grid grid-cols-2 gap-4 border-t border-[#EEE9DD] pt-6">
+          <legend class="sr-only">{{ $t('subscriptions.purchase.cardInfo') }}</legend>
+          <p class="col-span-2 -mt-1 text-lg font-bold" aria-hidden="true">{{ $t('subscriptions.purchase.cardInfo') }}</p>
+          <div class="col-span-2">
+            <label class="nz-label" for="p-card">{{ $t('subscriptions.purchase.form.card') }}</label>
+            <input id="p-card" v-model="form.cardNumber" inputmode="numeric" autocomplete="cc-number" maxlength="23" class="nz-input font-mono tracking-wider"
+              :class="{ 'nz-input-error': errors.cardNumber }" :placeholder="$t('subscriptions.purchase.form.cardPlaceholder')" @input="formatCardNumber" />
+            <p v-if="errors.cardNumber" class="nz-field-error">{{ errors.cardNumber }}</p>
+          </div>
+          <div>
+            <label class="nz-label" for="p-exp">{{ $t('subscriptions.purchase.form.expiry') }}</label>
+            <input id="p-exp" v-model="form.expiry" inputmode="numeric" autocomplete="cc-exp" maxlength="5" class="nz-input font-mono"
+              :class="{ 'nz-input-error': errors.expiry }" :placeholder="$t('subscriptions.purchase.form.expiryPlaceholder')" @input="formatExpiry" />
+            <p v-if="errors.expiry" class="nz-field-error">{{ errors.expiry }}</p>
+          </div>
+          <div>
+            <label class="nz-label" for="p-cvv">{{ $t('subscriptions.purchase.form.cvv') }}</label>
+            <input id="p-cvv" v-model="form.cvv" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" class="nz-input font-mono"
+              :class="{ 'nz-input-error': errors.cvv }" :placeholder="$t('subscriptions.purchase.form.cvvPlaceholder')" @input="form.cvv = form.cvv.replace(/\D/g, '')" />
+            <p v-if="errors.cvv" class="nz-field-error">{{ errors.cvv }}</p>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="nz-btn-primary w-full py-3 text-base" :disabled="processing">
+          <span v-if="processing" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+          {{ processing ? $t('subscriptions.purchase.processing') : $t('subscriptions.purchase.form.submit') }}
+        </button>
+        <p class="flex items-center justify-center gap-2 text-xs text-muted-light"><i class="fas fa-lock" aria-hidden="true"></i>{{ $t('subscriptions.purchase.securePayment') }}</p>
+      </form>
+
+      <aside class="nz-card h-fit p-5">
+        <p class="text-sm text-muted-light">{{ $t('subscriptions.purchase.plan') }}</p>
+        <p class="text-xl font-extrabold text-primary">{{ $t(`subscriptions.plans.${planKey}.name`) }}</p>
+        <p class="mt-4 text-3xl font-extrabold">{{ $t(`subscriptions.plans.${planKey}.price`) }}</p>
+        <p class="text-sm text-muted-light">{{ $t('subscriptions.purchase.perMonth') }}</p>
+        <router-link :to="{ name: 'Subscriptions' }" class="mt-4 inline-block text-sm font-semibold text-primary hover:underline">{{ $t('subscriptions.purchase.changePlan') }}</router-link>
+      </aside>
     </div>
   </div>
 </template>
 
 <script>
-import ToastComponent from '../components/ToastComponent.vue';
-import { HttpClient } from '../../services/HttpClient.js';
+/**
+ * PurchaseComponent - Compra de suscripción.
+ * Cambios: validación (Luhn, vencimiento, CVV, email), errores inline y por toast
+ * en lugar de alert(), el precio ya no se toma de la URL (manipulable), y los
+ * datos de tarjeta no se escriben en consola ni se conservan tras el envío.
+ * Dependencia del backend: el contrato exige número completo y CVV.
+ */
+import PageHeader from '../../components/ui/PageHeader.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
+import { SubscriptionService, PLAN_IDS } from '../../services/SubscriptionService.js'
+import { session, getUserId } from '../../services/session.js'
+import { toast } from '../../composables/useToast.js'
+import { isEmail, isCardNumber, isFutureExpiry, isCvv } from '../../utils/validation.js'
 
 export default {
   name: 'PurchaseComponent',
-  components: {
-    ToastComponent
-  },
+  components: { PageHeader, EmptyState },
   data() {
+    const user = session.user || {}
     return {
-      planKey: '',
-      planPrice: '',
+      service: new SubscriptionService(),
       processing: false,
-      form: {
-        firstName: '',
-        lastName: '',
-        email: '',
-        cardNumber: '',
-        expiry: '',
-        cvv: ''
-      }
+      errors: {},
+      form: { firstName: user.firstName || '', lastName: user.lastName || '', email: user.email || '', cardNumber: '', expiry: '', cvv: '' }
     }
   },
   computed: {
-    planName() {
-      if (!this.planKey) return this.$t('subscriptions.purchase.notSpecified');
-      
-      // Normalize the plan key to lowercase for comparison
-      const normalizedKey = this.planKey.toLowerCase().trim();
-      
-      // Map plan keys to translation keys
-      const planMap = {
-        'basic': 'subscriptions.plans.basic.name',
-        'básico': 'subscriptions.plans.basic.name',
-        'advanced': 'subscriptions.plans.advanced.name',
-        'avanzado': 'subscriptions.plans.advanced.name',
-        'professional': 'subscriptions.plans.professional.name',
-        'profesional': 'subscriptions.plans.professional.name'
-      };
-      
-      const translationKey = planMap[normalizedKey];
-      
-      if (translationKey) {
-        return this.$t(translationKey);
-      }
-      
-      // If no match found, return the original key
-      return this.planKey;
+    planKey() {
+      const raw = String(this.$route.query.plan || '').toLowerCase()
+      return { básico: 'basic', avanzado: 'advanced', profesional: 'professional' }[raw] || raw
+    },
+    planValid() {
+      return !!PLAN_IDS[this.planKey]
     }
-  },
-  mounted() {
-    // Get URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    this.planKey = urlParams.get('plan') || '';
-    this.planPrice = urlParams.get('price') || '$0';
-    
-    // Debug: log what we received
-    console.log('Plan key received:', this.planKey);
-    console.log('Plan price received:', this.planPrice);
-    
-    // Update page title
-    document.title = `${this.$t('subscriptions.purchase.title')} - NeuroZen`;
   },
   methods: {
     formatCardNumber() {
-      let value = this.form.cardNumber.replace(/\s/g, '');
-      let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-      this.form.cardNumber = formattedValue;
+      const digits = this.form.cardNumber.replace(/\D/g, '').slice(0, 19)
+      this.form.cardNumber = digits.replace(/(.{4})/g, '$1 ').trim()
     },
     formatExpiry() {
-      let value = this.form.expiry.replace(/\D/g, '');
-      if (value.length >= 2) {
-        value = value.slice(0, 2) + '/' + value.slice(2, 4);
-      }
-      this.form.expiry = value;
+      let v = this.form.expiry.replace(/\D/g, '').slice(0, 4)
+      if (v.length >= 3) v = `${v.slice(0, 2)}/${v.slice(2)}`
+      this.form.expiry = v
     },
-    formatCVV() {
-      this.form.cvv = this.form.cvv.replace(/\D/g, '');
+    validate() {
+      const e = {}
+      const f = this.form
+      if (!f.firstName) e.firstName = this.$t('validation.required')
+      if (!f.lastName) e.lastName = this.$t('validation.required')
+      if (!isEmail(f.email)) e.email = this.$t('validation.email')
+      if (!isCardNumber(f.cardNumber)) e.cardNumber = this.$t('validation.card')
+      if (!isFutureExpiry(f.expiry)) e.expiry = this.$t('validation.expiry')
+      if (!isCvv(f.cvv)) e.cvv = this.$t('validation.cvv')
+      this.errors = e
+      return !Object.keys(e).length
     },
     async handleSubmit() {
-      if (this.processing) return;
-      
-      this.processing = true;
-      
+      if (this.processing || !this.validate()) return
+      this.processing = true
       try {
-        // Obtener userId del usuario autenticado
-        const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
-        const userId = user.id;
-        
-        if (!userId) {
-          alert('Error: No se encontró el ID de usuario. Por favor inicia sesión nuevamente.');
-          this.processing = false;
-          return;
-        }
-        
-        // Mapear planKey a planId
-        const planIdMap = {
-          'basic': 1,
-          'básico': 1,
-          'advanced': 2,
-          'avanzado': 2,
-          'professional': 3,
-          'profesional': 3
-        };
-        
-        const normalizedPlanKey = this.planKey.toLowerCase().trim();
-        const planId = planIdMap[normalizedPlanKey];
-        
-        if (!planId) {
-          alert('Error: Plan no válido');
-          this.processing = false;
-          return;
-        }
-        
-        // Preparar datos para el POST según el formato del backend
-        const subscriptionData = {
-          userId: userId,
-          planId: planId,
-          nameUser: this.form.firstName,
-          lastNameUser: this.form.lastName,
-          emailUser: this.form.email,
-          numberCard: this.form.cardNumber.replace(/\s/g, ''), // Quitar espacios
-          expirationDate: this.form.expiry,
-          cvv: this.form.cvv,
-          isActive: false
-        };
-        
-        console.log('=== DEBUG SUSCRIPCIÓN ===');
-        console.log('Enviando POST a /api/v1/subscriptions');
-        console.log('Datos enviados:', subscriptionData);
-        
-        // Enviar POST al backend
-        const httpClient = new HttpClient();
-        const response = await httpClient.post('/api/v1/subscriptions', subscriptionData);
-        
-        console.log('✅ Respuesta del backend:', response);
-        console.log('=== FIN DEBUG ===');
-        
-        // Mostrar toast de éxito
-        this.$refs.toast.show(2000);
-        
-        // Redirigir al dashboard después del toast
-        setTimeout(() => {
-          this.$router.push('/dashboard');
-        }, 2300);
-        
+        await this.service.subscribe({ userId: getUserId(), planKey: this.planKey, ...this.form })
+        this.form.cardNumber = ''
+        this.form.cvv = ''
+        this.form.expiry = ''
+        toast.success(this.$t('subscriptions.purchase.success'))
+        this.$router.push({ name: 'UserProfile' })
       } catch (error) {
-        console.error('❌ Error al crear suscripción:', error);
-        
-        // Manejar error específico de suscripción activa
-        const errorMessage = error.message || '';
-        
-        if (errorMessage.includes('suscripción activa') || errorMessage.includes('active subscription')) {
-          alert('Ya tienes una suscripción activa.\n\nPor favor cancela tu suscripción actual en "Mi Cuenta" antes de suscribirte a un nuevo plan.');
-        } else if (errorMessage.includes('400')) {
-          alert('Error en los datos enviados. Por favor verifica la información de tu tarjeta.');
-        } else if (errorMessage.includes('401')) {
-          alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
-          this.$router.push('/login');
-        } else {
-          alert(`Error al procesar la suscripción:\n${errorMessage || 'Error desconocido'}`);
-        }
+        this.form.cvv = ''
+        const text = String(error.message || '')
+        if (/suscripci[oó]n activa|active subscription/i.test(text)) toast.error(this.$t('subscriptions.purchase.alreadyActive'))
+        else if (error.status === 400) toast.error(this.$t('subscriptions.purchase.invalidData'))
+        else if (error.status !== 401) toast.error(text || this.$t('errors.unknown'))
       } finally {
-        this.processing = false;
+        this.processing = false
       }
     }
   }
 }
 </script>
-
-<style scoped>
-.purchase-container {
-  min-height: 100vh;
-}
-</style>

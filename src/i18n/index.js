@@ -1,100 +1,72 @@
 /**
  * i18n/index.js - Configuración de internacionalización para NeuroZen
- * Maneja la carga asíncrona de traducciones y configuración de Vue i18n
- * 
+ * Carga las traducciones desde /public y expone utilidades para cambiar idioma.
+ *
  * @author Juan Carlos Angulo
- * @version 1.0.0
+ * @version 1.1.0
  */
 
-import { createI18n } from 'vue-i18n';
+import { createI18n } from 'vue-i18n'
 
-/**
- * Carga los archivos de traducción desde la carpeta public
- * @async
- * @function loadLocaleMessages
- * @returns {Promise<Object>} Objeto con todas las traducciones por idioma
- */
+export const SUPPORTED_LOCALES = ['es', 'en']
+const STORAGE_KEY = 'neurozen-locale'
+let i18nInstance = null
+
 async function loadLocaleMessages() {
-  const locales = ['es', 'en'];
-  const messages = {};
-  
-  for (const locale of locales) {
-    try {
-      const response = await fetch(`/${locale}.json`);
-      messages[locale] = await response.json();
-    } catch (error) {
-      console.error(`Error loading locale ${locale}:`, error);
-    }
-  }
-  
-  return messages;
+  const messages = {}
+  await Promise.all(
+    SUPPORTED_LOCALES.map(async (locale) => {
+      try {
+        const response = await fetch(`/${locale}.json`)
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        messages[locale] = await response.json()
+      } catch (error) {
+        console.error(`Error loading locale ${locale}:`, error)
+        messages[locale] = {}
+      }
+    })
+  )
+  return messages
 }
 
-/**
- * Determina el idioma por defecto de la aplicación
- * Prioriza localStorage, luego el navegador, con fallback a español
- * @function getDefaultLocale
- * @returns {string} Código del idioma por defecto ('es' o 'en')
- */
 function getDefaultLocale() {
-  // Intentar obtener del localStorage primero
-  const saved = localStorage.getItem('neurozen-locale');
-  if (saved) return saved;
-  
-  // Luego del navegador
-  const browserLang = navigator.language.split('-')[0];
-  return ['es', 'en'].includes(browserLang) ? browserLang : 'es';
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved && SUPPORTED_LOCALES.includes(saved)) return saved
+  const browserLang = (navigator.language || 'es').split('-')[0]
+  return SUPPORTED_LOCALES.includes(browserLang) ? browserLang : 'es'
 }
 
-/**
- * Crea e inicializa la instancia de Vue i18n
- * @async
- * @function createI18nInstance
- * @returns {Promise<Object>} Instancia configurada de Vue i18n
- */
 export async function createI18nInstance() {
-  const messages = await loadLocaleMessages();
-  const locale = getDefaultLocale();
-  
-  return createI18n({
+  const messages = await loadLocaleMessages()
+  const locale = getDefaultLocale()
+  document.documentElement.lang = locale
+
+  i18nInstance = createI18n({
     legacy: true,
     locale,
     fallbackLocale: 'es',
     messages,
-    globalInjection: true
-  });
+    globalInjection: true,
+    missingWarn: false,
+    fallbackWarn: false
+  })
+  return i18nInstance
 }
 
-/**
- * Cambia el idioma de la aplicación
- * Actualiza i18n, localStorage y el atributo lang del documento
- * @function setLocale
- * @param {Object} i18n - Instancia de Vue i18n
- * @param {string} locale - Código del nuevo idioma ('es' o 'en')
- */
-export function setLocale(i18n, locale) {
-  try {
-    // Múltiples métodos para asegurar compatibilidad
-    if (i18n.global?.locale?.value) {
-      i18n.global.locale.value = locale;
-    } else if (i18n.locale?.value) {
-      i18n.locale.value = locale;
-    } else if (i18n.global?.locale) {
-      i18n.global.locale = locale;
-    } else if (i18n.locale) {
-      i18n.locale = locale;
-    }
-    
-    // Persistir en localStorage
-    localStorage.setItem('neurozen-locale', locale);
-    
-    // Actualizar atributo lang del documento
-    document.documentElement.lang = locale;
-    
-    console.log('Locale set to:', locale);
-    console.log('i18n instance:', i18n);
-    
-  } catch (error) {
-    console.error('Error setting locale:', error);
-  }
+/** Idioma activo ('es' | 'en') */
+export function getLocale() {
+  return i18nInstance ? i18nInstance.global.locale : getDefaultLocale()
+}
+
+/** Cambia el idioma, lo persiste y actualiza <html lang>. */
+export function setLocale(locale) {
+  if (!SUPPORTED_LOCALES.includes(locale) || !i18nInstance) return
+  i18nInstance.global.locale = locale
+  localStorage.setItem(STORAGE_KEY, locale)
+  document.documentElement.lang = locale
+}
+
+/** Traducción fuera de componentes (servicios, composables). */
+export function t(key, params) {
+  return i18nInstance ? i18nInstance.global.t(key, params) : key
 }

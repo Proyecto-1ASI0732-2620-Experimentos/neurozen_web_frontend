@@ -1,108 +1,122 @@
+/* =====================================================================
+   NeuroZen — capa de estilos global
+   Tailwind se compila en build (antes CDN). Aquí viven los tokens de
+   marca y los estilos base compartidos (foco, botones, tarjetas).
+   La identidad original se conserva: verde bosque #2D5A4A, beige #F1E9D4,
+   tipografía Manrope.
+   ===================================================================== */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-    /* ====================================
-       1. Colores de Marca (Brand Colors)
-       ==================================== */
-    --color-primary: #2D5A4A;      /* Verde Bosque (Acción Principal) */
-    --color-secondary: #1A6F78;    /* Turquesa Profundo (Interactivo) */
-    --color-tertiary: #A2C4B5;     /* Verde Menta (Soporte) */
-    --color-background: #faf6f6;   /* Beige Cálido (Fondo Principal) */
-    --color-surface: #FFFFFF;      /* Superficies de Componentes (Tarjetas, Modales) */
+  /* Marca */
+  --color-primary: #2D5A4A;
+  --color-primary-strong: #234739;
+  --color-primary-soft: rgba(45, 90, 74, 0.08);
+  --color-secondary: #1A6F78;
+  --color-tertiary: #A2C4B5;
+  --color-background: #F7F3EA;
+  --color-background-auth: #F1E9D4;
+  --color-surface: #FFFFFF;
+  --color-border: #E3DED2;
 
-    /* Colores de Texto */
-    --color-text-primary: #333333;  /* Texto principal oscuro */
-    --color-text-secondary: #8C9893; /* Gris Piedra (Texto secundario, Captions) */
-    --color-text-on-primary: #FFFFFF; /* Texto sobre el color primario (blanco) */
+  /* Texto */
+  --color-text-primary: #1F2A26;
+  --color-text-secondary: #5B6762;
+  --color-text-on-primary: #FFFFFF;
 
-    /* Colores de Feedback (para notificaciones y estados) */
-    --color-success: #4CAF50;     /* Verde para éxito/logro */
-    --color-warning: #FFC107;     /* Amarillo para advertencias */
-    --color-error: #F44336;       /* Rojo para errores */
+  /* Feedback */
+  --color-success: #2E7D4F;
+  --color-warning: #B7791F;
+  --color-error: #C0392B;
 
-    /* ====================================
-       2. Tipografía y Espaciado
-       ==================================== */
-    /* Tipografía */
-    --font-family-sans: 'Open Sans', 'Arial', sans-serif;
-    --font-size-base: 16px;
+  /* Forma y espacio */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(31, 42, 38, 0.06);
+  --shadow-md: 0 4px 16px rgba(31, 42, 38, 0.08);
+  --header-height: 68px;
 
-    /* Radio de Bordes */
-    --border-radius-sm: 4px;
-    --border-radius-md: 8px;      /* Típico para tarjetas y contenedores */
-    --border-radius-lg: 24px;     /* Para botones prominentes y cápsulas */
-
-    /* Espaciado (Basado en una escala de 8px) */
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-xl: 32px;
-    --spacing-xxl: 48px;
-}
-html, body, h1, h2, h3, h4, h5, h6, p, blockquote, pre {
-    font-family: var(--font-family-sans);
-    margin: 0;
-    padding: 0;
-}
-/* Display y Dirección */
-.util-flex {
-    display: flex;
+  /* Compatibilidad con variables antiguas usadas en componentes */
+  --primary-color: var(--color-primary);
+  --border-radius: var(--radius-md);
+  --font-family-sans: 'Manrope', system-ui, sans-serif;
 }
 
-.util-flex-col {
-    display: flex;
-    flex-direction: column;
+html {
+  font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--color-text-primary);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-padding-top: calc(var(--header-height) + 12px);
 }
 
-/* Alineación Horizontal (Eje principal) */
-.util-justify-start {
-    justify-content: flex-start;
-}
-.util-justify-center {
-    justify-content: center;
-}
-.util-justify-end {
-    justify-content: flex-end;
-}
-.util-justify-between {
-    justify-content: space-between; /* Ideal para header: logo a un lado, perfil al otro */
+body { margin: 0; background: var(--color-background); }
+
+/* Los componentes antiguos declaran 'Open Sans' / Arial: se unifica en Manrope */
+body, button, input, select, textarea { font-family: inherit; }
+
+h1, h2, h3, h4 { letter-spacing: -0.01em; }
+
+/* Foco visible y consistente para teclado */
+:focus { outline: none; }
+:focus-visible {
+  outline: 3px solid rgba(26, 111, 120, 0.55);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* Alineación Vertical (Eje cruzado) */
-.util-align-start {
-    align-items: flex-start;
+/* Elementos deshabilitados */
+button:disabled, [aria-disabled='true'] { cursor: not-allowed; }
+
+/* Movimiento reducido (sistema o preferencia de Ajustes) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
-.util-align-center {
-    align-items: center; /* Centrado vertical de elementos */
-}
-.util-align-end {
-    align-items: flex-end;
+html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+  animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important;
 }
 
-/* Centrado Completo (para modales o elementos clave) */
-.util-center-all {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Alto contraste (preferencia de Ajustes) */
+html.high-contrast { --color-text-secondary: #26302c; --color-border: #8a948f; }
+html.high-contrast body { color: #000; }
+
+/* Iconos Material Symbols servidos localmente */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  line-height: 1;
+  vertical-align: middle;
 }
 
-/* Elementos flexibles */
-.util-grow {
-    flex-grow: 1; /* Permite que un elemento ocupe todo el espacio disponible */
-}
-/* Tarjetas */
-.util-card {
-    background-color: var(--color-surface);
-    border-radius: var(--border-radius-md);
-    padding: var(--spacing-md);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Sombra suave para un look limpio */
-}
+/* Barra de desplazamiento discreta */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cfd6d2; border-radius: 8px; border: 2px solid var(--color-background); }
+::-webkit-scrollbar-thumb:hover { background: #aab6b0; }
 
-/* Botones Primarios (Verde Bosque) */
-.util-btn-primary {
-    background-color: var(--color-primary);
-    color: var(--color-text-on-primary);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-sm) var(--spacing-xl);
-    text-align: center;
-    /* ... estilos de hover, etc. ... */
+@layer components {
+  /* Botones de la marca */
+  .nz-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold transition-colors duration-150 disabled:opacity-50;
+  }
+  .nz-btn-primary { @apply nz-btn bg-primary text-white hover:bg-primary-strong; }
+  .nz-btn-secondary { @apply nz-btn border border-primary/30 bg-white text-primary hover:bg-primary/5; }
+  .nz-btn-ghost { @apply nz-btn text-primary hover:bg-primary/10; }
+  .nz-btn-danger { @apply nz-btn bg-red-700 text-white hover:bg-red-800; }
+
+  /* Tarjeta base */
+  .nz-card { @apply rounded-xl border border-[#E3DED2] bg-white shadow-[0_1px_2px_rgba(31,42,38,0.06)]; }
+
+  /* Campos de formulario */
+  .nz-label { @apply mb-1.5 block text-sm font-semibold text-foreground-light; }
+  .nz-input { @apply w-full rounded-lg border-[#D6D2C7] bg-white px-3.5 py-2.5 text-sm text-foreground-light placeholder:text-muted-light focus:border-primary focus:ring-primary disabled:bg-gray-50; }
+  .nz-input-error { @apply border-red-600 focus:border-red-600 focus:ring-red-600; }
+  .nz-field-error { @apply mt-1 text-xs font-medium text-red-700; }
+  .nz-hint { @apply mt-1 text-xs text-muted-light; }
+
+  /* Contenedor de página */
+  .nz-page { @apply mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8; }
 }

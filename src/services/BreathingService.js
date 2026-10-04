@@ -1,120 +1,41 @@
-import { HttpClient } from './HttpClient.js';
+/**
+ * BreathingService - Ejercicios de respiración y registro de sesiones.
+ *
+ * La API .NET no expone un endpoint de sesiones de respiración, así que las
+ * sesiones completadas se guardan en el historial local del usuario.
+ * (Antes el componente llamaba a this.breathingService sin crearlo y nada se guardaba.)
+ */
+import { readUserData, writeUserData } from './session.js'
+
+const HISTORY_KEY = 'neurozen_breathing_sessions'
+
+/** Patrones en segundos por fase */
+export const BREATHING_EXERCISES = [
+  { id: 1, key: 'mindful', duration: 300, difficulty: 'beginner', pattern: { inhale: 4, 'hold-in': 4, exhale: 6, 'hold-out': 0 } },
+  { id: 2, key: 'box', duration: 240, difficulty: 'intermediate', pattern: { inhale: 4, 'hold-in': 4, exhale: 4, 'hold-out': 4 } },
+  { id: 3, key: 'fourSevenEight', duration: 180, difficulty: 'advanced', pattern: { inhale: 4, 'hold-in': 7, exhale: 8, 'hold-out': 0 } }
+]
 
 export class BreathingService {
-  constructor() {
-    this.httpClient = new HttpClient();
+  getExercises() {
+    return BREATHING_EXERCISES
   }
 
-  async getBreathingExercises() {
-    try {
-      const exercises = await this.httpClient.get('/breathingExercises');
-      return exercises;
-    } catch (error) {
-      throw new Error('Failed to fetch breathing exercises: ' + error.message);
-    }
+  getHistory() {
+    return readUserData(HISTORY_KEY, [])
   }
 
-  async getBreathingExercise(id) {
-    try {
-      const exercises = await this.httpClient.get('/breathingExercises');
-      const exercise = exercises.find(ex => ex.id.toString() === id.toString());
-      
-      if (exercise) {
-        return exercise;
-      } else {
-        throw new Error('Breathing exercise not found');
-      }
-    } catch (error) {
-      throw new Error('Failed to fetch breathing exercise: ' + error.message);
-    }
-  }
-
-  // Mock breathing session state management
-  createBreathingSession(exerciseId, duration = 300) {
-    return {
-      id: Date.now().toString(),
+  saveSession({ exerciseId, duration, mood = null, notes = '' }) {
+    const entry = {
+      id: Date.now(),
       exerciseId,
-      duration, // in seconds
-      currentTime: 0,
-      isPlaying: false,
-      isCompleted: false,
-      breathingCycle: {
-        phase: 'inhale', // 'inhale', 'hold', 'exhale', 'pause'
-        cycleTime: 0,
-        inhaleTime: 4,
-        holdTime: 4,
-        exhaleTime: 6,
-        pauseTime: 2
-      }
-    };
-  }
-
-  updateSessionTime(session, elapsedSeconds) {
-    session.currentTime = Math.min(session.currentTime + elapsedSeconds, session.duration);
-    session.isCompleted = session.currentTime >= session.duration;
-    return session;
-  }
-
-  updateBreathingCycle(session) {
-    const { breathingCycle } = session;
-    const totalCycleTime = breathingCycle.inhaleTime + breathingCycle.holdTime + 
-                          breathingCycle.exhaleTime + breathingCycle.pauseTime;
-    
-    breathingCycle.cycleTime = (breathingCycle.cycleTime + 1) % totalCycleTime;
-    
-    if (breathingCycle.cycleTime < breathingCycle.inhaleTime) {
-      breathingCycle.phase = 'inhale';
-    } else if (breathingCycle.cycleTime < breathingCycle.inhaleTime + breathingCycle.holdTime) {
-      breathingCycle.phase = 'hold';
-    } else if (breathingCycle.cycleTime < breathingCycle.inhaleTime + breathingCycle.holdTime + breathingCycle.exhaleTime) {
-      breathingCycle.phase = 'exhale';
-    } else {
-      breathingCycle.phase = 'pause';
+      duration,
+      mood,
+      notes: notes.trim().slice(0, 500),
+      completedAt: new Date().toISOString()
     }
-    
-    return session;
-  }
-
-  formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }
-
-  getPhaseInstruction(phase) {
-    const instructions = {
-      inhale: 'Inhala profundamente',
-      hold: 'Mantén el aire',
-      exhale: 'Exhala lentamente',
-      pause: 'Pausa suavemente'
-    };
-    return instructions[phase] || 'Respira naturalmente';
-  }
-
-  // Additional methods used by components
-  async getExercises() {
-    return this.getBreathingExercises();
-  }
-
-  async saveSession(userId, sessionData) {
-    try {
-      const session = {
-        userId,
-        exerciseId: sessionData.exerciseId,
-        duration: sessionData.duration,
-        completedCycles: sessionData.completedCycles,
-        startTime: sessionData.startTime,
-        endTime: sessionData.endTime,
-        rating: sessionData.rating || null,
-        notes: sessionData.notes || '',
-        timestamp: new Date().toISOString()
-      };
-      
-      // Save to sessions endpoint
-      const savedSession = await this.httpClient.post('/breathingSessions', session);
-      return savedSession;
-    } catch (error) {
-      throw new Error('Failed to save breathing session: ' + error.message);
-    }
+    const history = [entry, ...this.getHistory()].slice(0, 200)
+    writeUserData(HISTORY_KEY, history)
+    return entry
   }
 }

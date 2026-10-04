@@ -12,7 +12,10 @@
     "settings": "Settings",
     "logout": "Logout",
     "login": "Login",
-    "register": "Register"
+    "register": "Register",
+    "bookSession": "Book a session",
+    "directory": "Directory",
+    "myAppointments": "My appointments"
   },
   "header": {
     "notifications": "Notifications",
@@ -20,7 +23,16 @@
     "settings": "Settings",
     "help": "Help",
     "logout": "Logout",
-    "language": "Language"
+    "language": "Language",
+    "account": "Account",
+    "defaultUser": "User",
+    "goHome": "Go to home",
+    "mainNav": "Main navigation",
+    "nextAppointment": "Next appointment",
+    "nextBreak": "Next active break today",
+    "noNotifications": "You have no notifications",
+    "openMenu": "Open menu",
+    "userMenu": "User menu"
   },
   "footer": {
     "company": "NeuroZen",
@@ -46,7 +58,9 @@
       "instagram": "Instagram",
       "linkedin": "LinkedIn"
     },
-    "copyright": "© 2025 NeuroZen. All rights reserved."
+    "copyright": "© 2025 NeuroZen. All rights reserved.",
+    "backToTop": "Back to top",
+    "explore": "Explore"
   },
   "onboarding": {
     "steps": {
@@ -63,8 +77,10 @@
       "getStarted": "Get Started",
       "next": "Next",
       "skip": "Skip",
-      "finish": "Go to Login"
-    }
+      "finish": "Start",
+      "start": "Start"
+    },
+    "title": "Welcome"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -90,7 +106,7 @@
       "week": "Week",
       "month": "Month",
       "week1": "Week 1",
-      "week2": "Week 2", 
+      "week2": "Week 2",
       "week3": "Week 3",
       "week4": "Week 4"
     },
@@ -141,6 +157,10 @@
       "settings": {
         "title": "Settings",
         "description": "Application settings"
+      },
+      "myAppointments": {
+        "title": "My appointments",
+        "description": "See your upcoming sessions"
       }
     },
     "insights": {
@@ -150,7 +170,11 @@
     "errors": {
       "loadingData": "Error loading dashboard data: {error}",
       "updatingData": "Error updating data: {error}"
-    }
+    },
+    "demoNotice": "Not enough records yet: sample data is shown.",
+    "demoCta": "Log your first trigger",
+    "periodLabel": "Period",
+    "vsPrevious": "vs. previous period"
   },
   "auth": {
     "login": {
@@ -165,7 +189,10 @@
       "rememberMe": "Remember me",
       "welcomeBack": "Welcome back",
       "emailPlaceholder": "Email address",
-      "passwordPlaceholder": "Password"
+      "passwordPlaceholder": "Password",
+      "subtitle": "Sign in to continue your wellbeing journey.",
+      "sessionExpired": "Your session expired. Please sign in again.",
+      "forgotPasswordInfo": "Password recovery isn't available yet. Contact us from Settings > About > Contact support."
     },
     "register": {
       "title": "Create Account",
@@ -181,7 +208,22 @@
       "stepProgress": "Step {current} of {total}",
       "namePlaceholder": "Your Full Name",
       "emailPlaceholder": "your{'@'}email.com",
-      "passwordPlaceholder": "••••••••"
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "At least 6 characters.",
+      "successLogin": "Account created. Now sign in."
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "brand": {
+      "headline": "Manage work stress with tools that fit into your day.",
+      "point1": "Guided breathing and active breaks",
+      "point2": "Log what stresses you and spot your patterns",
+      "point3": "Book sessions with mental health professionals"
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect email or password.",
+      "invalidResponse": "The server didn't return a valid session. Try again.",
+      "emailInUse": "An account with this email already exists."
     }
   },
   "stress": {
@@ -249,7 +291,10 @@
           "prevention": "Prevention",
           "exercises": "Exercises",
           "desk": "Desk"
-        }
+        },
+        "subtitle": "Audio, videos, readings and exercises for your wellbeing.",
+        "demoNotice": "Couldn't reach the server: sample resources are shown.",
+        "resultsSummary": "{count} result | {count} results"
       }
     },
     "triggers": {
@@ -286,7 +331,14 @@
         "difficultClient": "Difficult client",
         "organizationalChanges": "Organizational changes",
         "other": "Other"
-      }
+      },
+      "historyTitle": "Your entries",
+      "historySubtitle": "Newest first.",
+      "emptyTitle": "No entries yet",
+      "emptyMessage": "Stressful situations you log will appear here.",
+      "deleteTitle": "Delete this entry?",
+      "deleteMessage": "This can't be undone.",
+      "deleted": "Entry deleted"
     },
     "breathing": {
       "title": "Breathing Exercises",
@@ -338,7 +390,28 @@
         "relaxed": "Relaxed",
         "veryRelaxed": "Very relaxed"
       },
-      "retry": "Retry"
+      "retry": "Retry",
+      "saved": "Session saved",
+      "historyCount": "You've completed {count} breathing sessions.",
+      "levels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "exerciseList": {
+        "mindful": {
+          "name": "Mindful breathing",
+          "description": "Deep breathing to calm the mind."
+        },
+        "box": {
+          "name": "Box breathing",
+          "description": "Four equal counts to reduce stress."
+        },
+        "fourSevenEight": {
+          "name": "4-7-8 breathing",
+          "description": "Deep relaxation, helpful before sleep."
+        }
+      }
     },
     "activeBreaks": {
       "title": "Active Breaks",
@@ -391,7 +464,15 @@
         "friday": "F",
         "saturday": "S",
         "sunday": "S"
-      }
+      },
+      "subtitle": "Schedule short breaks during your workday.",
+      "invalidHours": "End time must be after start time.",
+      "weeklyPlan": "Weekly plan",
+      "breaksPerWeek": "Breaks",
+      "localNote": "Calculated from your settings. Saved in this browser.",
+      "reasonInactive": "Active breaks are turned off.",
+      "reasonNotWorkingDay": "Today isn't a working day in your settings.",
+      "reasonOutside": "No breaks fit within your working hours."
     }
   },
   "professionals": {
@@ -406,7 +487,51 @@
       "selectProfessional": "Select Professional",
       "sessionType": "Session Type",
       "confirm": "Confirm Booking",
-      "summary": "Booking Summary"
+      "summary": "Booking Summary",
+      "with": "With {name}",
+      "wizardSubtitle": "Choose professional, date, time and session type.",
+      "progress": "Booking progress",
+      "steps": {
+        "professional": "Professional",
+        "datetime": "Date & time",
+        "sessionType": "Type",
+        "summary": "Summary"
+      },
+      "seeProfiles": "See full professional profiles",
+      "pickDateFirst": "Pick a day on the calendar first.",
+      "noSlots": "No times available on this day.",
+      "dateTime": "Date and time",
+      "notes": "Additional notes (optional)",
+      "notesPlaceholder": "Tell the professional why you're booking…",
+      "total": "Total",
+      "booking": "Booking…",
+      "phone": "Contact phone",
+      "email": "Confirmation email"
+    },
+    "book": "Book",
+    "viewProfile": "View profile",
+    "perSession": "session",
+    "ratingLabel": "Rated {rating} out of 5",
+    "directory": {
+      "title": "Professional directory",
+      "subtitle": "Psychologists and therapists specialized in work stress.",
+      "searchPlaceholder": "Search by name or specialty",
+      "specialty": "Specialty",
+      "availability": "Availability",
+      "allSpecialties": "All specialties",
+      "allAvailability": "Any availability",
+      "weekdays": "Weekdays",
+      "weekends": "Weekends",
+      "evenings": "Evenings",
+      "empty": "No matching professionals",
+      "emptyHint": "Try other filters."
+    },
+    "profile": {
+      "title": "Professional profile",
+      "biography": "Biography",
+      "reviews": "Reviews",
+      "noReviews": "No reviews yet.",
+      "rate": "Rate"
     }
   },
   "profile": {
@@ -430,7 +555,50 @@
     "save": "Save Changes",
     "generalConfiguration": "General Configuration",
     "advancedConfiguration": "Advanced Configuration",
-    "configurationSaved": "Configuration saved"
+    "configurationSaved": "Configuration saved",
+    "subtitle": "Adjust the app your way.",
+    "tabs": {
+      "general": "General",
+      "notifications": "Notifications",
+      "privacy": "Privacy & data",
+      "about": "About"
+    },
+    "display": "Display",
+    "fontSize": "Text size",
+    "reduceAnimations": "Reduce motion",
+    "reduceAnimationsHint": "Minimizes transitions and motion.",
+    "highContrast": "High contrast",
+    "highContrastHint": "Darkens secondary text and borders.",
+    "notificationsNote": "Your preferences are saved now and will apply once the reminder service is available.",
+    "sessionReminders": "Session reminders",
+    "reminderTime": "Remind me",
+    "minutesBefore": "{m} minutes before",
+    "breathingReminders": "Breathing reminders",
+    "activeBreakReminders": "Active break reminders",
+    "weeklyReport": "Weekly summary",
+    "shareAnalytics": "Share anonymous usage statistics",
+    "personalization": "Personalized recommendations",
+    "localData": "Data in this browser",
+    "localDataHint": "Favorites, breathing history, active breaks and settings are stored on this device.",
+    "exportSettings": "Export settings",
+    "clearCache": "Clear browsing history",
+    "cacheCleared": "History cleared",
+    "deleteLocalData": "Delete local data",
+    "deleteLocalDataConfirm": "Your data stored in this browser will be deleted and you'll be signed out. Your account isn't deleted.",
+    "localDataDeleted": "Local data deleted",
+    "version": "Version",
+    "demoMode": "demo mode",
+    "apiMode": "connected to the API",
+    "diagnostic": "Diagnostics",
+    "runDiagnostic": "Run diagnostics",
+    "ok": "OK",
+    "failed": "failed",
+    "checks": {
+      "internet": "Internet connection",
+      "storage": "Local storage",
+      "api": "NeuroZen server"
+    },
+    "contactSupport": "Contact support"
   },
   "payment": {
     "confirmation": {
@@ -491,7 +659,10 @@
       "Sem 2": "Week 2",
       "Sem 3": "Week 3",
       "Sem 4": "Week 4"
-    }
+    },
+    "confirm": "Confirm",
+    "errorLoadingResources": "Resources could not be loaded.",
+    "skipToContent": "Skip to content"
   },
   "userProfile": {
     "title": "My Profile",
@@ -511,7 +682,9 @@
         "female": "Female",
         "other": "Other",
         "preferNotToSay": "Prefer not to say"
-      }
+      },
+      "username": "Username",
+      "address": "Address"
     },
     "healthInfo": {
       "title": "Health Information",
@@ -557,7 +730,8 @@
       "relationship": "Relationship",
       "phone": "Phone",
       "addContact": "Add contact",
-      "removeContact": "Remove contact"
+      "removeContact": "Remove contact",
+      "empty": "You haven't added emergency contacts."
     },
     "accountActions": {
       "title": "Account Actions",
@@ -575,7 +749,22 @@
       "deleteAccountDoubleConfirm": "This action will permanently delete all your data. Continue?",
       "deleteAccountNotImplemented": "Account deletion functionality - To be implemented"
     },
-    "loading": "Loading profile..."
+    "loading": "Loading profile...",
+    "localOnly": "Only on this device",
+    "changeAvatar": "Change avatar",
+    "backendPending": "Available once the server supports it.",
+    "stats": {
+      "breathingSessions": "Breathing",
+      "completedResources": "Resources",
+      "favorites": "Favorites"
+    },
+    "subscription": {
+      "title": "Subscription",
+      "active": "Active",
+      "none": "You don't have a subscription.",
+      "pending": "{plan} plan pending activation.",
+      "viewPlans": "View plans"
+    }
   },
   "subscriptions": {
     "plans": {
@@ -620,7 +809,8 @@
         "19": "Workload & stress analytics",
         "20": "Corporate dashboard & reports",
         "21": "Priority support"
-      }
+      },
+      "recommended": "Recommended"
     },
     "purchase": {
       "title": "Complete your purchase",
@@ -649,7 +839,133 @@
         "cvv": "CVV",
         "cvvPlaceholder": "123",
         "submit": "Confirm purchase"
+      },
+      "processing": "Processing…",
+      "changePlan": "Change plan",
+      "choosePlan": "Choose a plan to continue.",
+      "alreadyActive": "You already have an active subscription.",
+      "invalidData": "Check your card details."
+    }
+  },
+  "errors": {
+    "network": "Cannot reach the server. Check your connection and try again.",
+    "timeout": "The server took too long to respond. Try again.",
+    "validation": "Some data is invalid. Review it and try again.",
+    "unauthorized": "Your session is not valid. Sign in again.",
+    "forbidden": "You don't have permission to do this.",
+    "notFound": "The requested information was not found.",
+    "conflict": "A record with that data already exists.",
+    "server": "The server had a problem. Try again later.",
+    "unknown": "An unexpected error occurred."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email.",
+    "phone": "Enter a valid phone number (7–15 digits).",
+    "passwordLength": "Password must be at least 6 characters.",
+    "passwordMatch": "Passwords don't match.",
+    "futureDate": "The date can't be in the future.",
+    "futureTime": "The time can't be in the future.",
+    "pastDate": "Choose today or a later date.",
+    "selectTime": "Choose a time.",
+    "minChars": "Write at least {n} characters.",
+    "card": "Invalid card number.",
+    "expiry": "Invalid or expired date (MM/YY).",
+    "cvv": "CVV must be 3 or 4 digits.",
+    "fixErrors": "Check the highlighted fields."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "This address doesn't exist or was moved.",
+    "goHome": "Go to home"
+  },
+  "appointments": {
+    "bookedNoId": "Appointment booked. You can see it in My appointments.",
+    "notFound": "Appointment not found.",
+    "professionalFallback": "Professional",
+    "duration": "Duration",
+    "cost": "Cost",
+    "types": {
+      "therapy": "Individual therapy",
+      "consultation": "Initial consultation",
+      "followUp": "Follow-up"
+    },
+    "methods": {
+      "card": "Card",
+      "cash": "Cash"
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "canceled": "Cancelled"
+    },
+    "confirmation": {
+      "title": "Your appointment",
+      "subtitle": "Review the details and choose how you'll pay.",
+      "registered": "Your appointment is booked.",
+      "paymentMethod": "Payment method",
+      "paymentNote": "Payment is handled with the professional; here you only record your preference.",
+      "confirm": "Confirm and view receipt"
+    },
+    "list": {
+      "title": "My appointments",
+      "subtitle": "Your sessions with professionals.",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "none": "None.",
+      "empty": "You have no appointments yet",
+      "emptyHint": "Book a session with a professional whenever you need."
+    }
+  },
+  "payments": {
+    "receipt": {
+      "title": "Booking receipt",
+      "cardMessage": "We recorded your card payment preference.",
+      "cashMessage": "You'll pay the professional in cash.",
+      "reference": "Reference",
+      "appointment": "Appointment",
+      "print": "Print",
+      "addToCalendar": "Add to calendar",
+      "policy": "You can cancel or reschedule up to 24 hours before at no cost.",
+      "steps": {
+        "1": {
+          "title": "Check your email",
+          "text": "The professional will confirm by email."
+        },
+        "2": {
+          "title": "Get ready",
+          "text": "Find a quiet place and a stable connection."
+        },
+        "3": {
+          "title": "Join on time",
+          "text": "Connect a few minutes early."
+        }
       }
     }
+  },
+  "resource": {
+    "by": "By {author}",
+    "save": "Save",
+    "saved": "Saved",
+    "share": "Share",
+    "description": "Description",
+    "type": "Type",
+    "duration": "Duration",
+    "openArticle": "Read article",
+    "openResource": "Open resource",
+    "markCompleted": "Mark as completed",
+    "completed": "Completed",
+    "related": "Related resources",
+    "addedFavorite": "Saved to favorites",
+    "removedFavorite": "Removed from favorites",
+    "markedCompleted": "Resource completed",
+    "linkCopied": "Link copied",
+    "shareError": "The link couldn't be shared.",
+    "notFoundTitle": "Resource unavailable",
+    "notFoundMessage": "The resource wasn't found or couldn't be loaded.",
+    "noAudioSupport": "Your browser can't play this audio."
   }
 }

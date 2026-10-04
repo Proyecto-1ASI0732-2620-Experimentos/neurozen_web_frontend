@@ -1,86 +1,36 @@
 <template>
-  <div
-    :class="[
-      'bg-white rounded-2xl shadow-sm p-8 flex flex-col',
-      isAdvanced ? 'border-2 border-black' : ''
-    ]"
-  >
-    <h3 class="text-2xl font-semibold text-green-600 mb-2">{{ name }}</h3>
-    <p class="text-gray-600 mb-4">{{ subtitle }}</p>
-    <p class="text-3xl font-bold text-gray-800 mb-6">{{ price }}</p>
-
-    <ul class="text-left space-y-2 mb-8 text-gray-600">
-      <li v-for="(feature, index) in features" :key="index">
-        ✔️ {{ feature }}
+  <article class="relative flex flex-col rounded-2xl border bg-white p-6 sm:p-8" :class="isAdvanced ? 'border-primary shadow-lg ring-1 ring-primary' : 'border-[#E3DED2] shadow-sm'">
+    <span v-if="isAdvanced" class="absolute -top-3 left-6 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">{{ $t('subscriptions.plans.recommended') }}</span>
+    <h2 class="text-xl font-extrabold text-primary">{{ name }}</h2>
+    <p class="mt-1 text-sm text-muted-light">{{ subtitle }}</p>
+    <p class="mt-5 text-4xl font-extrabold text-foreground-light">{{ price }}</p>
+    <ul class="mb-8 mt-6 space-y-3 text-sm text-foreground-light">
+      <li v-for="(feature, index) in features" :key="index" class="flex gap-2.5">
+        <i class="fas fa-check mt-1 text-primary" aria-hidden="true"></i><span>{{ feature }}</span>
       </li>
     </ul>
-    
-    <button
-      @click="handlePurchase"
-      class="mt-auto px-6 py-2.5 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 cursor-pointer"
-    >
+    <button type="button" class="mt-auto w-full py-3" :class="isAdvanced ? 'nz-btn-primary' : 'nz-btn-secondary'" @click="handlePurchase">
       {{ $t('subscriptions.plans.getplan') }}
     </button>
-  </div>
+  </article>
 </template>
 
 <script>
+/** Tarjeta de plan. Recibe planKey explícito (antes se deducía comparando el nombre traducido). */
 export default {
   name: 'PriceCardComponent',
   props: {
-    name: {
-      type: String,
-      required: true
-    },
-    subtitle: {
-      type: String,
-      required: true
-    },
-    price: {
-      type: String,
-      required: true
-    },
-    features: {
-      type: Array,
-      required: true
-    },
-    isAdvanced: {
-      type: Boolean,
-      default: false
-    },
-    planKey: {
-      type: String,
-      required: false,
-      default: ''
-    }
+    name: { type: String, required: true },
+    subtitle: { type: String, required: true },
+    price: { type: String, required: true },
+    features: { type: Array, required: true },
+    isAdvanced: { type: Boolean, default: false },
+    planKey: { type: String, required: true }
   },
   methods: {
     handlePurchase() {
-      // Use planKey if provided, otherwise try to derive it from the name
-      let key = this.planKey;
-      
-      if (!key) {
-        // Try to match the translated name to get the key
-        const basicNames = [this.$t('subscriptions.plans.basic.name'), 'Basic', 'Básico'];
-        const advancedNames = [this.$t('subscriptions.plans.advanced.name'), 'Advanced', 'Avanzado'];
-        const professionalNames = [this.$t('subscriptions.plans.professional.name'), 'Professional', 'Profesional'];
-        
-        if (basicNames.includes(this.name)) {
-          key = 'basic';
-        } else if (advancedNames.includes(this.name)) {
-          key = 'advanced';
-        } else if (professionalNames.includes(this.name)) {
-          key = 'professional';
-        }
-      }
-      
-      const purchaseUrl = `/subscriptions/purchase?plan=${encodeURIComponent(key)}&price=${encodeURIComponent(this.price)}`;
-      this.$router.push(purchaseUrl);
+      this.$router.push({ name: 'Purchase', query: { plan: this.planKey } })
     }
   }
 }
 </script>
-
-<style scoped>
-/* Estilos adicionales si son necesarios */
-</style>

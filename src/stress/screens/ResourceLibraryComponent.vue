@@ -1,956 +1,181 @@
 <template>
-  <div class="resource-library-container">
-    <!-- Header -->
-    <div class="header">
-      <button class="back-button" @click="goBack">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <h1>{{ $t('stress.management.resourceLibrary.title') }}</h1>
-    </div>
+  <div class="nz-page max-w-6xl">
+    <PageHeader :title="$t('stress.management.resourceLibrary.title')" :subtitle="$t('stress.management.resourceLibrary.subtitle')" />
 
-    <!-- Search and Filters -->
-    <div class="search-section">
-      <div class="search-bar">
-        <i class="fas fa-search"></i>
-        <input 
-          type="text" 
-          v-model="searchQuery"
-          :placeholder="$t('stress.management.resourceLibrary.search')"
-          @input="performSearch"
-        >
-        <button v-if="searchQuery" class="clear-search" @click="clearSearch">
-          <i class="fas fa-times"></i>
-        </button>
+    <!-- Búsqueda y filtros -->
+    <div class="mb-6 space-y-4">
+      <div class="relative">
+        <i class="fas fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-light" aria-hidden="true"></i>
+        <input v-model="searchQuery" type="search" class="nz-input h-12 pl-11 text-base" :placeholder="$t('stress.management.resourceLibrary.search')"
+          :aria-label="$t('stress.management.resourceLibrary.search')" @input="onSearch" />
       </div>
-      
-      <div class="filters">
-        <button 
-          v-for="category in categories" 
-          :key="category.value"
-          :class="{ active: selectedCategory === category.value }"
-          @click="selectCategory(category.value)"
-        >
-          <i :class="category.icon"></i>
-          {{ category.label }}
+      <div class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" role="group" :aria-label="$t('stress.management.resourceLibrary.filter')">
+        <button v-for="category in categories" :key="category.value" type="button"
+          class="inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors"
+          :class="selectedCategory === category.value ? 'border-primary bg-primary text-white' : 'border-[#D6D2C7] bg-white text-foreground-light hover:border-primary'"
+          :aria-pressed="selectedCategory === category.value" @click="selectedCategory = category.value">
+          <i :class="category.icon" aria-hidden="true"></i>{{ category.label }}
+          <span class="text-xs opacity-75">{{ countFor(category.value) }}</span>
         </button>
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>{{ $t('common.loadingResources') }}</p>
+    <div v-if="isDemo && !loading" class="mb-6 flex gap-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+      <i class="fas fa-circle-info mt-0.5" aria-hidden="true"></i>{{ $t('stress.management.resourceLibrary.demoNotice') }}
     </div>
 
-    <!-- Error State -->
-    <div v-else-if="error" class="error-container">
-      <div class="error-icon">⚠️</div>
-      <h3>{{ $t('common.errorLoading') }}</h3>
-      <p>{{ error }}</p>
-      <button class="retry-button" @click="loadResources">{{ $t('stress.management.resourceLibrary.retry') }}</button>
-    </div>
+    <LoadingState v-if="loading" :message="$t('common.loadingResources')" />
+    <ErrorState v-else-if="error" :message="error" @retry="loadResources" />
 
-    <!-- Content -->
-    <div v-else class="content">
-      <!-- Results Info -->
-      <div class="results-info" v-if="searchQuery || selectedCategory !== 'all'">
-        <p>
-          {{ filteredResources.length === 1 ? $t('stress.management.resourceLibrary.resultsCount', { count: filteredResources.length }) : $t('stress.management.resourceLibrary.resultsCountPlural', { count: filteredResources.length }) }}
-          <span v-if="searchQuery"> {{ $t('stress.management.resourceLibrary.resultsFor', { query: searchQuery }) }}</span>
-          <span v-if="selectedCategory !== 'all'"> {{ $t('stress.management.resourceLibrary.resultsIn', { category: getCategoryLabel(selectedCategory) }) }}</span>
-        </p>
-        <button class="clear-filters" @click="clearFilters" v-if="searchQuery || selectedCategory !== 'all'">
-          {{ $t('stress.management.resourceLibrary.clearFilters') }}
-        </button>
+    <template v-else>
+      <div v-if="hasFilters" class="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-light" role="status">
+        <p>{{ $tc('stress.management.resourceLibrary.resultsSummary', filteredResources.length, { count: filteredResources.length }) }}</p>
+        <button type="button" class="font-semibold text-primary hover:underline" @click="clearFilters">{{ $t('stress.management.resourceLibrary.clearFilters') }}</button>
       </div>
 
-      <!-- No Results -->
-      <div v-if="filteredResources.length === 0" class="no-results">
-        <div class="no-results-icon">🔍</div>
-        <h3>{{ $t('stress.management.resourceLibrary.noResults') }}</h3>
-        <p>{{ $t('stress.management.resourceLibrary.noResultsDescription') }}</p>
-      </div>
+      <EmptyState v-if="!filteredResources.length" icon="fas fa-magnifying-glass" :title="$t('stress.management.resourceLibrary.noResults')" :message="$t('stress.management.resourceLibrary.noResultsDescription')">
+        <button type="button" class="nz-btn-secondary mt-2" @click="clearFilters">{{ $t('stress.management.resourceLibrary.clearFilters') }}</button>
+      </EmptyState>
 
-      <!-- Resources Grid -->
-      <div v-else class="resources-grid">
-        <div 
-          v-for="resource in filteredResources" 
-          :key="resource.id"
-          class="resource-card"
-          @click="openResource(resource)"
-        >
-          <div class="resource-thumbnail">
-            <img 
-              :src="resource.thumbnail" 
-              :alt="resource.title"
-              @error="handleImageError"
-            />
-            <div class="resource-type">
-              <i :class="getResourceTypeIcon(resource.resourceType)"></i>
-            </div>
-            <div class="resource-duration">
-              {{ formatDuration(resource.duration) }}
-            </div>
-          </div>
-          
-          <div class="resource-content">
-            <h3>{{ getTranslatedTitle(resource) }}</h3>
-            <p class="resource-author">{{ resource.author }}</p>
-            <p class="resource-description">{{ getTranslatedDescription(resource) }}</p>
-            
-            <div class="resource-tags" v-if="resource.tags && resource.tags.length > 0">
-              <span 
-                v-for="tag in resource.tags.slice(0, 3)" 
-                :key="tag"
-                class="tag"
-              >
-                {{ getTranslatedTag(tag) }}
+      <ul v-else class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <li v-for="resource in filteredResources" :key="resource.id">
+          <router-link :to="{ name: 'ResourceDetail', params: { id: resource.id } }" class="nz-card group flex h-full flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md" @click="remember(resource)">
+            <div class="relative aspect-video bg-primary/5">
+              <img :data-fallback="placeholderFor(resource.category)" :src="resource.thumbnail" alt="" class="h-full w-full object-cover" loading="lazy" />
+              <span class="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-primary">
+                <i :class="iconFor(resource.category)" aria-hidden="true"></i>{{ categoryLabel(resource.category) }}
               </span>
+              <span class="absolute bottom-3 right-3 rounded-full bg-black/70 px-2.5 py-1 text-xs font-bold text-white">{{ resource.durationMinutes }} min</span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Featured Section -->
-      <div v-if="!searchQuery && selectedCategory === 'all'" class="featured-section">
-        <h2>{{ $t('stress.management.resourceLibrary.featuredResources') }}</h2>
-        <div class="featured-grid">
-          <div 
-            v-for="resource in featuredResources" 
-            :key="resource.id"
-            class="featured-card"
-            @click="openResource(resource)"
-          >
-            <div class="featured-image">
-              <img :src="resource.thumbnail" :alt="resource.title" />
-              <div class="play-overlay">
-                <i class="fas fa-play"></i>
+            <div class="flex flex-1 flex-col p-4">
+              <h2 class="font-bold text-foreground-light group-hover:text-primary">{{ text.title(resource) }}</h2>
+              <p v-if="resource.author" class="text-xs font-semibold text-muted-light">{{ resource.author }}</p>
+              <p class="mt-2 line-clamp-2 text-sm text-muted-light">{{ text.description(resource) }}</p>
+              <div v-if="resource.tags.length" class="mt-auto flex flex-wrap gap-1.5 pt-3">
+                <span v-for="tag in resource.tags.slice(0, 3)" :key="tag" class="rounded-full bg-primary/5 px-2 py-0.5 text-xs text-primary">{{ text.tag(tag) }}</span>
               </div>
             </div>
-            <div class="featured-content">
-              <h4>{{ getTranslatedTitle(resource) }}</h4>
-              <p>{{ resource.author }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+          </router-link>
+        </li>
+      </ul>
 
-      <!-- Quick Categories -->
-      <div v-if="!searchQuery && selectedCategory === 'all'" class="quick-categories">
-        <h2>{{ $t('stress.management.resourceLibrary.exploreByCategory') }}</h2>
-        <div class="category-cards">
-          <div 
-            v-for="category in categories.filter(c => c.value !== 'all')" 
-            :key="category.value"
-            class="category-card"
-            @click="selectCategory(category.value)"
-          >
-            <div class="category-icon">
-              <i :class="category.icon"></i>
-            </div>
-            <h4>{{ category.label }}</h4>
-            <p>{{ getCategoryCount(category.value) }} {{ $t('stress.management.resourceLibrary.resources') }}</p>
-          </div>
+      <section v-if="recentlyViewed.length && !hasFilters" class="mt-10" aria-labelledby="recent-title">
+        <h2 id="recent-title" class="mb-3 text-lg font-bold text-foreground-light">{{ $t('stress.management.resourceLibrary.recentlyViewed') }}</h2>
+        <div class="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+          <router-link v-for="r in recentlyViewed" :key="r.id" :to="{ name: 'ResourceDetail', params: { id: r.id } }" class="nz-card flex w-64 shrink-0 items-center gap-3 p-2 hover:border-primary/40">
+            <img :data-fallback="placeholderFor(r.category)" :src="r.thumbnail" alt="" class="h-14 w-20 rounded-md object-cover" />
+            <span class="min-w-0 text-sm font-semibold text-foreground-light"><span class="line-clamp-2">{{ text.title(r) }}</span></span>
+          </router-link>
         </div>
-      </div>
-    </div>
-
-    <!-- Recently Viewed (if user has history) -->
-    <div v-if="recentlyViewed.length > 0 && !searchQuery" class="recent-section">
-      <h2>{{ $t('stress.management.resourceLibrary.recentlyViewed') }}</h2>
-      <div class="recent-grid">
-        <div 
-          v-for="resource in recentlyViewed" 
-          :key="resource.id"
-          class="recent-card"
-          @click="openResource(resource)"
-        >
-          <img :src="resource.thumbnail" :alt="resource.title" />
-          <div class="recent-info">
-            <h5>{{ getTranslatedTitle(resource) }}</h5>
-            <p>{{ resource.author }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
+    </template>
   </div>
 </template>
 
 <script>
-import { ResourceLibraryService } from '../../services/ResourceLibraryService.js';
+/**
+ * ResourceLibraryComponent - Biblioteca con búsqueda (debounce) y filtros.
+ * Corrige la navegación al detalle (antes /resources/:id caía en el catch-all),
+ * la duración "900m" del mock y el bucle de errores de imagen.
+ */
+import PageHeader from '../../components/ui/PageHeader.vue'
+import LoadingState from '../../components/ui/LoadingState.vue'
+import ErrorState from '../../components/ui/ErrorState.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
+import { ResourceLibraryService } from '../../services/ResourceLibraryService.js'
+import { readUserData, writeUserData } from '../../services/session.js'
+import { useResourceText } from '../../composables/useResourceText.js'
+
+const RECENT_KEY = 'neurozen_recent_resources'
+export const CATEGORY_ICONS = { audio: 'fas fa-headphones', video: 'fas fa-circle-play', reading: 'fas fa-book-open', exercises: 'fas fa-dumbbell' }
 
 export default {
   name: 'ResourceLibraryComponent',
+  components: { PageHeader, LoadingState, ErrorState, EmptyState },
   data() {
     return {
-      loading: true,
-      error: null,
-      // Service instance
-      resourceLibraryService: new ResourceLibraryService(),
+      service: new ResourceLibraryService(),
       resources: [],
-      filteredResources: [],
+      isDemo: false,
+      loading: true,
+      error: '',
       searchQuery: '',
+      appliedQuery: '',
       selectedCategory: 'all',
-      recentlyViewed: [],
+      recentlyViewed: readUserData(RECENT_KEY, []),
       searchTimeout: null
     }
   },
   computed: {
-    featuredResources() {
-      return this.resources.slice(0, 3);
+    text() {
+      return useResourceText(this.$i18n)
     },
     categories() {
-      return [
-        { value: 'all', label: this.$t('stress.management.resourceLibrary.categories.all'), icon: 'fas fa-th' },
-        { value: 'audio', label: this.$t('stress.management.resourceLibrary.categories.audio'), icon: 'fas fa-headphones' },
-        { value: 'video', label: this.$t('stress.management.resourceLibrary.categories.video'), icon: 'fas fa-play-circle' },
-        { value: 'reading', label: this.$t('stress.management.resourceLibrary.categories.reading'), icon: 'fas fa-book-open' },
-        { value: 'exercises', label: this.$t('stress.management.resourceLibrary.categories.exercises'), icon: 'fas fa-dumbbell' }
-      ];
+      return ['all', 'audio', 'video', 'reading', 'exercises'].map((value) => ({
+        value,
+        label: this.$t(`stress.management.resourceLibrary.categories.${value}`),
+        icon: CATEGORY_ICONS[value] || 'fas fa-table-cells-large'
+      }))
+    },
+    hasFilters() {
+      return !!this.appliedQuery.trim() || this.selectedCategory !== 'all'
+    },
+    filteredResources() {
+      const q = this.appliedQuery.toLowerCase().trim()
+      return this.resources.filter((r) => {
+        if (this.selectedCategory !== 'all' && r.category !== this.selectedCategory) return false
+        if (!q) return true
+        const haystack = [this.text.title(r), this.text.description(r), r.author, ...r.tags.map(this.text.tag)].join(' ').toLowerCase()
+        return haystack.includes(q)
+      })
     }
   },
-  async mounted() {
-    await this.loadResources();
-    this.loadRecentlyViewed();
+  created() {
+    this.loadResources()
+  },
+  beforeUnmount() {
+    clearTimeout(this.searchTimeout)
   },
   methods: {
     async loadResources() {
+      this.loading = true
+      this.error = ''
       try {
-        this.loading = true;
-        this.error = null;
-        
-        // Obtener recursos del backend
-        const backendResources = await this.resourceLibraryService.getResources();
-        
-        // Mapear datos del backend al formato del componente
-        this.resources = backendResources.map(resource => ({
-          id: resource.id,
-          title: resource.title,
-          description: resource.description,
-          resourceType: resource.resourceType, // "Video", "Article", "Audio"
-          category: this.mapResourceTypeToCategory(resource.resourceType),
-          contentUrl: resource.contentUrl,
-          thumbnail: this.getThumbnailUrl(resource),
-          duration: resource.duration * 60, // Convertir minutos a segundos
-          author: resource.author,
-          tags: resource.tags || []
-        }));
-        
-        this.filteredResources = [...this.resources];
-        
-        console.log('Recursos cargados y mapeados:', this.resources);
+        const { items, isDemo } = await this.service.getResources()
+        this.resources = items
+        this.isDemo = isDemo
       } catch (error) {
-        console.error('Error loading resources:', error);
-        this.error = this.$t('common.errorLoadingResources');
+        this.error = this.$t('common.errorLoadingResources')
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
-
-    loadRecentlyViewed() {
-      // Load from localStorage or service
-      const recent = localStorage.getItem('neurozen_recent_resources');
-      if (recent) {
-        this.recentlyViewed = JSON.parse(recent);
-      }
+    onSearch() {
+      clearTimeout(this.searchTimeout)
+      this.searchTimeout = setTimeout(() => { this.appliedQuery = this.searchQuery }, 300)
     },
-
-    performSearch() {
-      // Debounce search
-      clearTimeout(this.searchTimeout);
-      this.searchTimeout = setTimeout(() => {
-        this.filterResources();
-      }, 300);
-    },
-
-    filterResources() {
-      let filtered = [...this.resources];
-
-      // Filter by category
-      if (this.selectedCategory !== 'all') {
-        filtered = filtered.filter(resource => resource.category === this.selectedCategory);
-      }
-
-      // Filter by search query
-      if (this.searchQuery.trim()) {
-        const query = this.searchQuery.toLowerCase().trim();
-        filtered = filtered.filter(resource => {
-          const translatedTitle = this.getTranslatedTitle(resource).toLowerCase();
-          const translatedDescription = this.getTranslatedDescription(resource).toLowerCase();
-          const translatedTags = resource.tags && Array.isArray(resource.tags) 
-            ? resource.tags.map(tag => this.getTranslatedTag(tag).toLowerCase())
-            : [];
-          
-          return translatedTitle.includes(query) ||
-            translatedDescription.includes(query) ||
-            resource.author.toLowerCase().includes(query) ||
-            translatedTags.some(tag => tag.includes(query));
-        });
-      }
-
-      this.filteredResources = filtered;
-    },
-
-    selectCategory(category) {
-      this.selectedCategory = category;
-      this.filterResources();
-    },
-
-    clearSearch() {
-      this.searchQuery = '';
-      this.filterResources();
-    },
-
     clearFilters() {
-      this.searchQuery = '';
-      this.selectedCategory = 'all';
-      this.filterResources();
+      this.searchQuery = ''
+      this.appliedQuery = ''
+      this.selectedCategory = 'all'
     },
-
-    getCategoryLabel(value) {
-      const category = this.categories.find(c => c.value === value);
-      return category ? category.label.toLowerCase() : value;
+    countFor(category) {
+      return category === 'all' ? this.resources.length : this.resources.filter((r) => r.category === category).length
     },
-
-    getCategoryCount(category) {
-      return this.resources.filter(resource => resource.category === category).length;
+    categoryLabel(category) {
+      return this.$t(`stress.management.resourceLibrary.categories.${category}`)
     },
-
-    mapResourceTypeToCategory(resourceType) {
-      // Mapear el resourceType del backend ("Video", "Article", "Audio") a las categorías del frontend
-      const mapping = {
-        'Video': 'video',
-        'Article': 'reading',
-        'Audio': 'audio',
-        'Exercise': 'exercises'
-      };
-      return mapping[resourceType] || 'reading';
+    iconFor(category) {
+      return CATEGORY_ICONS[category] || 'fas fa-file'
     },
-
-    getThumbnailUrl(resource) {
-      // Si es un video de YouTube, extraer thumbnail
-      if (resource.contentUrl && resource.contentUrl.includes('youtube.com')) {
-        const videoId = this.extractYouTubeId(resource.contentUrl);
-        if (videoId) {
-          return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-        }
-      }
-      
-      // Si es un video de otra fuente o tiene thumbnail en el backend
-      if (resource.thumbnail) {
-        return resource.thumbnail;
-      }
-      
-      // Fallback: imagen genérica según el tipo de recurso
-      const fallbackImages = {
-        'Video': 'https://images.unsplash.com/photo-1616530940355-351fabd9524b?w=400&h=300&fit=crop',
-        'Audio': 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=300&fit=crop',
-        'Article': 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=300&fit=crop',
-        'Exercise': 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=300&fit=crop'
-      };
-      
-      return fallbackImages[resource.resourceType] || 'https://via.placeholder.com/400x300?text=Recurso';
+    placeholderFor(category) {
+      return `/images/resource-${category === 'exercises' ? 'exercise' : category}.svg`
     },
-
-    extractYouTubeId(url) {
-      // Extraer ID de video de YouTube de diferentes formatos de URL
-      const patterns = [
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
-        /youtube\.com\/embed\/([^&\n?#]+)/
-      ];
-      
-      for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match && match[1]) {
-          return match[1];
-        }
-      }
-      return null;
-    },
-
-    getTypeIcon(category) {
-      // Mapear categorías a íconos
-      const icons = {
-        'audio': 'fas fa-headphones',
-        'video': 'fas fa-play-circle',
-        'reading': 'fas fa-book-open',
-        'exercises': 'fas fa-dumbbell'
-      };
-      return icons[category] || 'fas fa-file';
-    },
-
-    getResourceTypeIcon(resourceType) {
-      // Mapear resourceType del backend directamente a íconos
-      const icons = {
-        'Video': 'fas fa-play-circle',
-        'Article': 'fas fa-book-open',
-        'Audio': 'fas fa-headphones',
-        'Exercise': 'fas fa-dumbbell'
-      };
-      return icons[resourceType] || 'fas fa-file';
-    },
-
-    formatDuration(seconds) {
-      const minutes = Math.floor(seconds / 60);
-      const remainingSeconds = seconds % 60;
-      if (minutes > 0) {
-        return `${minutes}m`;
-      }
-      return `${remainingSeconds}s`;
-    },
-
-    handleImageError(event) {
-      // Cuando falla la carga de la imagen, mostrar placeholder
-      event.target.src = 'https://via.placeholder.com/400x300/6366f1/ffffff?text=NeuroZen';
-    },
-
-    openResource(resource) {
-      // Add to recently viewed
-      this.addToRecentlyViewed(resource);
-      
-      // Navigate to resource detail
-      this.$router.push(`/resources/${resource.id}`);
-    },
-
-    addToRecentlyViewed(resource) {
-      let recent = [...this.recentlyViewed];
-      
-      // Remove if already exists
-      recent = recent.filter(r => r.id !== resource.id);
-      
-      // Add to beginning
-      recent.unshift(resource);
-      
-      // Limit to 5 items
-      recent = recent.slice(0, 5);
-      
-      this.recentlyViewed = recent;
-      localStorage.setItem('neurozen_recent_resources', JSON.stringify(recent));
-    },
-
-    goBack() {
-      this.$router.go(-1);
-    },
-
-    getTranslatedTitle(resource) {
-      const key = `stress.management.resourceLibrary.items.${resource.id}.title`;
-      const translated = this.$t(key);
-      // If translation key is returned (not found), use original title
-      return translated !== key ? translated : resource.title;
-    },
-
-    getTranslatedDescription(resource) {
-      const key = `stress.management.resourceLibrary.items.${resource.id}.description`;
-      const translated = this.$t(key);
-      // If translation key is returned (not found), use original description
-      return translated !== key ? translated : resource.description;
-    },
-
-    getTranslatedTag(tag) {
-      const key = `stress.management.resourceLibrary.tags.${tag}`;
-      const translated = this.$t(key);
-      // If translation key is returned (not found), use original tag
-      return translated !== key ? translated : tag;
+    remember(resource) {
+      const entry = { id: resource.id, title: resource.title, description: resource.description, category: resource.category, thumbnail: resource.thumbnail }
+      this.recentlyViewed = [entry, ...this.recentlyViewed.filter((r) => String(r.id) !== String(resource.id))].slice(0, 6)
+      writeUserData(RECENT_KEY, this.recentlyViewed)
     }
   }
 }
 </script>
-
-<style scoped>
-.resource-library-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, hsl(137, 19%, 30%) 0%, #5b8662 100%);
-  color: white;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-}
-
-.back-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 15px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.back-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.search-section {
-  padding: 0 20px 20px;
-}
-
-.search-bar {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.search-bar i {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0.6;
-}
-
-.search-bar input {
-  width: 100%;
-  padding: 12px 15px 12px 45px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 25px;
-  color: white;
-  font-size: 16px;
-  backdrop-filter: blur(10px);
-}
-
-.search-bar input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.search-bar input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.clear-search {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 5px;
-  opacity: 0.6;
-}
-
-.filters {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 5px;
-}
-
-.filters button {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filters button.active {
-  background: white;
-  color: #667eea;
-  font-weight: 600;
-}
-
-.filters button:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.loading-container,
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  padding: 40px 20px;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
-}
-
-.retry-button {
-  background: white;
-  color: #667eea;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 15px;
-}
-
-.content {
-  padding: 0 20px 40px;
-}
-
-.results-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 15px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-}
-
-.results-info p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.clear-filters {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 15px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.no-results {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.no-results-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-}
-
-.no-results h3 {
-  margin: 0 0 10px 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.no-results p {
-  margin: 0;
-  opacity: 0.8;
-}
-
-.resources-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.resource-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.resource-card:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-5px);
-}
-
-.resource-thumbnail {
-  position: relative;
-  height: 180px;
-  overflow: hidden;
-}
-
-.resource-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.resource-type {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 6px 10px;
-  border-radius: 15px;
-  font-size: 12px;
-}
-
-.resource-duration {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 4px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.resource-content {
-  padding: 20px;
-}
-
-.resource-content h3 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.resource-author {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  opacity: 0.8;
-  font-weight: 500;
-}
-
-.resource-description {
-  margin: 0 0 15px 0;
-  font-size: 14px;
-  line-height: 1.4;
-  opacity: 0.9;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.resource-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.tag {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.featured-section,
-.quick-categories,
-.recent-section {
-  margin-bottom: 40px;
-}
-
-.featured-section h2,
-.quick-categories h2,
-.recent-section h2 {
-  margin: 0 0 20px 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.featured-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.featured-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.featured-card:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-3px);
-}
-
-.featured-image {
-  position: relative;
-  height: 120px;
-  overflow: hidden;
-}
-
-.featured-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.play-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-}
-
-.featured-content {
-  padding: 15px;
-}
-
-.featured-content h4 {
-  margin: 0 0 5px 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.featured-content p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.category-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-}
-
-.category-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-  padding: 20px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.category-card:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-3px);
-}
-
-.category-icon {
-  margin-bottom: 15px;
-}
-
-.category-icon i {
-  font-size: 32px;
-  opacity: 0.8;
-}
-
-.category-card h4 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.category-card p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.recent-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-}
-
-.recent-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  flex-direction: column;
-}
-
-.recent-card:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.recent-card img {
-  width: 100%;
-  height: 100px;
-  object-fit: cover;
-}
-
-.recent-info {
-  padding: 12px;
-}
-
-.recent-info h5 {
-  margin: 0 0 5px 0;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.recent-info p {
-  margin: 0;
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-@media (max-width: 768px) {
-  .resource-library-container {
-    padding-bottom: 20px;
-  }
-  
-  .resources-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .featured-grid,
-  .category-cards,
-  .recent-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-  
-  .results-info {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  
-  .filters {
-    justify-content: center;
-  }
-}
-</style>

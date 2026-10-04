@@ -1,229 +1,87 @@
 /**
- * routes/index.js - Configuración de rutas de Vue Router para NeuroZen
- * Define todas las rutas de la aplicación con guards de autenticación
+ * routes/index.js - Rutas de NeuroZen con guards de autenticación.
+ *
+ * Cambios:
+ *  - Carga diferida (lazy) de todas las vistas.
+ *  - Guards basados en session.js (validan caducidad del JWT).
+ *  - Tras iniciar sesión se vuelve a la ruta solicitada (?redirect=).
+ *  - Alias para enlaces antiguos (/resources/:id, /professionals).
+ *  - Nuevas vistas: Mis citas (/appointments) y página 404.
+ *  - Título de documento por ruta.
  *
  * @author Juan Carlos Angulo
- * @version 1.0.0
+ * @version 2.0.0
  */
-
-import { createRouter, createWebHistory } from "vue-router";
-
-// Import components
-import OnboardingInterventionComponent from "../intervention/screens/OnboardingInterventionComponent.vue";
-import BookAppointmentComponent from "../professional-connection/screens/BookAppointmentComponent.vue";
-import OnboardingProfessionalComponent from "../professional-connection/screens/OnboardingProfessionalComponent.vue";
-import TherapistDetailComponent from "../professional-connection/screens/TherapistDetailComponent.vue";
-import TherapistListComponent from "../professional-connection/screens/TherapistListComponent.vue";
-import OnboardingWelcomeComponent from "../shared/screens/OnboardingWelcomeComponent.vue";
-import LoginComponent from "../user-management/screens/login.component.vue";
-import RegisterComponent from "../user-management/screens/RegisterComponent.vue";
-
-// Stress Management Components
-import ActiveBreaksComponent from "../stress/screens/ActiveBreaksComponent.vue";
-import BreathingSessionComponent from "../stress/screens/BreathingSessionComponent.vue";
-import RegisterTriggerComponent from "../stress/screens/RegisterTriggerComponent.vue";
-import ResourceDetailComponent from "../stress/screens/ResourceDetailComponent.vue";
-import ResourceLibraryComponent from "../stress/screens/ResourceLibraryComponent.vue";
-
-// Professional Connection Components
-import AppointmentConfirmationComponent from "../professional-connection/screens/AppointmentConfirmationComponent.vue";
-import BookSessionComponent from "../professional-connection/screens/BookSessionComponent.vue";
-
-// Payment Components
-import PaymentConfirmationComponent from "../payments/screens/PaymentConfirmationComponent.vue";
-
-// User Management Components
-import UserProfileComponent from "../user-management/screens/UserProfileComponent.vue";
-
-// Shared Components
-import SettingsComponent from "../shared/screens/SettingsComponent.vue";
-
-// Subscriptions Components
-import PurchaseComponent from "../subscriptions/screens/PurchaseComponent.vue";
-import SubscriptionsComponent from "../subscriptions/screens/SubscriptionsComponent.vue";
-
-/**
- * Guard de autenticación que verifica si el usuario está logueado
- * Redirige al login si no hay token de autenticación
- * @function requireAuth
- * @param {Object} to - Ruta de destino
- * @param {Object} from - Ruta actual
- * @param {Function} next - Función de navegación
- */
-function requireAuth(to, from, next) {
-  const isAuthenticated = localStorage.getItem("authToken");
-  if (isAuthenticated) {
-    next();
-  } else {
-    next("/login");
-  }
-}
-
-/**
- * Guard que redirige usuarios autenticados al dashboard
- * Evita que usuarios logueados accedan a login/register
- * @function redirectIfAuthenticated
- * @param {Object} to - Ruta de destino
- * @param {Object} from - Ruta actual
- * @param {Function} next - Función de navegación
- */
-function redirectIfAuthenticated(to, from, next) {
-  const isAuthenticated = localStorage.getItem("authToken");
-  if (isAuthenticated) {
-    next("/dashboard");
-  } else {
-    next();
-  }
-}
+import { createRouter, createWebHistory } from 'vue-router'
+import { isAuthenticated } from '../services/session.js'
+import { t } from '../i18n/index.js'
 
 const routes = [
-  {
-    path: "/",
-    name: "Dashboard",
-    component: () => import("../shared/screens/DashboardComponent.vue"),
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/login",
-    name: "Login",
-    component: LoginComponent,
-    beforeEnter: redirectIfAuthenticated,
-  },
-  {
-    path: "/register",
-    name: "Register",
-    component: RegisterComponent,
-    beforeEnter: redirectIfAuthenticated,
-  },
-  {
-    path: "/onboarding",
-    name: "OnboardingWelcome",
-    component: OnboardingWelcomeComponent,
-  },
-  {
-    path: "/onboarding/step/2",
-    name: "OnboardingIntervention",
-    component: OnboardingInterventionComponent,
-  },
-  {
-    path: "/onboarding/step/3",
-    name: "OnboardingProfessional",
-    component: OnboardingProfessionalComponent,
-  },
-  {
-    path: "/dashboard",
-    redirect: "/",
-  },
-  {
-    path: "/therapists",
-    name: "TherapistList",
-    component: TherapistListComponent,
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/therapist/:id",
-    name: "TherapistDetail",
-    component: TherapistDetailComponent,
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/book-appointment/:id",
-    name: "BookAppointment",
-    component: BookAppointmentComponent,
-    beforeEnter: requireAuth,
-  },
-  // Stress Management Routes
-  {
-    path: "/stress/triggers",
-    name: "RegisterTrigger",
-    component: RegisterTriggerComponent,
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/stress/active-breaks",
-    name: "ActiveBreaks",
-    component: ActiveBreaksComponent,
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/stress/breathing",
-    name: "BreathingSession",
-    component: BreathingSessionComponent,
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/stress/resources",
-    name: "ResourceLibrary",
-    component: ResourceLibraryComponent,
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/stress/resources/:id",
-    name: "ResourceDetail",
-    component: ResourceDetailComponent,
-    beforeEnter: requireAuth,
-  },
-  // Professional Connection Routes
-  {
-    path: "/book-session",
-    name: "BookSession",
-    component: BookSessionComponent,
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/appointment-confirmation/:appointmentId",
-    name: "AppointmentConfirmation",
-    component: AppointmentConfirmationComponent,
-    beforeEnter: requireAuth,
-  },
-  // Payment Routes
-  {
-    path: "/payment-confirmation/:appointmentId/:paymentId",
-    name: "PaymentConfirmation",
-    component: PaymentConfirmationComponent,
-    beforeEnter: requireAuth,
-  },
-  // User Management Routes
-  {
-    path: "/profile",
-    name: "UserProfile",
-    component: UserProfileComponent,
-    beforeEnter: requireAuth,
-  },
-  // Settings Routes
-  {
-    path: "/settings",
-    name: "Settings",
-    component: SettingsComponent,
-    beforeEnter: requireAuth,
-  },
-  // Subscriptions Routes
-  {
-    path: "/subscriptions",
-    name: "Subscriptions",
-    component: SubscriptionsComponent,
-    beforeEnter: requireAuth,
-  },
-  {
-    path: "/subscriptions/purchase",
-    name: "Purchase",
-    component: PurchaseComponent,
-    beforeEnter: requireAuth,
-  },
-  // Catch all 404
-  {
-    path: "/:pathMatch(.*)*",
-    name: "NotFound",
-    redirect: "/",
-  },
-];
+  { path: '/', name: 'Dashboard', component: () => import('../shared/screens/DashboardComponent.vue'), meta: { requiresAuth: true, title: 'navigation.dashboard' } },
+  { path: '/dashboard', redirect: { name: 'Dashboard' } },
+
+  // Autenticación (solo invitados)
+  { path: '/login', name: 'Login', component: () => import('../user-management/screens/login.component.vue'), meta: { guestOnly: true, layout: 'bare', title: 'auth.login.title' } },
+  { path: '/register', name: 'Register', component: () => import('../user-management/screens/RegisterComponent.vue'), meta: { guestOnly: true, layout: 'bare', title: 'auth.register.title' } },
+
+  // Onboarding (accesible justo después del registro)
+  { path: '/onboarding', name: 'OnboardingWelcome', component: () => import('../shared/screens/OnboardingWelcomeComponent.vue'), meta: { layout: 'bare', title: 'onboarding.title' } },
+  { path: '/onboarding/step/2', name: 'OnboardingIntervention', component: () => import('../intervention/screens/OnboardingInterventionComponent.vue'), meta: { layout: 'bare', title: 'onboarding.title' } },
+  { path: '/onboarding/step/3', name: 'OnboardingProfessional', component: () => import('../professional-connection/screens/OnboardingProfessionalComponent.vue'), meta: { layout: 'bare', title: 'onboarding.title' } },
+
+  // Profesionales
+  { path: '/therapists', name: 'TherapistList', component: () => import('../professional-connection/screens/TherapistListComponent.vue'), meta: { requiresAuth: true, title: 'professionals.directory.title' } },
+  { path: '/professionals', redirect: { name: 'TherapistList' } },
+  { path: '/therapist/:id', name: 'TherapistDetail', component: () => import('../professional-connection/screens/TherapistDetailComponent.vue'), meta: { requiresAuth: true, title: 'professionals.profile.title' } },
+  { path: '/book-appointment/:id', name: 'BookAppointment', component: () => import('../professional-connection/screens/BookAppointmentComponent.vue'), meta: { requiresAuth: true, title: 'professionals.booking.title' } },
+  { path: '/book-session', name: 'BookSession', component: () => import('../professional-connection/screens/BookSessionComponent.vue'), meta: { requiresAuth: true, title: 'professionals.bookSession' } },
+  { path: '/appointment-confirmation/:appointmentId', name: 'AppointmentConfirmation', component: () => import('../professional-connection/screens/AppointmentConfirmationComponent.vue'), meta: { requiresAuth: true, title: 'appointments.confirmation.title' } },
+  { path: '/appointments', name: 'UserAppointments', component: () => import('../professional-connection/screens/UserAppointmentsComponent.vue'), meta: { requiresAuth: true, title: 'appointments.list.title' } },
+
+  // Gestión del estrés
+  { path: '/stress/triggers', name: 'RegisterTrigger', component: () => import('../stress/screens/RegisterTriggerComponent.vue'), meta: { requiresAuth: true, title: 'stress.triggers.title' } },
+  { path: '/stress/active-breaks', name: 'ActiveBreaks', component: () => import('../stress/screens/ActiveBreaksComponent.vue'), meta: { requiresAuth: true, title: 'stress.activeBreaks.title' } },
+  { path: '/stress/breathing', name: 'BreathingSession', component: () => import('../stress/screens/BreathingSessionComponent.vue'), meta: { requiresAuth: true, title: 'stress.breathing.title' } },
+  { path: '/stress/resources', name: 'ResourceLibrary', component: () => import('../stress/screens/ResourceLibraryComponent.vue'), meta: { requiresAuth: true, title: 'stress.management.resourceLibrary.title' } },
+  { path: '/stress/resources/:id', name: 'ResourceDetail', component: () => import('../stress/screens/ResourceDetailComponent.vue'), meta: { requiresAuth: true, title: 'stress.management.resourceLibrary.title' } },
+  { path: '/resources/:id', redirect: (to) => ({ name: 'ResourceDetail', params: { id: to.params.id } }) },
+
+  // Pagos
+  { path: '/payment-confirmation/:appointmentId/:paymentId', name: 'PaymentConfirmation', component: () => import('../payments/screens/PaymentConfirmationComponent.vue'), meta: { requiresAuth: true, title: 'payments.receipt.title' } },
+
+  // Cuenta
+  { path: '/profile', name: 'UserProfile', component: () => import('../user-management/screens/UserProfileComponent.vue'), meta: { requiresAuth: true, title: 'userProfile.title' } },
+  { path: '/settings', name: 'Settings', component: () => import('../shared/screens/SettingsComponent.vue'), meta: { requiresAuth: true, title: 'settings.title' } },
+  { path: '/subscriptions', name: 'Subscriptions', component: () => import('../subscriptions/screens/SubscriptionsComponent.vue'), meta: { requiresAuth: true, title: 'navigation.subscriptions' } },
+  { path: '/subscriptions/purchase', name: 'Purchase', component: () => import('../subscriptions/screens/PurchaseComponent.vue'), meta: { requiresAuth: true, title: 'subscriptions.purchase.title' } },
+
+  // 404
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../shared/screens/NotFoundComponent.vue'), meta: { title: 'notFound.title' } }
+]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    return { top: 0 };
-  },
-});
+    return savedPosition || { top: 0 }
+  }
+})
 
-export default router;
+router.beforeEach((to) => {
+  const authenticated = isAuthenticated()
+  if (to.meta.requiresAuth && !authenticated) {
+    return { name: 'Login', query: to.fullPath !== '/' ? { redirect: to.fullPath } : {} }
+  }
+  if (to.meta.guestOnly && authenticated) {
+    return { name: 'Dashboard' }
+  }
+  return true
+})
+
+router.afterEach((to) => {
+  const key = to.meta.title
+  const label = key ? t(key) : ''
+  document.title = label && label !== key ? `${label} · NeuroZen` : 'NeuroZen - Gestión del Estrés Laboral'
+})
+
+export default router

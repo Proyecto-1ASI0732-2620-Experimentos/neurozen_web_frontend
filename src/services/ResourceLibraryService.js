@@ -1,72 +1,100 @@
-import { HttpClient } from './HttpClient.js';
+/**
+ * ResourceLibraryService - Biblioteca de recursos (audio, video, lectura, ejercicios).
+ *
+ * normalizeResource() unifica los formatos de la API .NET (resourceType, contentUrl,
+ * duración en minutos) y del mock (category/type, audioUrl, duración en segundos).
+ * Antes la lista y el detalle mapeaban los datos de forma distinta y el detalle
+ * no mostraba ningún reproductor.
+ *
+ * @version 2.0.0
+ */
+import { HttpClient } from './HttpClient.js'
+
+const TYPE_TO_CATEGORY = {
+  video: 'video', audio: 'audio', article: 'reading', reading: 'reading', lectura: 'reading',
+  exercise: 'exercises', exercises: 'exercises', ejercicio: 'exercises',
+  guided_meditation: 'audio', podcast: 'audio', music: 'audio'
+}
+
+const FALLBACK_THUMBNAILS = {
+  audio: '/images/resource-audio.svg',
+  video: '/images/resource-video.svg',
+  reading: '/images/resource-reading.svg',
+  exercises: '/images/resource-exercise.svg'
+}
+
+export const RESOURCE_PLACEHOLDER = '/images/resource-reading.svg'
+
+/** Extrae el id de un video de YouTube (watch, youtu.be o embed) */
+export function extractYouTubeId(url = '') {
+  const match = String(url).match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/)
+  return match ? match[1] : null
+}
+
+export function normalizeResource(raw = {}) {
+  const typeKey = String(raw.resourceType || raw.category || raw.type || '').toLowerCase()
+  const category = TYPE_TO_CATEGORY[typeKey] || TYPE_TO_CATEGORY[String(raw.category || '').toLowerCase()] || 'reading'
+  const contentUrl = raw.contentUrl || raw.audioUrl || raw.videoUrl || raw.url || ''
+  // API .NET: minutos (trae resourceType). Mock json-server: segundos.
+  const rawDuration = Number(raw.durationMinutes ?? raw.duration) || 0
+  const minutes = raw.durationMinutes != null || raw.resourceType ? rawDuration : Math.round(rawDuration / 60)
+  const youTubeId = extractYouTubeId(contentUrl)
+  return {
+    id: raw.id,
+    title: raw.title || '',
+    description: raw.description || '',
+    content: raw.content || '',
+    author: raw.author || '',
+    category,
+    resourceType: raw.resourceType || raw.type || category,
+    contentUrl,
+    youTubeId,
+    thumbnail: raw.thumbnail || raw.imageUrl || (youTubeId ? `https://img.youtube.com/vi/${youTubeId}/mqdefault.jpg` : FALLBACK_THUMBNAILS[category]),
+    durationMinutes: Math.max(1, minutes),
+    tags: Array.isArray(raw.tags) ? raw.tags : [],
+    createdAt: raw.createdAt || null
+  }
+}
 
 export class ResourceLibraryService {
   constructor() {
-    this.httpClient = new HttpClient();
+    this.httpClient = new HttpClient()
   }
 
+  /** Lista de recursos. `isDemo` indica que el backend no respondió y se usan datos locales. */
   async getResources() {
     try {
-      const response = await this.httpClient.get('/api/v1/resource-libraries');
-      return this._extractList(response);
+      const response = await this.httpClient.get('/api/v1/resource-libraries')
+      return { items: HttpClient.extractList(response).map(normalizeResource), isDemo: false }
     } catch (error) {
-      console.warn('Backend resources endpoint not available, using mock data:', error);
-      
-      // Fallback: retornar recursos mock
-      return this._getMockResources();
+      console.warn('Biblioteca: backend no disponible, se usan recursos de ejemplo', error.message)
+      return { items: this._getMockResources().map(normalizeResource), isDemo: true }
     }
   }
 
-  async getResource(id) {
-    try {
-      const response = await this.httpClient.get(`/api/v1/resources/${id}`);
-      return this._extractData(response);
-    } catch (error) {
-      console.error('Failed to fetch resource:', error);
-      throw new Error('No se pudo cargar el recurso. Por favor intenta nuevamente.');
+  /** Detalle; si el endpoint individual falla se busca en la lista */
+  async getResourceById(id) {
+    // El endpoint individual puede variar según el backend; se prueban ambos
+    for (const path of [`/api/v1/resource-libraries/${encodeURIComponent(id)}`, `/api/v1/resources/${encodeURIComponent(id)}`]) {
+      try {
+        const data = HttpClient.extractData(await this.httpClient.get(path))
+        if (data && data.id != null) return normalizeResource(data)
+      } catch {
+        /* siguiente opción */
+      }
     }
+    const { items } = await this.getResources()
+    const found = items.find((r) => String(r.id) === String(id))
+    if (!found) throw new Error('not-found')
+    return found
   }
 
-  async getResourcesByCategory(category) {
-    try {
-      const response = await this.httpClient.get(`/api/v1/resources?category=${category}`);
-      return this._extractList(response);
-    } catch (error) {
-      console.error('Failed to fetch resources by category:', error);
-      throw new Error('No se pudieron cargar los recursos. Por favor intenta nuevamente.');
-    }
-  }
-
-  async searchResources(query) {
-    try {
-      const response = await this.httpClient.get(`/api/v1/resource-libraries?search=${encodeURIComponent(query)}`);
-      return this._extractList(response);
-    } catch (error) {
-      console.error('Failed to search resources:', error);
-      throw new Error('No se pudo realizar la búsqueda. Por favor intenta nuevamente.');
-    }
-  }
-
-  /**
-   * Extrae datos de diferentes formatos de respuesta
-   * @private
-   */
-  _extractData(response) {
-    if (response.data) return response.data;
-    if (response.success && response.data) return response.data;
-    return response;
-  }
-
-  /**
-   * Extrae listas de diferentes formatos de respuesta
-   * @private
-   */
-  _extractList(response) {
-    if (Array.isArray(response)) return response;
-    if (response.items) return response.items;
-    if (response.data && Array.isArray(response.data)) return response.data;
-    if (response.success && response.data && Array.isArray(response.data)) return response.data;
-    return [];
+  async getRelatedResources(resource, limit = 3) {
+    const { items } = await this.getResources()
+    return items
+      .filter((r) => String(r.id) !== String(resource.id))
+      .filter((r) => r.category === resource.category || r.tags.some((t) => resource.tags.includes(t)))
+      .slice(0, limit)
   }
 
   getCategories() {
@@ -95,60 +123,9 @@ export class ResourceLibraryService {
         description: 'Physical and mental exercises',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASzCJ22_1ztNrIsCmRFtbh4Z6D340iD2ukNMvMYyVWwY7dY39EqWuDwmkWR0OI7eM_ET6XiTslt3v3e6-JVIypMi3UvbtCmw-Ned3Yw0kngrWe7A4bwiKP55oZ70tYXyKCnruJbBCn-QnMwKBdj9YCM0hxFYaWgvGYRqJWgwwjY4YGX1iMWOVVg6TRh44rzAarkLjVCU0RHGVqR2g1RqjRryo7ZL3BaHyntW7tLXBY4DgIyWD7wh7hL3wURz06HPjpmRgGUOSKbvuD'
       }
-    ];
+    ]
   }
 
-  formatDuration(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }
-
-  // Mock player functionality
-  createPlayerSession(resourceId) {
-    return {
-      id: Date.now().toString(),
-      resourceId,
-      currentTime: 0,
-      isPlaying: false,
-      isLoaded: false,
-      volume: 1.0,
-      playbackRate: 1.0
-    };
-  }
-
-  // Additional methods used by components
-  async getResourceById(id) {
-    return this.getResource(id);
-  }
-
-  async getRelatedResources(resourceId) {
-    try {
-      const resources = await this.getResources();
-      const currentResource = resources.find(r => r.id.toString() === resourceId.toString());
-      
-      if (!currentResource) {
-        return [];
-      }
-      
-      // Return resources with similar categories or tags
-      const related = resources
-        .filter(r => r.id.toString() !== resourceId.toString())
-        .filter(r => r.category === currentResource.category || 
-                     (r.tags && currentResource.tags && 
-                      r.tags.some(tag => currentResource.tags.includes(tag))))
-        .slice(0, 3); // Limit to 3 related resources
-      
-      return related;
-    } catch (error) {
-      throw new Error('Failed to fetch related resources: ' + error.message);
-    }
-  }
-
-  /**
-   * Retorna recursos mock cuando el backend no está disponible
-   * @private
-   */
   _getMockResources() {
     return [
       {
@@ -159,7 +136,7 @@ export class ResourceLibraryService {
         category: "video",
         contentUrl: "https://www.youtube.com/watch?v=example1",
         thumbnail: "https://picsum.photos/400/300?random=1",
-        duration: 900, // 15 minutos en segundos
+        duration: 15, // minutos
         author: "Dr. Juan Pérez",
         tags: ["respiración", "mindfulness", "relajación"],
         createdAt: "2024-01-15"
@@ -172,7 +149,7 @@ export class ResourceLibraryService {
         category: "reading",
         contentUrl: "https://neurozen.com/articles/mindfulness-principiantes",
         thumbnail: "https://picsum.photos/400/300?random=2",
-        duration: 600, // 10 minutos
+        duration: 10, // minutos
         author: "Lic. María González",
         tags: ["mindfulness", "meditación", "principiantes"],
         createdAt: "2024-01-20"
@@ -185,7 +162,7 @@ export class ResourceLibraryService {
         category: "audio",
         contentUrl: "https://neurozen.com/audio/meditacion-5min.mp3",
         thumbnail: "https://picsum.photos/400/300?random=3",
-        duration: 300, // 5 minutos
+        duration: 5, // minutos
         author: "Ana Martínez",
         tags: ["meditación", "audio", "pausa"],
         createdAt: "2024-02-01"
@@ -198,7 +175,7 @@ export class ResourceLibraryService {
         category: "exercises",
         contentUrl: "https://www.youtube.com/watch?v=example2",
         thumbnail: "https://picsum.photos/400/300?random=4",
-        duration: 480, // 8 minutos
+        duration: 8, // minutos
         author: "Carlos Rodríguez",
         tags: ["ejercicios", "estiramiento", "oficina"],
         createdAt: "2024-02-10"
@@ -211,7 +188,7 @@ export class ResourceLibraryService {
         category: "reading",
         contentUrl: "https://neurozen.com/articles/gestion-tiempo",
         thumbnail: "https://picsum.photos/400/300?random=5",
-        duration: 720, // 12 minutos
+        duration: 12, // minutos
         author: "Dr. Laura Sánchez",
         tags: ["productividad", "gestión", "tiempo"],
         createdAt: "2024-02-15"
@@ -224,7 +201,7 @@ export class ResourceLibraryService {
         category: "audio",
         contentUrl: "https://neurozen.com/audio/musica-dormir.mp3",
         thumbnail: "https://picsum.photos/400/300?random=6",
-        duration: 1800, // 30 minutos
+        duration: 30, // minutos
         author: "Estudio NeuroZen",
         tags: ["música", "sueño", "relajación"],
         createdAt: "2024-02-20"
@@ -237,7 +214,7 @@ export class ResourceLibraryService {
         category: "exercises",
         contentUrl: "https://www.youtube.com/watch?v=example3",
         thumbnail: "https://picsum.photos/400/300?random=7",
-        duration: 1200, // 20 minutos
+        duration: 20, // minutos
         author: "Sofía Ramírez",
         tags: ["yoga", "ansiedad", "ejercicios"],
         createdAt: "2024-03-01"
@@ -250,11 +227,11 @@ export class ResourceLibraryService {
         category: "reading",
         contentUrl: "https://neurozen.com/articles/alimentacion-antiestres",
         thumbnail: "https://picsum.photos/400/300?random=8",
-        duration: 900, // 15 minutos
+        duration: 15, // minutos
         author: "Dra. Patricia López",
         tags: ["alimentación", "nutrición", "salud"],
         createdAt: "2024-03-05"
       }
-    ];
+    ]
   }
 }

@@ -1,271 +1,153 @@
 /**
- * DashboardService - Servicio para gestión de datos del dashboard
- * Obtiene y procesa estadísticas de estrés personalizadas por usuario
- * 
+ * DashboardService - Estadísticas de estrés del Dashboard.
+ *
+ * Orden de prioridad de datos:
+ *  1. user.stressData del backend (si existe)
+ *  2. Estadísticas calculadas a partir de los triggers registrados por el usuario
+ *  3. Datos de demostración, ESTABLES por usuario (antes cambiaban con cada clic)
+ *     y marcados con source = 'demo' para avisar en la interfaz.
+ *
  * @author Juan Carlos Angulo
- * @version 1.0.0
+ * @version 2.0.0
  */
+import { HttpClient } from './HttpClient.js'
+import { StressTriggerService } from './StressTriggerService.js'
+import { getUserId } from './session.js'
 
-import { HttpClient } from './HttpClient.js';
+const WEEK_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+const DAY_HOURS = ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00']
 
-/**
- * Servicio principal para la gestión de datos del dashboard
- * Proporciona estadísticas de estrés personalizadas por usuario
- * @class DashboardService
- */
+const avg = (arr) => (arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0)
+
+/** PRNG determinista (mulberry32) para que la demo no cambie en cada recarga */
+function seeded(seedText) {
+  let h = 1779033703 ^ seedText.length
+  for (let i = 0; i < seedText.length; i++) {
+    h = Math.imul(h ^ seedText.charCodeAt(i), 3432918353)
+    h = (h << 13) | (h >>> 19)
+  }
+  return () => {
+    h = Math.imul(h ^ (h >>> 16), 2246822507)
+    h = Math.imul(h ^ (h >>> 13), 3266489909)
+    return ((h ^= h >>> 16) >>> 0) / 4294967296
+  }
+}
+
 export class DashboardService {
-  /**
-   * Constructor del servicio de dashboard
-   * Inicializa el cliente HTTP para comunicación con la API
-   */
   constructor() {
-    this.httpClient = new HttpClient();
+    this.httpClient = new HttpClient()
+    this.triggerService = new StressTriggerService()
+    this.cache = null
   }
 
-  /**
-   * Obtiene los datos de estrés del usuario actual
-   * Intenta obtener datos específicos del usuario, con fallback a datos generales
-   * @returns {Promise<Object>} Datos de estrés del usuario incluyendo niveles y estadísticas semanales
-   * @throws {Error} Error si falla la obtención de datos
-   */
-  async getStressData() {
-    try {
-      // Get current user from localStorage
-      const currentUser = JSON.parse(localStorage.getItem('user') || localStorage.getItem('currentUser') || '{}');
-      const userId = currentUser.id;
-      
-      if (userId) {
+  /** Carga la fuente de datos una vez; los cambios de período reutilizan la caché */
+  async _loadSource() {
+    if (this.cache) return this.cache
+    const userId = getUserId()
+    let source = { type: 'demo', userId }
+
+    if (userId != null) {
+      try {
+        const user = HttpClient.extractData(await this.httpClient.get(`/api/v1/users/${userId}`))
+        if (user && user.stressData && Array.isArray(user.stressData.weeklyData)) {
+          source = { type: 'user', userId, stressData: user.stressData }
+        }
+      } catch {
+        /* se intenta con triggers */
+      }
+      if (source.type === 'demo') {
         try {
-          // Get user-specific data from backend .NET
-          const userData = await this.httpClient.get(`/api/v1/users/${userId}`);
-          
-          // Extraer datos según formato de respuesta
-          const user = this._extractData(userData);
-          
-          if (user && user.stressData) {
-            return user.stressData;
-          }
-          
-          // Si no tiene stressData, intentar obtener triggers para generar estadísticas
-          try {
-            const triggers = await this.httpClient.get(`/api/v1/triggers?userId=${userId}`);
-            const triggerList = this._extractList(triggers);
-            
-            if (triggerList.length > 0) {
-              return this._generateStressDataFromTriggers(triggerList);
-            }
-          } catch (triggerError) {
-            console.warn('Could not fetch triggers:', triggerError.message);
-          }
-        } catch (userError) {
-          console.warn('Could not fetch user-specific data, falling back to demo data:', userError.message);
+          const triggers = await this.triggerService.getStressTriggers(userId)
+          if (triggers.length) source = { type: 'triggers', userId, triggers }
+        } catch {
+          /* se usa demo */
         }
       }
-      
-      // Fallback a datos de demostración
-      console.info('No stress data found, generating demo data');
-      return this.generateRealisticStressData('week');
-    } catch (error) {
-      console.warn('Failed to fetch stress data, generating demo data:', error.message);
-      return this.generateRealisticStressData('week');
     }
+    this.cache = source
+    return source
   }
 
-  /**
-   * Genera datos de estrés a partir de triggers
-   * @private
-   */
-  _generateStressDataFromTriggers(triggers) {
-    const avgIntensity = triggers.reduce((sum, t) => {
-      const intensity = typeof t.intensity === 'number' ? t.intensity : 
-                       t.intensity === 'high' ? 80 : 
-                       t.intensity === 'medium' ? 50 : 30;
-      return sum + intensity;
-    }, 0) / triggers.length;
+  async getStressData(period = 'week') {
+    const source = await this._loadSource()
+    if (source.type === 'user' && period === 'week') {
+      return { ...source.stressData, source: 'user' }
+    }
+    if (source.type === 'triggers') {
+      return { ...this._fromTriggers(source.triggers, period), source: 'triggers' }
+    }
+    return { ...this._demo(period, String(source.userId ?? 'guest')), source: 'demo' }
+  }
+
+  /** Compatibilidad con el nombre anterior */
+  updateStressPeriod(period) {
+    return this.getStressData(period)
+  }
+
+  _fromTriggers(triggers, period) {
+    const now = new Date()
+    const dated = triggers.filter((t) => t.triggeredAt)
+    const level = (t) => t.stressLevel * 10
+    let buckets
+
+    if (period === 'day') {
+      buckets = DAY_HOURS.map((label, i) => {
+        const from = 6 + i * 3
+        const values = dated.filter((t) => { const h = t.triggeredAt.getHours(); return h >= from && h < from + 3 }).map(level)
+        return { day: label, value: Math.round(avg(values)) }
+      })
+    } else if (period === 'month') {
+      buckets = [3, 2, 1, 0].map((weeksAgo, i) => {
+        const end = new Date(now); end.setDate(now.getDate() - weeksAgo * 7)
+        const start = new Date(end); start.setDate(end.getDate() - 7)
+        const values = dated.filter((t) => t.triggeredAt > start && t.triggeredAt <= end).map(level)
+        return { day: `week${i + 1}`, value: Math.round(avg(values)) }
+      })
+    } else {
+      buckets = WEEK_DAYS.map((day, i) => {
+        const values = dated.filter((t) => (t.triggeredAt.getDay() + 6) % 7 === i).map(level)
+        return { day, value: Math.round(avg(values)) }
+      })
+    }
+
+    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)
+    const twoWeeksAgo = new Date(now); twoWeeksAgo.setDate(now.getDate() - 14)
+    const thisWeek = avg(dated.filter((t) => t.triggeredAt > weekAgo).map(level))
+    const lastWeek = avg(dated.filter((t) => t.triggeredAt > twoWeeksAgo && t.triggeredAt <= weekAgo).map(level))
+    const peak = [...dated].sort((a, b) => b.stressLevel - a.stressLevel)[0]
+    const peakHour = peak ? peak.triggeredAt.getHours() : null
 
     return {
-      currentLevel: Math.round(avgIntensity),
-      average: Math.round(avgIntensity),
-      peakHours: "10 AM - 12 PM",
-      weeklyChange: -5,
-      weeklyData: this.generateRealisticStressData('week').weeklyData
-    };
-  }
-
-  /**
-   * Extrae datos de diferentes formatos de respuesta
-   * @private
-   */
-  _extractData(response) {
-    if (response.data) return response.data;
-    if (response.success && response.data) return response.data;
-    return response;
-  }
-
-  /**
-   * Extrae listas de diferentes formatos de respuesta
-   * @private
-   */
-  _extractList(response) {
-    if (Array.isArray(response)) return response;
-    if (response.items) return response.items;
-    if (response.data && Array.isArray(response.data)) return response.data;
-    if (response.success && response.data && Array.isArray(response.data)) return response.data;
-    return [];
-  }
-
-  /**
-   * Actualiza los datos de estrés para un período específico
-   * Proporciona datos simulados realistas para diferentes períodos de tiempo
-   * @param {string} period - Período de tiempo ('day', 'week', 'month')
-   * @returns {Promise<Object>} Datos de estrés para el período especificado
-   */
-  async updateStressPeriod(period) {
-    return this.generateRealisticStressData(period);
-  }
-
-  /**
-   * Genera datos de estrés realistas basados en patrones típicos
-   * @param {string} period - Período de tiempo ('day', 'week', 'month')
-   * @returns {Object} Datos de estrés simulados realistas
-   */
-  generateRealisticStressData(period) {
-    const baseStressLevel = 45 + Math.random() * 30; // Base entre 45-75
-    
-    switch (period) {
-      case 'day':
-        return this.generateDayData(baseStressLevel);
-      case 'week':
-        return this.generateWeekData(baseStressLevel);
-      case 'month':
-        return this.generateMonthData(baseStressLevel);
-      default:
-        return this.generateWeekData(baseStressLevel);
+      currentLevel: dated.length ? level(dated[0]) : 0,
+      average: Math.round(avg(dated.map(level))),
+      peakHours: peakHour != null ? `${String(peakHour).padStart(2, '0')}:00 - ${String((peakHour + 2) % 24).padStart(2, '0')}:00` : '--',
+      weeklyChange: thisWeek && lastWeek ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100) : 0,
+      weeklyData: buckets,
+      totalTriggers: dated.length
     }
   }
 
-  /**
-   * Genera datos de estrés por horas del día
-   * @param {number} baseLevel - Nivel base de estrés
-   * @returns {Object} Datos de estrés por horas
-   */
-  generateDayData(baseLevel) {
-    const hourlyData = [];
-    const hours = ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '00:00'];
-    
-    // Patrón típico: bajo en la madrugada, sube durante el día, pico en la tarde
-    const patterns = [0.6, 0.8, 0.9, 1.2, 1.1, 0.7, 0.5]; // Multiplicadores
-    
-    for (let i = 0; i < hours.length; i++) {
-      const variation = (Math.random() - 0.5) * 10; // Variación ±5
-      const value = Math.max(10, Math.min(100, baseLevel * patterns[i] + variation));
-      hourlyData.push({
-        day: hours[i],
-        value: Math.round(value)
-      });
+  _demo(period, seedKey) {
+    const rand = seeded(`${seedKey}-${period}`)
+    const base = 45 + rand() * 25
+    const patterns = {
+      day: { labels: DAY_HOURS, factors: [0.6, 0.85, 0.95, 1.2, 1.05, 0.7] },
+      week: { labels: WEEK_DAYS, factors: [0.9, 1.0, 1.1, 1.2, 1.1, 0.7, 0.6] },
+      month: { labels: ['week1', 'week2', 'week3', 'week4'], factors: [0.85, 1.0, 1.1, 0.9] }
     }
-
-    const currentLevel = hourlyData[Math.floor(Math.random() * hourlyData.length)].value;
-    const average = Math.round(hourlyData.reduce((sum, item) => sum + item.value, 0) / hourlyData.length);
-    const peakTime = hourlyData.reduce((max, item) => item.value > max.value ? item : max).day;
-    
+    const { labels, factors } = patterns[period] || patterns.week
+    const data = labels.map((day, i) => ({
+      day,
+      value: Math.round(Math.max(10, Math.min(100, base * factors[i] + (rand() - 0.5) * 12)))
+    }))
+    const peak = data.reduce((m, d) => (d.value > m.value ? d : m))
+    const todayIndex = period === 'week' ? (new Date().getDay() + 6) % 7 : Math.floor(rand() * data.length)
     return {
-      currentLevel,
-      average,
-      peakHours: peakTime,
-      weeklyChange: Math.round((Math.random() - 0.5) * 20), // ±10%
-      dayData: hourlyData,
-      weeklyData: hourlyData // Compatibilidad con código existente
-    };
-  }
-
-  /**
-   * Genera datos de estrés por días de la semana
-   * @param {number} baseLevel - Nivel base de estrés
-   * @returns {Object} Datos de estrés semanales
-   */
-  generateWeekData(baseLevel) {
-    const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const weeklyData = [];
-    
-    // Patrón típico: estrés alto entre semana, bajo los fines de semana
-    const patterns = [0.9, 1.0, 1.1, 1.2, 1.1, 0.7, 0.6];
-    
-    for (let i = 0; i < weekDays.length; i++) {
-      const variation = (Math.random() - 0.5) * 15; // Variación ±7.5
-      const value = Math.max(10, Math.min(100, baseLevel * patterns[i] + variation));
-      weeklyData.push({
-        day: weekDays[i],
-        value: Math.round(value)
-      });
+      currentLevel: data[Math.min(todayIndex, data.length - 1)].value,
+      average: Math.round(avg(data.map((d) => d.value))),
+      peakHours: period === 'day' ? peak.day : '14:00 - 16:00',
+      weeklyChange: Math.round((rand() - 0.5) * 20),
+      weeklyData: data
     }
-
-    const currentLevel = weeklyData[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1].value;
-    const average = Math.round(weeklyData.reduce((sum, item) => sum + item.value, 0) / weeklyData.length);
-    
-    // Determinar horas pico basado en el día con más estrés
-    const peakDay = weeklyData.reduce((max, item) => item.value > max.value ? item : max);
-    const peakHours = this.getPeakHoursForDay(peakDay.day);
-    
-    return {
-      currentLevel,
-      average,
-      peakHours,
-      weeklyChange: Math.round((Math.random() - 0.5) * 25), // ±12.5%
-      weeklyData
-    };
-  }
-
-  /**
-   * Genera datos de estrés por semanas del mes
-   * @param {number} baseLevel - Nivel base de estrés
-   * @returns {Object} Datos de estrés mensuales
-   */
-  generateMonthData(baseLevel) {
-    const monthWeeks = ['week1', 'week2', 'week3', 'week4'];
-    const monthlyData = [];
-    
-    // Patrón típico: puede variar según eventos del mes
-    const patterns = [0.8, 1.0, 1.1, 0.9];
-    
-    for (let i = 0; i < monthWeeks.length; i++) {
-      const variation = (Math.random() - 0.5) * 20; // Variación ±10
-      const value = Math.max(10, Math.min(100, baseLevel * patterns[i] + variation));
-      monthlyData.push({
-        day: monthWeeks[i],
-        value: Math.round(value)
-      });
-    }
-
-    const currentLevel = monthlyData[Math.floor(new Date().getDate() / 7)].value;
-    const average = Math.round(monthlyData.reduce((sum, item) => sum + item.value, 0) / monthlyData.length);
-    
-    return {
-      currentLevel,
-      average,
-      peakHours: "10:00 - 16:00",
-      weeklyChange: Math.round((Math.random() - 0.5) * 30), // ±15%
-      monthData: monthlyData,
-      weeklyData: monthlyData // Compatibilidad con código existente
-    };
-  }
-
-  /**
-   * Obtiene las horas pico típicas para un día específico
-   * @param {string} day - Día de la semana
-   * @returns {string} Rango de horas pico
-   */
-  getPeakHoursForDay(day) {
-    const peakHours = {
-      monday: "09:00 - 11:00",
-      tuesday: "10:00 - 12:00", 
-      wednesday: "14:00 - 16:00",
-      thursday: "15:00 - 17:00",
-      friday: "11:00 - 13:00",
-      saturday: "16:00 - 18:00",
-      sunday: "19:00 - 21:00"
-    };
-    
-    return peakHours[day] || "14:00 - 16:00";
   }
 }

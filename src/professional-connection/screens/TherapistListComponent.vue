@@ -1,195 +1,119 @@
 <template>
-  <div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display group/design-root overflow-x-hidden">
-    <div class="layout-container flex h-full grow flex-col">
-      <!-- Header -->
-      <header class="flex items-center justify-between whitespace-nowrap border-b border-primary/20 dark:border-primary/30 px-6 sm:px-10 py-4">
-        <div class="flex items-center gap-3 text-primary">
-          <span class="material-symbols-outlined text-3xl">self_improvement</span>
-          <h2 class="text-primary text-xl font-bold">NeuroZen</h2>
-        </div>
-        <div class="flex gap-2">
-          <button 
-            @click="$router.push('/dashboard')"
-            class="flex items-center justify-center rounded-full h-10 w-10 bg-primary/10 dark:bg-primary/20 text-primary hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
-          >
-            <span class="material-symbols-outlined">arrow_back</span>
-          </button>
-          <button class="flex items-center justify-center rounded-full h-10 w-10 bg-primary/10 dark:bg-primary/20 text-primary hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">
-            <span class="material-symbols-outlined">person</span>
-          </button>
-        </div>
-      </header>
+  <div class="nz-page max-w-6xl">
+    <PageHeader :title="$t('professionals.directory.title')" :subtitle="$t('professionals.directory.subtitle')">
+      <template #actions>
+        <router-link to="/book-session" class="nz-btn-primary"><i class="fas fa-calendar-plus" aria-hidden="true"></i>{{ $t('navigation.bookSession') }}</router-link>
+      </template>
+    </PageHeader>
 
-      <!-- Main Content -->
-      <main class="flex flex-1 justify-center py-8 px-4 sm:px-6 lg:px-8">
-        <div class="w-full max-w-4xl">
-          <!-- Loading State -->
-          <div v-if="isLoading" class="flex justify-center items-center min-h-96">
-            <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          </div>
-
-          <!-- Error State -->
-          <div v-else-if="errorMessage" class="text-center">
-            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-              {{ errorMessage }}
-            </div>
-            <button 
-              @click="loadTherapists"
-              class="bg-primary text-white font-bold py-2 px-4 rounded hover:bg-primary/90"
-            >
-              Reintentar
-            </button>
-          </div>
-
-          <!-- Content -->
-          <div v-else>
-            <!-- Header -->
-            <div class="mb-8 px-2">
-              <h1 class="text-slate-900 dark:text-slate-50 text-4xl font-bold tracking-tight">Find Your Therapist</h1>
-              <p class="mt-2 text-slate-600 dark:text-slate-400 text-lg">Connect with licensed professionals to support your mental well-being.</p>
-            </div>
-
-            <!-- Filters -->
-            <div class="flex flex-wrap gap-4 mb-8 px-2">
-              <div class="relative">
-                <select 
-                  v-model="selectedSpecialty"
-                  @change="filterTherapists"
-                  class="appearance-none w-full sm:w-auto bg-background-light dark:bg-background-dark border border-primary/30 dark:border-primary/40 text-slate-700 dark:text-slate-300 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                >
-                  <option value="">All Specialties</option>
-                  <option value="Cognitive Behavioral Therapy">Cognitive Behavioral</option>
-                  <option value="Mindfulness & Stress Reduction">Mindfulness</option>
-                  <option value="Occupational Stress Management">Occupational Stress</option>
-                  <option value="Work-Life Balance">Work-Life Balance</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700 dark:text-slate-300">
-                  <span class="material-symbols-outlined">expand_more</span>
-                </div>
-              </div>
-              <div class="relative">
-                <select 
-                  v-model="selectedAvailability"
-                  @change="filterTherapists"
-                  class="appearance-none w-full sm:w-auto bg-background-light dark:bg-background-dark border border-primary/30 dark:border-primary/40 text-slate-700 dark:text-slate-300 py-2 pl-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                >
-                  <option value="">All Availability</option>
-                  <option value="weekdays">Weekdays</option>
-                  <option value="weekends">Weekends</option>
-                  <option value="evenings">Evenings</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-700 dark:text-slate-300">
-                  <span class="material-symbols-outlined">expand_more</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Therapists Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div 
-                v-for="therapist in filteredTherapists" 
-                :key="therapist.id"
-                class="bg-white dark:bg-slate-800/50 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-              >
-                <div class="md:flex">
-                  <div class="md:shrink-0">
-                    <img 
-                      :alt="therapist.name" 
-                      class="h-48 w-full object-cover md:h-full md:w-48" 
-                      :src="therapist.image"
-                    />
-                  </div>
-                  <div class="p-6">
-                    <div class="flex items-center">
-                      <div class="flex text-yellow-400">
-                        <span v-for="i in Math.floor(therapist.rating)" :key="'full-' + i">★</span>
-                        <span v-if="therapist.rating % 1 !== 0" class="text-yellow-400/70">★</span>
-                      </div>
-                      <p class="ml-2 text-sm text-slate-500 dark:text-slate-400">
-                        {{ therapist.rating }} ({{ therapist.reviews }} reviews)
-                      </p>
-                    </div>
-                    <a 
-                      @click="goToTherapist(therapist.id)"
-                      class="block mt-1 text-lg leading-tight font-semibold text-slate-900 dark:text-white hover:text-primary dark:hover:text-primary transition-colors cursor-pointer"
-                    >
-                      {{ therapist.name }}
-                    </a>
-                    <p class="mt-2 text-slate-600 dark:text-slate-400">{{ therapist.specialty }}</p>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">${{ therapist.price }} / session</p>
-                    <button 
-                      @click="bookSession(therapist.id)"
-                      class="mt-4 w-full bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors"
-                    >
-                      Book a Session
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+    <div class="mb-6 grid gap-3 sm:grid-cols-3">
+      <label class="sm:col-span-1">
+        <span class="sr-only">{{ $t('common.search') }}</span>
+        <input v-model="search" type="search" class="nz-input" :placeholder="$t('professionals.directory.searchPlaceholder')" />
+      </label>
+      <label>
+        <span class="sr-only">{{ $t('professionals.directory.specialty') }}</span>
+        <select v-model="selectedSpecialty" class="nz-input">
+          <option value="">{{ $t('professionals.directory.allSpecialties') }}</option>
+          <option v-for="s in specialties" :key="s" :value="s">{{ s }}</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">{{ $t('professionals.directory.availability') }}</span>
+        <select v-model="selectedAvailability" class="nz-input">
+          <option value="">{{ $t('professionals.directory.allAvailability') }}</option>
+          <option value="weekdays">{{ $t('professionals.directory.weekdays') }}</option>
+          <option value="weekends">{{ $t('professionals.directory.weekends') }}</option>
+          <option value="evenings">{{ $t('professionals.directory.evenings') }}</option>
+        </select>
+      </label>
     </div>
+
+    <LoadingState v-if="isLoading" />
+    <ErrorState v-else-if="errorMessage" :message="errorMessage" @retry="loadTherapists" />
+    <EmptyState v-else-if="!filtered.length" icon="fas fa-user-doctor" :title="$t('professionals.directory.empty')" :message="$t('professionals.directory.emptyHint')" />
+
+    <ul v-else class="grid gap-5 md:grid-cols-2">
+      <li v-for="therapist in filtered" :key="therapist.id" class="nz-card flex flex-col gap-4 p-5 sm:flex-row">
+        <img data-fallback="/images-of-professionals/usuariodemo.jpg" :src="therapist.image" :alt="therapist.name" class="h-24 w-24 shrink-0 rounded-xl object-cover" loading="lazy" />
+        <div class="flex min-w-0 flex-1 flex-col">
+          <router-link :to="{ name: 'TherapistDetail', params: { id: therapist.id } }" class="text-lg font-bold text-foreground-light hover:text-primary">{{ therapist.name }}</router-link>
+          <p class="text-sm font-semibold text-primary">{{ therapist.specialty }}</p>
+          <StarRating class="mt-1" :value="therapist.rating" :count="therapist.reviews" />
+          <p v-if="therapist.availability" class="mt-2 text-sm text-muted-light"><i class="far fa-clock mr-1" aria-hidden="true"></i>{{ therapist.availability }}</p>
+          <div class="mt-auto flex flex-wrap items-center justify-between gap-3 pt-4">
+            <p class="text-sm"><span class="text-xl font-extrabold text-foreground-light">${{ therapist.price }}</span> <span class="text-muted-light">/ {{ $t('professionals.perSession') }}</span></p>
+            <div class="flex gap-2">
+              <router-link :to="{ name: 'TherapistDetail', params: { id: therapist.id } }" class="nz-btn-secondary px-3 py-2">{{ $t('professionals.viewProfile') }}</router-link>
+              <router-link :to="{ name: 'BookAppointment', params: { id: therapist.id } }" class="nz-btn-primary px-3 py-2">{{ $t('professionals.book') }}</router-link>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
   </div>
 </template>
 
 <script>
-import { TherapistService } from '../../services/TherapistService.js';
+/**
+ * TherapistListComponent - Directorio de profesionales.
+ * Ahora accesible desde el menú, traducido, con búsqueda y filtro de
+ * disponibilidad funcional (antes no filtraba nada).
+ */
+import PageHeader from '../../components/ui/PageHeader.vue'
+import LoadingState from '../../components/ui/LoadingState.vue'
+import ErrorState from '../../components/ui/ErrorState.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
+import StarRating from '../../components/StarRating.vue'
+import { TherapistService } from '../../services/TherapistService.js'
+
+/** Interpreta textos como "Lunes a Viernes, 9 AM - 6 PM" o "Sáb 10:00-14:00" */
+function matchesAvailability(text = '', filter) {
+  const t = text.toLowerCase()
+  if (filter === 'weekends') return /(s[áa]b|dom|sat|sun|fin de semana|weekend)/.test(t)
+  if (filter === 'weekdays') return /(lun|mar|mi[ée]|jue|vie|mon|tue|wed|thu|fri|semana|weekday)/.test(t)
+  if (filter === 'evenings') {
+    const pm = [...t.matchAll(/(\d{1,2})(?::\d{2})?\s*(pm)/g)].map((m) => Number(m[1]) + (m[1] === '12' ? 0 : 12))
+    const h24 = [...t.matchAll(/\b(\d{1,2}):\d{2}\b/g)].map((m) => Number(m[1]))
+    return [...pm, ...h24].some((h) => h >= 18) || /(noche|tarde|evening)/.test(t)
+  }
+  return true
+}
 
 export default {
   name: 'TherapistListComponent',
+  components: { PageHeader, LoadingState, ErrorState, EmptyState, StarRating },
   data() {
-    return {
-      therapists: [],
-      filteredTherapists: [],
-      isLoading: true,
-      errorMessage: '',
-      therapistService: null,
-      selectedSpecialty: '',
-      selectedAvailability: ''
-    };
+    return { therapists: [], isLoading: true, errorMessage: '', search: '', selectedSpecialty: '', selectedAvailability: '', service: new TherapistService() }
   },
-  async created() {
-    this.therapistService = new TherapistService();
-    await this.loadTherapists();
+  computed: {
+    specialties() {
+      return [...new Set(this.therapists.map((t) => t.specialty).filter(Boolean))].sort()
+    },
+    filtered() {
+      const q = this.search.toLowerCase().trim()
+      return this.therapists.filter((t) =>
+        (!q || `${t.name} ${t.specialty}`.toLowerCase().includes(q)) &&
+        (!this.selectedSpecialty || t.specialty === this.selectedSpecialty) &&
+        (!this.selectedAvailability || matchesAvailability(t.availability, this.selectedAvailability))
+      )
+    }
+  },
+  created() {
+    this.loadTherapists()
   },
   methods: {
     async loadTherapists() {
-      this.isLoading = true;
-      this.errorMessage = '';
-      
+      this.isLoading = true
+      this.errorMessage = ''
       try {
-        this.therapists = await this.therapistService.getTherapists();
-        this.filteredTherapists = [...this.therapists];
+        this.therapists = await this.service.getTherapists()
       } catch (error) {
-        this.errorMessage = 'Error al cargar los terapeutas: ' + error.message;
+        this.errorMessage = error.message
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
-    },
-
-    filterTherapists() {
-      this.filteredTherapists = this.therapists.filter(therapist => {
-        const matchesSpecialty = !this.selectedSpecialty || therapist.specialty === this.selectedSpecialty;
-        // For simplicity, we'll just filter by specialty for now
-        return matchesSpecialty;
-      });
-    },
-
-    goToTherapist(therapistId) {
-      this.$router.push(`/therapist/${therapistId}`);
-    },
-
-    bookSession(therapistId) {
-      this.$router.push(`/book-appointment/${therapistId}`);
     }
   }
-};
-</script>
-
-<style scoped>
-.font-display {
-  font-family: 'Manrope', sans-serif;
 }
-</style>
+</script>

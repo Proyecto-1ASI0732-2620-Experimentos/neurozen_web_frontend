@@ -1,220 +1,114 @@
 <template>
-  <div class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark min-h-screen">
-    <div class="flex flex-col items-center justify-center min-h-screen p-4">
-      <div class="w-full max-w-sm">
-        <div class="text-center mb-10">
-          <h1 class="text-4xl font-bold text-primary">{{ $t('app.name') }}</h1>
-          <p class="mt-2 text-muted-light dark:text-muted-dark">{{ $t('dashboard.welcome') }}</p>
-        </div>
-        
-        <!-- Error message -->
-        <div v-if="errorMessage" class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          {{ errorMessage }}
-        </div>
-        
-        <!-- Loading indicator -->
-        <div v-if="isLoading" class="text-center mb-4">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+  <AuthLayout>
+    <h1 class="text-3xl font-extrabold text-foreground-light">{{ $t('auth.login.welcomeBack') }}</h1>
+    <p class="mt-2 text-muted-light">{{ $t('auth.login.subtitle') }}</p>
 
-        <form @submit.prevent="handleLogin" class="space-y-6">
-          <div>
-            <label class="sr-only" for="email">Email</label>
-            <input 
-              v-model="formData.email"
-              class="w-full px-4 py-3 bg-background-light dark:bg-background-dark border border-primary/20 dark:border-primary/40 rounded-lg focus:ring-primary focus:border-primary placeholder-muted-light dark:placeholder-muted-dark" 
-              id="email" 
-              name="email" 
-              :placeholder="$t('auth.login.email')" 
-              type="email"
-              required
-              :disabled="isLoading"
-            />
-          </div>
-          <div>
-            <label class="sr-only" for="password">Password</label>
-            <input 
-              v-model="formData.password"
-              class="w-full px-4 py-3 bg-background-light dark:bg-background-dark border border-primary/20 dark:border-primary/40 rounded-lg focus:ring-primary focus:border-primary placeholder-muted-light dark:placeholder-muted-dark" 
-              id="password" 
-              name="password" 
-              :placeholder="$t('auth.login.password')" 
-              type="password"
-              required
-              :disabled="isLoading"
-            />
-          </div>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <input 
-                v-model="formData.rememberMe"
-                class="h-4 w-4 rounded border-primary/50 text-primary focus:ring-primary" 
-                id="remember-me" 
-                name="remember-me" 
-                type="checkbox"
-                :disabled="isLoading"
-              />
-              <label class="ml-2 block text-sm text-text-light dark:text-text-dark" for="remember-me">
-                Recordarme
-              </label>
-            </div>
-            <div class="text-sm">
-              <a class="font-medium text-primary hover:text-primary/80" href="#" @click.prevent="handleForgotPassword">
-                {{ $t('auth.login.forgotPassword') }}
-              </a>
-            </div>
-          </div>
-          <div>
-            <button 
-              class="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-bold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50" 
-              type="submit"
-              :disabled="isLoading"
-            >
-              {{ isLoading ? $t('common.loading') : $t('auth.login.submit') }}
-            </button>
-          </div>
-        </form>
-        
-        <p class="mt-8 text-center text-sm text-muted-light dark:text-muted-dark">
-          {{ $t('auth.login.noAccount') }}
-          <a class="font-medium text-primary hover:text-primary/80" href="#" @click.prevent="goToRegister">
-            {{ $t('auth.login.signUp') }}
-          </a>
-        </p>
-      </div>
+    <div v-if="$route.query.expired" class="mt-6 flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="status">
+      <i class="fas fa-clock mt-0.5" aria-hidden="true"></i>{{ $t('auth.login.sessionExpired') }}
     </div>
-  </div>
+    <div v-if="errorMessage" class="mt-6 flex gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
+      <i class="fas fa-circle-exclamation mt-0.5" aria-hidden="true"></i>{{ errorMessage }}
+    </div>
+
+    <form class="mt-8 space-y-5" novalidate @submit.prevent="handleLogin">
+      <div>
+        <label class="nz-label" for="email">{{ $t('auth.login.email') }}</label>
+        <input
+          id="email" v-model.trim="formData.email" type="email" autocomplete="email" class="nz-input"
+          :class="{ 'nz-input-error': errors.email }" :placeholder="$t('auth.login.emailPlaceholder')"
+          :disabled="isLoading" :aria-invalid="!!errors.email" aria-describedby="email-error"
+        />
+        <p v-if="errors.email" id="email-error" class="nz-field-error">{{ errors.email }}</p>
+      </div>
+      <div>
+        <label class="nz-label" for="password">{{ $t('auth.login.password') }}</label>
+        <div class="relative">
+          <input
+            id="password" v-model="formData.password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password"
+            class="nz-input pr-11" :class="{ 'nz-input-error': errors.password }" :placeholder="$t('auth.login.passwordPlaceholder')"
+            :disabled="isLoading" :aria-invalid="!!errors.password" aria-describedby="password-error"
+          />
+          <button type="button" class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-light hover:text-primary"
+            :aria-label="showPassword ? $t('auth.hidePassword') : $t('auth.showPassword')" @click="showPassword = !showPassword">
+            <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
+          </button>
+        </div>
+        <p v-if="errors.password" id="password-error" class="nz-field-error">{{ errors.password }}</p>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <label class="flex items-center gap-2 text-sm text-foreground-light" for="remember-me">
+          <input id="remember-me" v-model="formData.rememberMe" type="checkbox" class="h-4 w-4 rounded border-primary/40 text-primary focus:ring-primary" :disabled="isLoading" />
+          {{ $t('auth.login.rememberMe') }}
+        </label>
+        <button type="button" class="text-sm font-semibold text-primary hover:underline" @click="showForgot = !showForgot">
+          {{ $t('auth.login.forgotPassword') }}
+        </button>
+      </div>
+      <p v-if="showForgot" class="rounded-lg bg-white p-3 text-sm text-muted-light" role="status">
+        {{ $t('auth.login.forgotPasswordInfo') }}
+      </p>
+
+      <button type="submit" class="nz-btn-primary w-full py-3 text-base" :disabled="isLoading">
+        <span v-if="isLoading" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+        {{ isLoading ? $t('auth.login.submitting') : $t('auth.login.submit') }}
+      </button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-muted-light">
+      {{ $t('auth.login.noAccount') }}
+      <router-link :to="{ name: 'Register' }" class="font-semibold text-primary hover:underline">{{ $t('auth.login.signUp') }}</router-link>
+    </p>
+  </AuthLayout>
 </template>
 
 <script>
 /**
- * LoginComponent - Componente de autenticación de usuarios
- * Maneja el formulario de login y la validación de credenciales
- * 
- * @author Juan Carlos Angulo
- * @version 1.0.0
+ * LoginComponent - Inicio de sesión.
+ * Valida antes de llamar a la API, distingue credenciales inválidas de errores
+ * de red, implementa "Recordarme" y vuelve a la página solicitada (?redirect).
  */
-
-import { AuthService } from '../../services/AuthService.js';
+import AuthLayout from '../../components/AuthLayout.vue'
+import { AuthService } from '../../services/AuthService.js'
+import { isEmail } from '../../utils/validation.js'
 
 export default {
   name: 'LoginComponent',
+  components: { AuthLayout },
   data() {
     return {
-      formData: {
-        email: '',
-        password: '',
-        rememberMe: false
-      },
+      formData: { email: '', password: '', rememberMe: true },
+      errors: {},
       isLoading: false,
       errorMessage: '',
-      authService: null
-    };
-  },
-  created() {
-    this.authService = new AuthService();
+      showPassword: false,
+      showForgot: false,
+      authService: new AuthService()
+    }
   },
   methods: {
-    /**
-     * Maneja el proceso de autenticación del usuario
-     * Valida credenciales y redirige al dashboard si es exitoso
-     */
+    validate() {
+      const errors = {}
+      if (!this.formData.email) errors.email = this.$t('validation.required')
+      else if (!isEmail(this.formData.email)) errors.email = this.$t('validation.email')
+      if (!this.formData.password) errors.password = this.$t('validation.required')
+      this.errors = errors
+      return Object.keys(errors).length === 0
+    },
     async handleLogin() {
-      this.isLoading = true;
-      this.errorMessage = '';
-
+      this.errorMessage = ''
+      if (!this.validate() || this.isLoading) return
+      this.isLoading = true
       try {
-        const user = await this.authService.login(this.formData.email, this.formData.password);
-        
-        // Emit login success event
-        this.$emit('login-success', user);
-        
-        // Navigate to dashboard or home
-        this.$router.push('/dashboard');
-        
+        await this.authService.login(this.formData.email, this.formData.password, { remember: this.formData.rememberMe })
+        const redirect = this.$route.query.redirect
+        this.$router.replace(typeof redirect === 'string' && redirect.startsWith('/') ? redirect : { name: 'Dashboard' })
       } catch (error) {
-        this.errorMessage = error.message;
+        this.errorMessage = error.message
       } finally {
-        this.isLoading = false;
+        this.isLoading = false
       }
-    },
-    
-    /**
-     * Maneja la navegación hacia la página de recuperación de contraseña
-     */
-    handleForgotPassword() {
-      // Navigate to forgot password page
-      this.$router.push('/forgot-password');
-    },
-    
-    /**
-     * Navega hacia la página de registro de nuevos usuarios
-     */
-    goToRegister() {
-      this.$router.push('/register');
     }
   }
-};
+}
 </script>
-
-<style scoped>
-.font-display {
-  font-family: 'Manrope', sans-serif;
-}
-
-.text-primary {
-  color: #2D5A4A;
-}
-
-.bg-primary {
-  background-color: #2D5A4A;
-}
-
-.bg-background-light {
-  background-color: #F1E9D4;
-}
-
-.bg-background-dark {
-  background-color: #11211c;
-}
-
-.text-text-light {
-  color: #374151;
-}
-
-.text-text-dark {
-  color: #E5E7EB;
-}
-
-.text-muted-light {
-  color: #6B7280;
-}
-
-.text-muted-dark {
-  color: #9CA3AF;
-}
-
-.border-primary\/20 {
-  border-color: rgba(45, 90, 74, 0.2);
-}
-
-.border-primary\/40 {
-  border-color: rgba(45, 90, 74, 0.4);
-}
-
-.hover\:bg-primary\/90:hover {
-  background-color: rgba(45, 90, 74, 0.9);
-}
-
-.hover\:text-primary\/80:hover {
-  color: rgba(45, 90, 74, 0.8);
-}
-
-.focus\:ring-primary:focus {
-  --tw-ring-color: #2D5A4A;
-}
-
-.focus\:border-primary:focus {
-  border-color: #2D5A4A;
-}
-</style>

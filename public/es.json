@@ -12,7 +12,10 @@
     "settings": "Configuración",
     "logout": "Cerrar Sesión",
     "login": "Iniciar Sesión",
-    "register": "Registrarse"
+    "register": "Registrarse",
+    "bookSession": "Reservar sesión",
+    "directory": "Directorio",
+    "myAppointments": "Mis citas"
   },
   "header": {
     "notifications": "Notificaciones",
@@ -20,7 +23,16 @@
     "settings": "Configuración",
     "help": "Ayuda",
     "logout": "Cerrar Sesión",
-    "language": "Idioma"
+    "language": "Idioma",
+    "account": "Cuenta",
+    "defaultUser": "Usuario",
+    "goHome": "Ir al inicio",
+    "mainNav": "Navegación principal",
+    "nextAppointment": "Próxima cita",
+    "nextBreak": "Próxima pausa activa hoy",
+    "noNotifications": "No tienes notificaciones",
+    "openMenu": "Abrir menú",
+    "userMenu": "Menú de usuario"
   },
   "footer": {
     "company": "NeuroZen",
@@ -46,7 +58,9 @@
       "instagram": "Instagram",
       "linkedin": "LinkedIn"
     },
-    "copyright": "© 2025 NeuroZen. Todos los derechos reservados."
+    "copyright": "© 2025 NeuroZen. Todos los derechos reservados.",
+    "backToTop": "Volver arriba",
+    "explore": "Explorar"
   },
   "onboarding": {
     "steps": {
@@ -63,8 +77,10 @@
       "getStarted": "Comenzar",
       "next": "Siguiente",
       "skip": "Omitir",
-      "finish": "Ir al Login"
-    }
+      "finish": "Empezar",
+      "start": "Empezar"
+    },
+    "title": "Bienvenida"
   },
   "dashboard": {
     "title": "Panel de Control",
@@ -90,7 +106,7 @@
       "week": "Semana",
       "month": "Mes",
       "week1": "Sem 1",
-      "week2": "Sem 2", 
+      "week2": "Sem 2",
       "week3": "Sem 3",
       "week4": "Sem 4"
     },
@@ -141,6 +157,10 @@
       "settings": {
         "title": "Configuración",
         "description": "Ajustes de la aplicación"
+      },
+      "myAppointments": {
+        "title": "Mis citas",
+        "description": "Consulta tus próximas sesiones"
       }
     },
     "insights": {
@@ -150,7 +170,11 @@
     "errors": {
       "loadingData": "Error al cargar los datos del dashboard: {error}",
       "updatingData": "Error al actualizar los datos: {error}"
-    }
+    },
+    "demoNotice": "Aún no hay registros suficientes: se muestran datos de ejemplo.",
+    "demoCta": "Registra tu primer desencadenante",
+    "periodLabel": "Período",
+    "vsPrevious": "respecto al período anterior"
   },
   "auth": {
     "login": {
@@ -165,7 +189,10 @@
       "rememberMe": "Recordarme",
       "welcomeBack": "Bienvenido de vuelta",
       "emailPlaceholder": "Correo electrónico",
-      "passwordPlaceholder": "Contraseña"
+      "passwordPlaceholder": "Contraseña",
+      "subtitle": "Inicia sesión para continuar con tu bienestar.",
+      "sessionExpired": "Tu sesión expiró. Vuelve a iniciar sesión.",
+      "forgotPasswordInfo": "La recuperación de contraseña aún no está disponible. Escríbenos desde Ajustes > Acerca de > Contactar soporte."
     },
     "register": {
       "title": "Crear Cuenta",
@@ -181,7 +208,22 @@
       "stepProgress": "Paso {current} de {total}",
       "namePlaceholder": "Tu Nombre Completo",
       "emailPlaceholder": "tu{'@'}email.com",
-      "passwordPlaceholder": "••••••••"
+      "passwordPlaceholder": "••••••••",
+      "passwordHint": "Mínimo 6 caracteres.",
+      "successLogin": "Cuenta creada. Ahora inicia sesión."
+    },
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "brand": {
+      "headline": "Gestiona el estrés laboral con herramientas que caben en tu jornada.",
+      "point1": "Ejercicios de respiración guiada y pausas activas",
+      "point2": "Registra lo que te estresa y descubre tus patrones",
+      "point3": "Reserva sesiones con profesionales de salud mental"
+    },
+    "errors": {
+      "invalidCredentials": "Correo o contraseña incorrectos.",
+      "invalidResponse": "El servidor no devolvió una sesión válida. Inténtalo de nuevo.",
+      "emailInUse": "Ya existe una cuenta con este correo."
     }
   },
   "stress": {
@@ -249,11 +291,14 @@
           "prevention": "Prevención",
           "exercises": "Ejercicios",
           "desk": "Escritorio"
-        }
+        },
+        "subtitle": "Audios, videos, lecturas y ejercicios para tu bienestar.",
+        "demoNotice": "No se pudo conectar con el servidor: se muestran recursos de ejemplo.",
+        "resultsSummary": "{count} resultado | {count} resultados"
       }
     },
     "triggers": {
-      "title": "Registrar Desencadenante de Estrés",
+      "title": "Registrar desencadenante",
       "subtitle": "Anota los detalles del evento para un mejor seguimiento.",
       "level": "Nivel de Estrés",
       "situation": "Situación",
@@ -286,7 +331,14 @@
         "difficultClient": "Cliente difícil",
         "organizationalChanges": "Cambios organizacionales",
         "other": "Otro"
-      }
+      },
+      "historyTitle": "Tus registros",
+      "historySubtitle": "Del más reciente al más antiguo.",
+      "emptyTitle": "Aún no hay registros",
+      "emptyMessage": "Cuando registres una situación estresante aparecerá aquí.",
+      "deleteTitle": "¿Eliminar este registro?",
+      "deleteMessage": "Esta acción no se puede deshacer.",
+      "deleted": "Registro eliminado"
     },
     "breathing": {
       "title": "Ejercicios de Respiración",
@@ -338,7 +390,28 @@
         "relaxed": "Relajado",
         "veryRelaxed": "Muy relajado"
       },
-      "retry": "Reintentar"
+      "retry": "Reintentar",
+      "saved": "Sesión guardada",
+      "historyCount": "Has completado {count} sesiones de respiración.",
+      "levels": {
+        "beginner": "Principiante",
+        "intermediate": "Intermedio",
+        "advanced": "Avanzado"
+      },
+      "exerciseList": {
+        "mindful": {
+          "name": "Respiración consciente",
+          "description": "Respiración profunda para calmar la mente."
+        },
+        "box": {
+          "name": "Respiración cuadrada",
+          "description": "Cuatro tiempos iguales para reducir el estrés."
+        },
+        "fourSevenEight": {
+          "name": "Respiración 4-7-8",
+          "description": "Relajación profunda, útil antes de dormir."
+        }
+      }
     },
     "activeBreaks": {
       "title": "Pausas Activas",
@@ -391,7 +464,15 @@
         "friday": "V",
         "saturday": "S",
         "sunday": "D"
-      }
+      },
+      "subtitle": "Programa descansos breves durante tu jornada.",
+      "invalidHours": "La hora de fin debe ser posterior a la de inicio.",
+      "weeklyPlan": "Plan semanal",
+      "breaksPerWeek": "Pausas",
+      "localNote": "Calculado a partir de tu configuración. Se guarda en este navegador.",
+      "reasonInactive": "Las pausas activas están desactivadas.",
+      "reasonNotWorkingDay": "Hoy no es un día laboral en tu configuración.",
+      "reasonOutside": "No quedan pausas dentro de tu horario laboral."
     }
   },
   "professionals": {
@@ -406,7 +487,51 @@
       "selectProfessional": "Seleccionar Profesional",
       "sessionType": "Tipo de Sesión",
       "confirm": "Confirmar Reserva",
-      "summary": "Resumen de la Reserva"
+      "summary": "Resumen de la Reserva",
+      "with": "Con {name}",
+      "wizardSubtitle": "Elige profesional, fecha, hora y tipo de sesión.",
+      "progress": "Progreso de la reserva",
+      "steps": {
+        "professional": "Profesional",
+        "datetime": "Fecha y hora",
+        "sessionType": "Tipo",
+        "summary": "Resumen"
+      },
+      "seeProfiles": "Ver perfiles completos de los profesionales",
+      "pickDateFirst": "Primero elige un día en el calendario.",
+      "noSlots": "No hay horarios disponibles para este día.",
+      "dateTime": "Fecha y hora",
+      "notes": "Notas adicionales (opcional)",
+      "notesPlaceholder": "Cuéntale al profesional el motivo de tu consulta…",
+      "total": "Total",
+      "booking": "Reservando…",
+      "phone": "Teléfono de contacto",
+      "email": "Correo de confirmación"
+    },
+    "book": "Reservar",
+    "viewProfile": "Ver perfil",
+    "perSession": "sesión",
+    "ratingLabel": "Valoración {rating} de 5",
+    "directory": {
+      "title": "Directorio de profesionales",
+      "subtitle": "Psicólogos y terapeutas especializados en estrés laboral.",
+      "searchPlaceholder": "Buscar por nombre o especialidad",
+      "specialty": "Especialidad",
+      "availability": "Disponibilidad",
+      "allSpecialties": "Todas las especialidades",
+      "allAvailability": "Cualquier disponibilidad",
+      "weekdays": "Entre semana",
+      "weekends": "Fines de semana",
+      "evenings": "Por la tarde-noche",
+      "empty": "No hay profesionales que coincidan",
+      "emptyHint": "Prueba con otros filtros."
+    },
+    "profile": {
+      "title": "Perfil del profesional",
+      "biography": "Biografía",
+      "reviews": "Reseñas",
+      "noReviews": "Todavía no hay reseñas.",
+      "rate": "Tarifa"
     }
   },
   "profile": {
@@ -430,7 +555,50 @@
     "save": "Guardar Cambios",
     "generalConfiguration": "Configuración General",
     "advancedConfiguration": "Configuración Avanzada",
-    "configurationSaved": "Configuración guardada"
+    "configurationSaved": "Configuración guardada",
+    "subtitle": "Ajusta la aplicación a tu manera.",
+    "tabs": {
+      "general": "General",
+      "notifications": "Notificaciones",
+      "privacy": "Privacidad y datos",
+      "about": "Acerca de"
+    },
+    "display": "Visualización",
+    "fontSize": "Tamaño de texto",
+    "reduceAnimations": "Reducir animaciones",
+    "reduceAnimationsHint": "Minimiza transiciones y movimientos.",
+    "highContrast": "Alto contraste",
+    "highContrastHint": "Oscurece textos secundarios y bordes.",
+    "notificationsNote": "Tus preferencias se guardan ahora y se aplicarán cuando el servicio de recordatorios esté disponible.",
+    "sessionReminders": "Recordatorios de sesiones",
+    "reminderTime": "Avisarme",
+    "minutesBefore": "{m} minutos antes",
+    "breathingReminders": "Recordatorios de respiración",
+    "activeBreakReminders": "Recordatorios de pausas activas",
+    "weeklyReport": "Resumen semanal",
+    "shareAnalytics": "Compartir estadísticas de uso anónimas",
+    "personalization": "Recomendaciones personalizadas",
+    "localData": "Datos en este navegador",
+    "localDataHint": "Favoritos, historial de respiración, pausas activas y ajustes se guardan en este dispositivo.",
+    "exportSettings": "Exportar ajustes",
+    "clearCache": "Limpiar historial de navegación",
+    "cacheCleared": "Historial limpiado",
+    "deleteLocalData": "Borrar datos locales",
+    "deleteLocalDataConfirm": "Se borrarán tus datos guardados en este navegador y se cerrará la sesión. Tu cuenta no se elimina.",
+    "localDataDeleted": "Datos locales borrados",
+    "version": "Versión",
+    "demoMode": "modo demostración",
+    "apiMode": "conectado a la API",
+    "diagnostic": "Diagnóstico",
+    "runDiagnostic": "Ejecutar diagnóstico",
+    "ok": "correcto",
+    "failed": "con problemas",
+    "checks": {
+      "internet": "Conexión a internet",
+      "storage": "Almacenamiento local",
+      "api": "Servidor de NeuroZen"
+    },
+    "contactSupport": "Contactar soporte"
   },
   "payment": {
     "confirmation": {
@@ -491,7 +659,10 @@
       "Sem 2": "Sem 2",
       "Sem 3": "Sem 3",
       "Sem 4": "Sem 4"
-    }
+    },
+    "confirm": "Confirmar",
+    "errorLoadingResources": "No se pudieron cargar los recursos.",
+    "skipToContent": "Saltar al contenido"
   },
   "userProfile": {
     "title": "Mi Perfil",
@@ -511,7 +682,9 @@
         "female": "Femenino",
         "other": "Otro",
         "preferNotToSay": "Prefiero no decir"
-      }
+      },
+      "username": "Usuario",
+      "address": "Dirección"
     },
     "healthInfo": {
       "title": "Información de Salud",
@@ -557,7 +730,8 @@
       "relationship": "Relación",
       "phone": "Teléfono",
       "addContact": "Agregar contacto",
-      "removeContact": "Eliminar contacto"
+      "removeContact": "Eliminar contacto",
+      "empty": "No has agregado contactos de emergencia."
     },
     "accountActions": {
       "title": "Acciones de Cuenta",
@@ -575,7 +749,22 @@
       "deleteAccountDoubleConfirm": "Esta acción eliminará permanentemente todos tus datos. ¿Continuar?",
       "deleteAccountNotImplemented": "Funcionalidad de eliminación de cuenta - Por implementar"
     },
-    "loading": "Cargando perfil..."
+    "loading": "Cargando perfil...",
+    "localOnly": "Solo en este dispositivo",
+    "changeAvatar": "Cambiar avatar",
+    "backendPending": "Disponible cuando el servidor lo permita.",
+    "stats": {
+      "breathingSessions": "Respiración",
+      "completedResources": "Recursos",
+      "favorites": "Favoritos"
+    },
+    "subscription": {
+      "title": "Suscripción",
+      "active": "Activa",
+      "none": "No tienes una suscripción.",
+      "pending": "Plan {plan} pendiente de activación.",
+      "viewPlans": "Ver planes"
+    }
   },
   "subscriptions": {
     "plans": {
@@ -620,7 +809,8 @@
         "19": "Análisis de carga de trabajo y estrés",
         "20": "Panel corporativo e informes",
         "21": "Soporte prioritario"
-      }
+      },
+      "recommended": "Recomendado"
     },
     "purchase": {
       "title": "Completa tu compra",
@@ -649,7 +839,133 @@
         "cvv": "CVV",
         "cvvPlaceholder": "123",
         "submit": "Confirmar compra"
+      },
+      "processing": "Procesando…",
+      "changePlan": "Cambiar de plan",
+      "choosePlan": "Elige un plan para continuar.",
+      "alreadyActive": "Ya tienes una suscripción activa.",
+      "invalidData": "Revisa los datos de la tarjeta."
+    }
+  },
+  "errors": {
+    "network": "No hay conexión con el servidor. Revisa tu conexión e inténtalo de nuevo.",
+    "timeout": "El servidor tardó demasiado en responder. Inténtalo de nuevo.",
+    "validation": "Algunos datos no son válidos. Revísalos e inténtalo de nuevo.",
+    "unauthorized": "Tu sesión no es válida. Inicia sesión de nuevo.",
+    "forbidden": "No tienes permiso para realizar esta acción.",
+    "notFound": "No se encontró la información solicitada.",
+    "conflict": "Ya existe un registro con esos datos.",
+    "server": "El servidor tuvo un problema. Inténtalo más tarde.",
+    "unknown": "Ocurrió un error inesperado."
+  },
+  "validation": {
+    "required": "Este campo es obligatorio.",
+    "email": "Introduce un correo válido.",
+    "phone": "Introduce un teléfono válido (7 a 15 dígitos).",
+    "passwordLength": "La contraseña debe tener al menos 6 caracteres.",
+    "passwordMatch": "Las contraseñas no coinciden.",
+    "futureDate": "La fecha no puede ser futura.",
+    "futureTime": "La hora no puede ser futura.",
+    "pastDate": "Elige una fecha a partir de hoy.",
+    "selectTime": "Elige un horario.",
+    "minChars": "Escribe al menos {n} caracteres.",
+    "card": "Número de tarjeta no válido.",
+    "expiry": "Fecha de vencimiento no válida o caducada (MM/AA).",
+    "cvv": "El CVV debe tener 3 o 4 dígitos.",
+    "fixErrors": "Revisa los campos marcados."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "message": "La dirección no existe o fue movida.",
+    "goHome": "Ir al inicio"
+  },
+  "appointments": {
+    "bookedNoId": "Cita reservada. Puedes verla en Mis citas.",
+    "notFound": "No se encontró la cita.",
+    "professionalFallback": "Profesional",
+    "duration": "Duración",
+    "cost": "Costo",
+    "types": {
+      "therapy": "Terapia individual",
+      "consultation": "Consulta inicial",
+      "followUp": "Seguimiento"
+    },
+    "methods": {
+      "card": "Tarjeta",
+      "cash": "Efectivo"
+    },
+    "status": {
+      "scheduled": "Programada",
+      "pending": "Pendiente",
+      "confirmed": "Confirmada",
+      "completed": "Completada",
+      "cancelled": "Cancelada",
+      "canceled": "Cancelada"
+    },
+    "confirmation": {
+      "title": "Tu cita",
+      "subtitle": "Revisa los detalles y elige cómo pagarás.",
+      "registered": "La cita quedó registrada.",
+      "paymentMethod": "Método de pago",
+      "paymentNote": "El pago se gestiona con el profesional; aquí solo registras tu preferencia.",
+      "confirm": "Confirmar y ver comprobante"
+    },
+    "list": {
+      "title": "Mis citas",
+      "subtitle": "Tus sesiones con profesionales.",
+      "upcoming": "Próximas",
+      "past": "Anteriores",
+      "none": "Ninguna.",
+      "empty": "Aún no tienes citas",
+      "emptyHint": "Reserva una sesión con un profesional cuando lo necesites."
+    }
+  },
+  "payments": {
+    "receipt": {
+      "title": "Comprobante de reserva",
+      "cardMessage": "Registramos tu preferencia de pago con tarjeta.",
+      "cashMessage": "Pagarás en efectivo al profesional.",
+      "reference": "Referencia",
+      "appointment": "Cita",
+      "print": "Imprimir",
+      "addToCalendar": "Agregar al calendario",
+      "policy": "Puedes cancelar o reprogramar hasta 24 horas antes sin costo.",
+      "steps": {
+        "1": {
+          "title": "Revisa tu correo",
+          "text": "El profesional confirmará la cita por correo."
+        },
+        "2": {
+          "title": "Prepárate",
+          "text": "Busca un lugar tranquilo y una conexión estable."
+        },
+        "3": {
+          "title": "Únete a tiempo",
+          "text": "Conéctate unos minutos antes de la hora."
+        }
       }
     }
+  },
+  "resource": {
+    "by": "Por {author}",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "share": "Compartir",
+    "description": "Descripción",
+    "type": "Tipo",
+    "duration": "Duración",
+    "openArticle": "Leer artículo",
+    "openResource": "Abrir recurso",
+    "markCompleted": "Marcar como completado",
+    "completed": "Completado",
+    "related": "Recursos relacionados",
+    "addedFavorite": "Guardado en favoritos",
+    "removedFavorite": "Quitado de favoritos",
+    "markedCompleted": "Recurso completado",
+    "linkCopied": "Enlace copiado",
+    "shareError": "No se pudo compartir el enlace.",
+    "notFoundTitle": "Recurso no disponible",
+    "notFoundMessage": "No se encontró el recurso o no se pudo cargar.",
+    "noAudioSupport": "Tu navegador no puede reproducir este audio."
   }
 }

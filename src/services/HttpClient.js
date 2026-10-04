@@ -1,198 +1,143 @@
 /**
- * HttpClient - Cliente HTTP simple para comunicación con APIs
- * Proporciona métodos para realizar peticiones HTTP básicas (GET, POST, PUT, DELETE)
- * Soporta modo estático para Firebase Hosting
- * 
+ * HttpClient - Cliente HTTP único del frontend (fetch).
+ *
+ * Mejoras respecto a la versión anterior:
+ *  - Timeout real con AbortController (VITE_API_TIMEOUT se leía pero no se aplicaba).
+ *  - Errores homogéneos (ApiError con status y mensaje legible) en GET/POST/PUT/DELETE.
+ *  - 401 en endpoints protegidos: cierra la sesión y redirige a /login?expired=1.
+ *  - Soporta respuestas 204 y cuerpos vacíos.
+ *  - Modo estático (Firebase Hosting) delegado a StaticAPIAdapter.
+ *
  * @author Juan Carlos Angulo
- * @version 1.1.0
+ * @version 2.0.0
  */
+import { StaticAPIAdapter } from './StaticAPIAdapter.js'
+import { getToken, notifyUnauthorized } from './session.js'
+import { t } from '../i18n/index.js'
+import { ApiError } from './ApiError.js'
 
-import { StaticAPIAdapter } from './StaticAPIAdapter.js';
+export { ApiError }
 
-/**
- * Cliente HTTP simple para realizar peticiones a APIs REST
- * @class HttpClient
- */
+const AUTH_ENDPOINTS = ['/authentication/sign-in', '/authentication/sign-up']
+let staticAdapter = null
+
+function isStaticMode() {
+  return import.meta.env.VITE_API_MODE === 'static' || import.meta.env.VITE_API_BASE_URL === 'static'
+}
+
+/** Mensaje legible por código de estado */
+export function messageForStatus(status) {
+  if (status === 0) return t('errors.network')
+  if (status === 400 || status === 422) return t('errors.validation')
+  if (status === 401) return t('errors.unauthorized')
+  if (status === 403) return t('errors.forbidden')
+  if (status === 404) return t('errors.notFound')
+  if (status === 409) return t('errors.conflict')
+  if (status >= 500) return t('errors.server')
+  return t('errors.unknown')
+}
+
+async function parseBody(response) {
+  if (response.status === 204) return null
+  const text = await response.text()
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return text
+  }
+}
+
+function serverMessage(body) {
+  if (!body) return ''
+  if (typeof body === 'string') return body.slice(0, 200)
+  let msg = body.message || body.title || body.error || ''
+  if (body.errors && typeof body.errors === 'object') {
+    const list = Object.values(body.errors).flat().filter(Boolean)
+    if (list.length) msg = msg ? `${msg}: ${list.join(' ')}` : list.join(' ')
+  }
+  return msg
+}
+
 export class HttpClient {
-  /**
-   * Constructor del cliente HTTP
-   * @param {string} baseURL - URL base de la API (usa variables de entorno por defecto)
-   */
-  constructor(baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002') {
-    this.baseURL = baseURL;
-    this.timeout = import.meta.env.VITE_API_TIMEOUT || 10000;
-    
-    // Detectar si estamos en modo estático
-    this.isStaticMode = baseURL === 'static' || 
-                       import.meta.env.VITE_API_MODE === 'static';
-    
-    if (this.isStaticMode) {
-      this.staticAdapter = new StaticAPIAdapter();
-      console.info('🔧 HttpClient: Using static API mode for Firebase Hosting');
-    }
+  constructor(baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5059') {
+    this.baseURL = baseURL.replace(/\/$/, '')
+    this.timeout = Number(import.meta.env.VITE_API_TIMEOUT) || 10000
+    this.isStaticMode = isStaticMode()
+    if (this.isStaticMode && !staticAdapter) staticAdapter = new StaticAPIAdapter()
   }
 
-  /**
-   * Obtiene headers con autenticación JWT si está disponible
-   * @returns {Object} Headers para las peticiones HTTP
-   * @private
-   */
-  _getHeaders() {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-    
-    // Obtener token JWT del localStorage
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    
-    return headers;
+  _headers(hasBody) {
+    const headers = { Accept: 'application/json' }
+    if (hasBody) headers['Content-Type'] = 'application/json'
+    const token = getToken()
+    if (token) headers.Authorization = `Bearer ${token}`
+    return headers
   }
 
-  /**
-   * Realiza una petición GET a un endpoint específico
-   * @param {string} endpoint - Endpoint relativo a la URL base
-   * @returns {Promise<Object>} Respuesta JSON de la API
-   * @throws {Error} Error si la petición falla
-   */
-  async get(endpoint) {
+  async request(method, endpoint, data) {
     if (this.isStaticMode) {
-      return await this.staticAdapter.get(endpoint);
+      return staticAdapter.request(method, endpoint, data)
     }
 
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), this.timeout)
+    let response
     try {
-      const response = await fetch(`${this.baseURL}${endpoint}`, {
-        headers: this._getHeaders()
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      response = await fetch(`${this.baseURL}${endpoint}`, {
+        method,
+        headers: this._headers(data !== undefined),
+        body: data !== undefined ? JSON.stringify(data) : undefined,
+        signal: controller.signal
+      })
     } catch (error) {
-      console.error("GET request failed:", error);
-      throw error;
+      const timedOut = error.name === 'AbortError'
+      throw new ApiError(timedOut ? t('errors.timeout') : t('errors.network'), { status: 0, cause: error })
+    } finally {
+      clearTimeout(timer)
     }
+
+    const body = await parseBody(response)
+
+    if (!response.ok) {
+      const isAuthCall = AUTH_ENDPOINTS.some((p) => endpoint.includes(p))
+      if (response.status === 401 && !isAuthCall) {
+        this._handleExpiredSession()
+      }
+      const detail = serverMessage(body)
+      throw new ApiError(detail || messageForStatus(response.status), {
+        status: response.status,
+        details: body
+      })
+    }
+    return body
   }
 
-  /**
-   * Realiza una petición POST para crear un nuevo recurso
-   * @param {string} endpoint - Endpoint relativo a la URL base
-   * @param {Object} data - Datos a enviar en el cuerpo de la petición
-   * @returns {Promise<Object>} Respuesta JSON de la API
-   * @throws {Error} Error si la petición falla
-   */
-  async post(endpoint, data) {
-    if (this.isStaticMode) {
-      return await this.staticAdapter.post(endpoint, data);
-    }
-
-    try {
-      console.log(`🌐 POST ${this.baseURL}${endpoint}`);
-      
-      const response = await fetch(`${this.baseURL}${endpoint}`, {
-        method: "POST",
-        headers: this._getHeaders(),
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        // Intentar obtener mensaje de error del servidor
-        let errorMessage = `HTTP error! status: ${response.status}`;
-        let errorDetails = null;
-        
-        // Primero intentar obtener el texto completo de la respuesta
-        const responseText = await response.text();
-        console.error('❌ Respuesta del servidor (texto completo):', responseText);
-        
-        try {
-          // Intentar parsear como JSON
-          const errorData = JSON.parse(responseText);
-          console.error('❌ Error del backend (JSON):', errorData);
-          errorDetails = errorData;
-          errorMessage = errorData.message || errorData.title || errorMessage;
-          
-          // Si hay errores de validación, agregarlos al mensaje
-          if (errorData.errors) {
-            const validationErrors = Object.entries(errorData.errors)
-              .map(([field, errors]) => `${field}: ${errors.join(', ')}`)
-              .join('; ');
-            errorMessage += ` - ${validationErrors}`;
-          }
-        } catch (e) {
-          console.error('❌ No se pudo parsear como JSON, respuesta en texto plano');
-          // Si no es JSON, usar el texto completo
-          if (responseText) {
-            errorMessage += ` - ${responseText.substring(0, 200)}`; // Limitar a 200 caracteres
-          }
-        }
-        
-        const error = new Error(errorMessage);
-        error.status = response.status;
-        error.details = errorDetails;
-        error.responseText = responseText;
-        throw error;
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error("POST request failed:", error);
-      throw error;
-    }
+  _handleExpiredSession() {
+    notifyUnauthorized()
   }
 
-  /**
-   * Realiza una petición PUT para actualizar un recurso existente
-   * @param {string} endpoint - Endpoint relativo a la URL base
-   * @param {Object} data - Datos actualizados a enviar
-   * @returns {Promise<Object>} Respuesta JSON de la API
-   * @throws {Error} Error si la petición falla
-   */
-  async put(endpoint, data) {
-    if (this.isStaticMode) {
-      return await this.staticAdapter.put(endpoint, data);
-    }
+  get(endpoint) { return this.request('GET', endpoint) }
+  post(endpoint, data) { return this.request('POST', endpoint, data ?? {}) }
+  put(endpoint, data) { return this.request('PUT', endpoint, data ?? {}) }
+  delete(endpoint) { return this.request('DELETE', endpoint) }
 
-    try {
-      const response = await fetch(`${this.baseURL}${endpoint}`, {
-        method: "PUT",
-        headers: this._getHeaders(),
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("PUT request failed:", error);
-      throw error;
+  /** Desempaqueta { data } / { success, data } o devuelve el objeto tal cual */
+  static extractData(response) {
+    if (response && typeof response === 'object' && !Array.isArray(response) && 'data' in response && response.data != null) {
+      return response.data
     }
+    return response
   }
 
-  /**
-   * Realiza una petición DELETE para eliminar un recurso
-   * @param {string} endpoint - Endpoint relativo a la URL base
-   * @returns {Promise<Object|null>} Respuesta JSON de la API o null si es status 204
-   * @throws {Error} Error si la petición falla
-   */
-  async delete(endpoint) {
-    if (this.isStaticMode) {
-      return await this.staticAdapter.delete(endpoint);
+  /** Devuelve siempre un array a partir de [], { items }, { data } */
+  static extractList(response) {
+    if (Array.isArray(response)) return response
+    if (response && typeof response === 'object') {
+      if (Array.isArray(response.items)) return response.items
+      if (Array.isArray(response.data)) return response.data
+      if (Array.isArray(response.value)) return response.value
     }
-
-    try {
-      const response = await fetch(`${this.baseURL}${endpoint}`, {
-        method: "DELETE",
-        headers: this._getHeaders()
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.status === 204 ? null : await response.json();
-    } catch (error) {
-      console.error("DELETE request failed:", error);
-      throw error;
-    }
+    return []
   }
 }

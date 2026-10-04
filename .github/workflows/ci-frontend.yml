@@ -1,0 +1,43 @@
+# Integración continua del frontend de NeuroZen (basado en el workflow visto en clase).
+# En cada push o Pull Request: instala dependencias, ejecuta las pruebas y compila la app.
+# Si alguna prueba falla, el workflow queda en rojo y el cambio no se considera válido.
+name: Vue CI - Tests
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+  workflow_dispatch: # permite ejecutarlo a mano desde la pestaña Actions
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    name: Test and build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Descarga el código del repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Instala Node.js 22 (las herramientas de prueba necesitan Node 22 o superior)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # 3. Instala las dependencias exactas de package-lock.json
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Ejecuta las pruebas unitarias y de integración (Vitest)
+      - name: Run unit and integration tests
+        run: npx vitest run --reporter=verbose
+
+      # 5. Compila la aplicación para comprobar que el build no se rompe
+      - name: Build Vue app
+        run: npm run build

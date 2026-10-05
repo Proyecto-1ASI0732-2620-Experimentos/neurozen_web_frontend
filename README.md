@@ -2,7 +2,7 @@
 
 Una aplicación web Vue.js para el manejo del estrés laboral con internacionalización completa (ES/EN), construida con un enfoque DDD (Domain-Driven Design) y Vue Options API.
 
-## � Características Principales
+## � Características Principales 
 
 - **Internacionalización completa** - Soporte para Español e Inglés con Vue i18n
 - **Autenticación completa** - Login, registro y gestión de sesiones

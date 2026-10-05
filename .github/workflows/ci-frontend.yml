@@ -1,7 +1,7 @@
 # Integración continua del frontend de NeuroZen (basado en el workflow visto en clase).
 # En cada push o Pull Request: instala dependencias, ejecuta las pruebas y compila la app.
 # Si alguna prueba falla, el workflow queda en rojo y el cambio no se considera válido.
-name: Vue CI - Tests
+name: Vue CI - Tests 
 
 on:
   push:

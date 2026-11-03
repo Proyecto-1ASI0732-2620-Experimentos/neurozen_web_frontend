@@ -1,11 +1,22 @@
 // Se ejecuta antes de cada archivo de pruebas
 import { vi } from 'vitest'
 import { server } from './mocks/server.js'
-import { clearSession } from '../src/services/session.js'
+import { clearSession, setUnauthorizedHandler } from '../src/services/session.js'
+
+// El gráfico (Chart.js) necesita <canvas>, que no existe en las pruebas: se reemplaza por uno vacío
+vi.mock('chart.js', () => ({
+  Chart: class {
+    static register() {}
+    update() {}
+    destroy() {}
+  },
+  CategoryScale: {}, LinearScale: {}, PointElement: {}, LineElement: {}, LineController: {}, Tooltip: {}, Filler: {}
+}))
 
 beforeAll(() => {
   // Enciende el servidor simulado
-  server.listen()
+  // Avisa si el frontend llama a un endpoint sin respuesta simulada
+  server.listen({ onUnhandledRequest: 'warn' })
 
   // Node no acepta rutas como '/es.json'; se completan con la dirección de la página
   const originalFetch = globalThis.fetch
@@ -21,6 +32,7 @@ beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
   clearSession()
+  setUnauthorizedHandler(null)
 })
 
 afterEach(() => {

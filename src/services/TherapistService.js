@@ -3,6 +3,9 @@
  * @version 2.0.0
  */
 import { HttpClient } from './HttpClient.js'
+import { normalizeVerification, VERIFICATION } from './roles.js'
+import { ApiError } from './ApiError.js'
+import { t } from '../i18n/index.js'
 
 const DEFAULT_AVATAR = '/images-of-professionals/usuariodemo.jpg'
 
@@ -18,7 +21,15 @@ export function normalizeProfessional(raw = {}) {
     price: Number(raw.price ?? raw.pricePerSession ?? raw.sessionPrice) || 0,
     availability: raw.availability || '',
     bio: raw.bio || raw.biography || raw.description || '',
-    image: raw.image || raw.photoUrl || raw.avatarUrl || DEFAULT_AVATAR
+    image: raw.image || raw.photoUrl || raw.avatarUrl || DEFAULT_AVATAR,
+    userId: raw.userId ?? raw.user?.id ?? null,
+    email: raw.email || raw.user?.email || '',
+    licenseNumber: raw.licenseNumber || raw.cpspNumber || '',
+    // Los profesionales cargados antes de existir la verificación se consideran verificados
+    verificationStatus: raw.verificationStatus ? normalizeVerification(raw.verificationStatus) : VERIFICATION.VERIFIED,
+    rejectionReason: raw.rejectionReason || '',
+    availabilitySchedule: raw.availabilitySchedule || null,
+    createdAt: raw.createdAt || null
   }
 }
 
@@ -38,14 +49,35 @@ export class TherapistService {
     this.httpClient = new HttpClient()
   }
 
+  /** Directorio público: solo psicólogos con la colegiatura verificada */
   async getTherapists() {
     const response = await this.httpClient.get('/api/v1/professionals')
-    return HttpClient.extractList(response).map(normalizeProfessional)
+    return HttpClient.extractList(response)
+      .map(normalizeProfessional)
+      .filter((p) => p.verificationStatus === VERIFICATION.VERIFIED)
   }
 
+  /** Perfil público: si el psicólogo no está verificado se trata como inexistente */
   async getTherapist(id) {
     const response = await this.httpClient.get(`/api/v1/professionals/${encodeURIComponent(id)}`)
-    return normalizeProfessional(HttpClient.extractData(response))
+    const professional = normalizeProfessional(HttpClient.extractData(response))
+    if (professional.verificationStatus !== VERIFICATION.VERIFIED) {
+      throw new ApiError(t('errors.notFound'), { status: 404 })
+    }
+    return professional
+  }
+
+  /**
+   * Reseña del paciente tras una sesión atendida.
+   * POST /api/v1/professionals/{id}/reviews  { appointmentId, rating (1-5), comment }
+   */
+  async addReview(professionalId, { appointmentId, rating, comment }) {
+    const response = await this.httpClient.post(`/api/v1/professionals/${encodeURIComponent(professionalId)}/reviews`, {
+      appointmentId,
+      rating: Math.max(1, Math.min(5, Math.round(rating))),
+      comment: comment.trim()
+    })
+    return normalizeReview(HttpClient.extractData(response) || {})
   }
 
   /** Las reseñas son opcionales: si el endpoint no existe se devuelve [] */

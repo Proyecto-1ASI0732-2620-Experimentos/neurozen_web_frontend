@@ -42,13 +42,16 @@ export function normalizeAppointment(raw = {}) {
     id: raw.id ?? raw.appointmentId,
     professionalId: raw.professionalId ?? raw.professional?.id,
     patientId: raw.patientId ?? raw.userId,
+    patientName: raw.patientName || raw.patient?.fullName || raw.patient?.name || '',
+    patientEmail: raw.patientEmail || raw.patient?.email || '',
     dateTime: when,
     date: when ? toLocalISODate(when) : '',
     time: when ? toLocalTime(when) : '',
     duration: Number(raw.duration ?? raw.estimatedDurationMinutes) || 60,
     status: String(raw.status || 'scheduled').toLowerCase(),
     type: raw.appointmentType ?? raw.type,
-    notes: raw.notasAdicionales || raw.notes || ''
+    notes: raw.notasAdicionales || raw.notes || '',
+    reviewed: !!raw.reviewed
   }
 }
 
@@ -79,6 +82,12 @@ export class AppointmentService {
   async getAppointment(appointmentId) {
     const response = await this.httpClient.get(`/api/v1/appointments/${encodeURIComponent(appointmentId)}`)
     return normalizeAppointment(HttpClient.extractData(response))
+  }
+
+  /** El paciente cancela su cita: PATCH /api/v1/appointments/{id}/status { status: 'CANCELLED' } */
+  async cancelAppointment(appointmentId) {
+    const response = await this.httpClient.patch(`/api/v1/appointments/${encodeURIComponent(appointmentId)}/status`, { status: 'CANCELLED' })
+    return HttpClient.extractData(response)
   }
 
   async bookAppointment(payload) {

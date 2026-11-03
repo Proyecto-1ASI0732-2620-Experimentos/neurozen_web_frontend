@@ -16,7 +16,8 @@ export default {
   },
   methods: {
     next() {
-      this.finish()
+      // Último paso de bienvenida → datos de perfil y test de autoevaluación
+      this.$router.push(isAuthenticated() ? { name: 'OnboardingProfile' } : { name: 'Login' })
     },
     finish() {
       // Tras el registro ya hay sesión: se entra directamente al Dashboard

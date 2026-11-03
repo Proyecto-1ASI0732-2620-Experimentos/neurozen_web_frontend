@@ -8,6 +8,8 @@
 import { HttpClient } from './HttpClient.js'
 import { setSession, clearSession, getCurrentUser, isAuthenticated } from './session.js'
 import { t } from '../i18n/index.js'
+import { normalizeRole, normalizeVerification, ROLES } from './roles.js'
+import { ProfessionalService } from './ProfessionalService.js'
 
 /** Normaliza el usuario devuelto por el backend al formato usado por la UI */
 export function normalizeUser(raw = {}, fallback = {}) {
@@ -30,7 +32,10 @@ export function normalizeUser(raw = {}, fallback = {}) {
     address: user.address || '',
     birthDate: user.dateOfBirth || user.birthDate || '',
     gender: user.gender || '',
-    role: user.role || 'user',
+    role: normalizeRole(user.role || fallback.role),
+    // Solo para psicólogos: estado de verificación de la colegiatura e id del perfil profesional
+    verificationStatus: user.verificationStatus ? normalizeVerification(user.verificationStatus) : (fallback.verificationStatus || null),
+    professionalId: user.professionalId ?? fallback.professionalId ?? null,
     memberSince: user.createdAt || user.registrationDate || user.memberSince || ''
   }
 }
@@ -46,7 +51,9 @@ export class AuthService {
     if (basic.id == null) return basic
     try {
       const full = await this.httpClient.get(`/api/v1/users/${basic.id}`)
-      return { ...basic, ...Object.fromEntries(Object.entries(normalizeUser(HttpClient.extractData(full), fallback)).filter(([, v]) => v !== '' && v != null)) }
+      // El rol del login se conserva si el perfil completo no lo incluye
+      const keep = { ...fallback, role: basic.role, verificationStatus: basic.verificationStatus, professionalId: basic.professionalId }
+      return { ...basic, ...Object.fromEntries(Object.entries(normalizeUser(HttpClient.extractData(full), keep)).filter(([, v]) => v !== '' && v != null)) }
     } catch {
       return basic
     }
@@ -70,30 +77,87 @@ export class AuthService {
     }
     // El token debe estar disponible para pedir el perfil completo
     setSession({ token: response.token, user: normalizeUser(response, { email }), remember })
-    const user = await this._buildUser(response, { email })
+    let user = await this._buildUser(response, { email })
+    if (user.role === ROLES.PSYCHOLOGIST) user = await this._withProfessionalStatus(user)
     setSession({ token: response.token, user, remember })
     return user
   }
 
-  async register({ email, password, name }) {
+  /**
+   * Para psicólogos: consulta su perfil profesional para conocer el estado de verificación.
+   * Si el endpoint falla, se asume "pendiente" (nunca se da acceso sin confirmación).
+   */
+  async _withProfessionalStatus(user) {
+    try {
+      const profile = await new ProfessionalService().getMyProfile()
+      return {
+        ...user,
+        professionalId: profile.id ?? user.professionalId,
+        verificationStatus: profile.verificationStatus,
+        specialty: profile.specialty,
+        licenseNumber: profile.licenseNumber
+      }
+    } catch {
+      return { ...user, verificationStatus: user.verificationStatus || 'pending' }
+    }
+  }
+
+  /** Vuelve a consultar el estado del psicólogo (p. ej. tras ser aprobado por el admin) */
+  async refreshProfessionalStatus(user) {
+    return this._withProfessionalStatus(user)
+  }
+
+  /**
+   * Registro de cuenta.
+   *  - role 'user': trabajador; la cuenta queda activa.
+   *  - role 'psychologist': requiere especialidad y número de colegiatura; la cuenta
+   *    queda "pendiente de verificación" hasta que un administrador la apruebe.
+   */
+  async register({ email, password, name, role = ROLES.USER, specialty, licenseNumber, acceptedTerms }) {
     const fullName = name.trim()
-    const response = await this.httpClient.post('/api/v1/authentication/sign-up', {
+    const payload = {
       username: email.trim(),
       email: email.trim(),
       password,
       fullName,
       firstName: fullName.split(' ')[0] || fullName,
-      lastName: fullName.split(' ').slice(1).join(' ')
-    })
-    const fallback = { email, name: fullName }
+      lastName: fullName.split(' ').slice(1).join(' '),
+      role: role === ROLES.PSYCHOLOGIST ? 'PSYCHOLOGIST' : 'USER',
+      acceptedTerms: !!acceptedTerms
+    }
+    if (role === ROLES.PSYCHOLOGIST) {
+      payload.specialty = specialty
+      payload.licenseNumber = licenseNumber.trim()
+    }
+    const response = await this.httpClient.post('/api/v1/authentication/sign-up', payload)
+    const fallback = {
+      email,
+      name: fullName,
+      role,
+      verificationStatus: role === ROLES.PSYCHOLOGIST ? 'pending' : null
+    }
     if (response && response.token) {
       setSession({ token: response.token, user: normalizeUser(response, fallback), remember: true })
-      const user = await this._buildUser(response, fallback)
+      let user = await this._buildUser(response, fallback)
+      if (user.role === ROLES.PSYCHOLOGIST) user = await this._withProfessionalStatus(user)
       setSession({ token: response.token, user, remember: true })
       return { user, authenticated: true }
     }
     // El backend puede registrar sin devolver token: el usuario deberá iniciar sesión
     return { user: normalizeUser(response || {}, fallback), authenticated: false }
+  }
+
+  /**
+   * Solicita un enlace de recuperación. Por seguridad la respuesta es la misma exista
+   * o no la cuenta. POST /api/v1/authentication/forgot-password { email }
+   */
+  async forgotPassword(email) {
+    return this.httpClient.post('/api/v1/authentication/forgot-password', { email: email.trim() })
+  }
+
+  /** POST /api/v1/authentication/reset-password { token, newPassword } */
+  async resetPassword(token, newPassword) {
+    return this.httpClient.post('/api/v1/authentication/reset-password', { token, newPassword })
   }
 
   logout() {

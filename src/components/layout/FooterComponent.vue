@@ -9,7 +9,7 @@
         <p class="mt-3 max-w-xs text-sm text-muted-light">{{ $t('footer.description') }}</p>
       </div>
 
-      <nav :aria-label="$t('footer.explore')">
+      <nav v-if="isWorker" :aria-label="$t('footer.explore')">
         <h2 class="footer-title">{{ $t('footer.explore') }}</h2>
         <ul class="space-y-2 text-sm">
           <li><router-link to="/stress/resources" class="footer-link">{{ $t('stress.management.resources') }}</router-link></li>
@@ -23,7 +23,7 @@
         <h2 class="footer-title">{{ $t('footer.links.support') }}</h2>
         <ul class="space-y-2 text-sm">
           <li><router-link to="/settings" class="footer-link">{{ $t('header.settings') }}</router-link></li>
-          <li><router-link to="/appointments" class="footer-link">{{ $t('navigation.myAppointments') }}</router-link></li>
+          <li v-if="isWorker"><router-link to="/appointments" class="footer-link">{{ $t('navigation.myAppointments') }}</router-link></li>
           <li><a :href="`mailto:${$t('footer.contact.email')}`" class="footer-link">{{ $t('footer.links.contact') }}</a></li>
         </ul>
       </nav>
@@ -47,7 +47,7 @@
     <button
       v-show="showScrollTop"
       type="button"
-      class="fixed bottom-5 right-5 z-30 inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary-strong"
+      class="fixed bottom-24 right-6 z-30 inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary-strong"
       :aria-label="$t('footer.backToTop')"
       @click="scrollToTop"
     >
@@ -58,8 +58,17 @@
 
 <script>
 /** FooterComponent - Enlaces útiles (solo rutas existentes), contacto y volver arriba. */
+import { session } from '../../services/session.js'
+import { getRole, ROLES } from '../../services/roles.js'
+
 export default {
   name: 'FooterComponent',
+  computed: {
+    /** Los enlaces de herramientas solo aplican al trabajador */
+    isWorker() {
+      return !session.user || getRole(session.user) === ROLES.USER
+    }
+  },
   data() {
     return { showScrollTop: false, version: __APP_VERSION__ }
   },

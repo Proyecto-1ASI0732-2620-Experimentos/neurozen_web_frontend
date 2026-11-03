@@ -32,7 +32,11 @@
     "nextBreak": "Próxima pausa activa hoy",
     "noNotifications": "No tienes notificaciones",
     "openMenu": "Abrir menú",
-    "userMenu": "Menú de usuario"
+    "userMenu": "Menú de usuario",
+    "roles": {
+      "psychologist": "Psicólogo",
+      "admin": "Administrador"
+    }
   },
   "footer": {
     "company": "NeuroZen",
@@ -561,7 +565,8 @@
       "general": "General",
       "notifications": "Notificaciones",
       "privacy": "Privacidad y datos",
-      "about": "Acerca de"
+      "about": "Acerca de",
+      "security": "Seguridad"
     },
     "display": "Visualización",
     "fontSize": "Tamaño de texto",
@@ -872,7 +877,11 @@
     "card": "Número de tarjeta no válido.",
     "expiry": "Fecha de vencimiento no válida o caducada (MM/AA).",
     "cvv": "El CVV debe tener 3 o 4 dígitos.",
-    "fixErrors": "Revisa los campos marcados."
+    "fixErrors": "Revisa los campos marcados.",
+    "fullName": "Escribe tu nombre y apellido.",
+    "passwordStrength": "Mínimo 8 caracteres, con al menos una letra y un número.",
+    "license": "Número de colegiatura no válido. Ejemplo: C.Ps.P. 12345",
+    "acceptTerms": "Debes aceptar los Términos y la Política de Privacidad."
   },
   "notFound": {
     "title": "Página no encontrada",
@@ -918,6 +927,33 @@
       "none": "Ninguna.",
       "empty": "Aún no tienes citas",
       "emptyHint": "Reserva una sesión con un profesional cuando lo necesites."
+    },
+    "actions": {
+      "cancel": "Cancelar cita",
+      "share": "Compartir informe",
+      "review": "Calificar",
+      "reportShared": "Informe compartido",
+      "reviewed": "Calificada"
+    },
+    "cancelDialog": {
+      "title": "¿Cancelar tu cita?",
+      "message": "Se cancelará tu sesión con {name}.",
+      "keep": "Mantener cita",
+      "done": "Cita cancelada"
+    },
+    "shareDialog": {
+      "title": "Compartir informe de progreso",
+      "message": "{name} verá este resumen de tu semana para preparar la sesión."
+    },
+    "reviewDialog": {
+      "title": "Califica tu sesión",
+      "message": "¿Cómo fue tu sesión con {name}?",
+      "rating": "Valoración",
+      "comment": "Comentario (opcional)",
+      "placeholder": "Cuéntanos tu experiencia…",
+      "send": "Enviar calificación",
+      "ratingRequired": "Elige de 1 a 5 estrellas.",
+      "done": "¡Gracias por tu calificación!"
     }
   },
   "payments": {
@@ -967,5 +1003,476 @@
     "notFoundTitle": "Recurso no disponible",
     "notFoundMessage": "No se encontró el recurso o no se pudo cargar.",
     "noAudioSupport": "Tu navegador no puede reproducir este audio."
+  },
+  "register": {
+    "chooseSubtitle": "¿Cómo quieres usar NeuroZen?",
+    "changeType": "Cambiar tipo de cuenta",
+    "passwordRules": "Mínimo 8 caracteres, con al menos una letra y un número.",
+    "acceptPrefix": "He leído y acepto los",
+    "termsLink": "Términos y la Política de Privacidad",
+    "errors": {
+      "licenseInUse": "Ese número de colegiatura ya está registrado."
+    },
+    "user": {
+      "title": "Busco apoyo",
+      "description": "Gestiona tu estrés laboral con herramientas, recursos y sesiones con profesionales.",
+      "formTitle": "Crea tu cuenta",
+      "formSubtitle": "Solo te pedimos lo esencial; personalizarás tu experiencia después.",
+      "submit": "Crear cuenta"
+    },
+    "psychologist": {
+      "title": "Soy psicólogo",
+      "description": "Ofrece sesiones a trabajadores que buscan apoyo. Tu colegiatura será verificada.",
+      "badge": "Requiere verificación de colegiatura",
+      "formTitle": "Registro de psicólogo",
+      "formSubtitle": "Crea tu cuenta profesional para atender en NeuroZen.",
+      "verificationNote": "Tu cuenta quedará en revisión hasta que nuestro equipo verifique tu colegiatura en el Colegio de Psicólogos del Perú (CPsP). No podrás recibir citas hasta entonces.",
+      "nameHint": "Debe coincidir con tu DNI y tu registro en el CPsP.",
+      "specialty": "Especialidad principal",
+      "selectSpecialty": "Selecciona tu especialidad",
+      "license": "Número de colegiatura (CPsP)",
+      "licenseHint": "Lo usaremos para verificar que estás habilitado para ejercer.",
+      "submit": "Enviar solicitud",
+      "successLogin": "Solicitud enviada. Inicia sesión para ver el estado de tu verificación."
+    }
+  },
+  "specialties": {
+    "clinical": "Psicología clínica",
+    "organizational": "Psicología organizacional",
+    "educational": "Psicología educativa",
+    "family": "Psicología familiar y de pareja",
+    "childAdolescent": "Psicología infantil y del adolescente",
+    "health": "Psicología de la salud",
+    "social": "Psicología social y comunitaria",
+    "neuropsychology": "Neuropsicología"
+  },
+  "legal": {
+    "title": "Términos y Política de Privacidad",
+    "accept": "Entendido, acepto",
+    "purpose": {
+      "title": "1. Finalidad del servicio",
+      "text": "NeuroZen ofrece herramientas para gestionar el estrés laboral y conecta a trabajadores con psicólogos colegiados. No sustituye la atención de emergencia: ante una crisis, comunícate con la Línea 113 (opción 5) o acude al servicio de emergencias más cercano."
+    },
+    "data": {
+      "title": "2. Datos que tratamos",
+      "text": "Tratamos tus datos de cuenta (nombre, correo) y la información que registras en la plataforma, conforme a la Ley N.° 29733, Ley de Protección de Datos Personales del Perú, y su reglamento."
+    },
+    "health": {
+      "title": "3. Datos sensibles de salud",
+      "text": "Tus registros de estrés y la información relacionada con tu salud mental son datos sensibles. Solo se usan para brindarte el servicio, no se venden a terceros y solo los ve un profesional cuando tú reservas una sesión con él."
+    },
+    "professionals": {
+      "title": "4. Profesionales verificados",
+      "text": "Los psicólogos solo pueden atender en NeuroZen después de que nuestro equipo verifica su número de colegiatura y su habilitación en el Colegio de Psicólogos del Perú."
+    },
+    "rights": {
+      "title": "5. Tus derechos",
+      "text": "Puedes acceder a tus datos, rectificarlos, cancelarlos u oponerte a su tratamiento (derechos ARCO) escribiendo a info{'@'}neurozen.com."
+    }
+  },
+  "pro": {
+    "patientFallback": "Paciente #{id}",
+    "badge": {
+      "verified": "Psicólogo verificado"
+    },
+    "nav": {
+      "home": "Inicio",
+      "patients": "Pacientes",
+      "schedule": "Horario",
+      "profile": "Perfil"
+    },
+    "appointmentStatus": {
+      "pending": "Pendiente",
+      "confirmed": "Confirmada",
+      "completed": "Atendida",
+      "cancelled": "Cancelada"
+    },
+    "progress": {
+      "label": "{done} de {total} pasos completados",
+      "done": "completado",
+      "pending": "pendiente",
+      "steps": {
+        "license": "Colegiatura verificada",
+        "bio": "Biografía profesional (mín. 30 caracteres)",
+        "pricing": "Años de experiencia y tarifa por sesión",
+        "availability": "Disponibilidad semanal"
+      }
+    },
+    "status": {
+      "title": "Estado de verificación",
+      "pendingTitle": "Tu cuenta está en revisión",
+      "pendingText": "Nuestro equipo está verificando tu colegiatura en el Colegio de Psicólogos del Perú. Te avisaremos cuando puedas recibir citas.",
+      "steps": {
+        "created": {
+          "title": "Cuenta creada",
+          "text": "Recibimos tu solicitud."
+        },
+        "review": {
+          "title": "Verificación de colegiatura",
+          "text": "Comprobamos tu nombre y tu habilitación en el CPsP."
+        },
+        "active": {
+          "title": "Cuenta activa",
+          "text": "Podrás completar tu perfil y recibir citas."
+        }
+      },
+      "rejectedTitle": "No pudimos verificar tu colegiatura",
+      "rejectedText": "Revisa el motivo, corrige tus datos y vuelve a enviar la solicitud.",
+      "reason": "Motivo",
+      "noReason": "No se indicó un motivo.",
+      "fixData": "Corrige tus datos",
+      "resubmit": "Reenviar solicitud",
+      "resubmitted": "Solicitud reenviada. Tu cuenta vuelve a estar en revisión.",
+      "submittedData": "Datos enviados",
+      "checkAgain": "Comprobar estado",
+      "approvedToast": "¡Tu colegiatura fue verificada!"
+    },
+    "welcome": {
+      "title": "¡Cuenta verificada!",
+      "text": "Tu colegiatura fue validada con el Colegio de Psicólogos del Perú. Ya puedes recibir citas.",
+      "completeProfile": "Completa tu perfil para que los pacientes te encuentren",
+      "goProfile": "Completar perfil",
+      "goPanel": "Ir a mi panel"
+    },
+    "dashboard": {
+      "hello": "Hola, {name}",
+      "metrics": "Resumen",
+      "today": "Citas hoy",
+      "toConfirm": "Por confirmar",
+      "activePatients": "Pacientes activos",
+      "incompleteTitle": "Tu perfil está incompleto",
+      "incompleteText": "Los pacientes eligen mejor cuando ven tu biografía, tarifa y horario.",
+      "upcoming": "Próximas citas",
+      "viewSchedule": "Ver agenda",
+      "noUpcoming": "No tienes citas próximas",
+      "noUpcomingHint": "Cuando un paciente reserve contigo, aparecerá aquí."
+    },
+    "patients": {
+      "subtitle": "Personas que han reservado sesiones contigo.",
+      "search": "Buscar paciente",
+      "filter": "Filtrar pacientes",
+      "filters": {
+        "active": "Activos",
+        "all": "Todos"
+      },
+      "sessions": "{count} sesión realizada | {count} sesiones realizadas",
+      "lastSession": "Última",
+      "nextSession": "Próxima",
+      "noNext": "Sin cita próxima",
+      "history": "Historial de citas",
+      "empty": "Aún no tienes pacientes",
+      "emptyHint": "Tus pacientes aparecerán cuando reserven una sesión contigo."
+    },
+    "schedule": {
+      "subtitle": "Gestiona tus citas y tu disponibilidad semanal.",
+      "appointments": "Citas",
+      "today": "Hoy",
+      "session": "Sesión",
+      "empty": "No hay citas en esta sección",
+      "tabs": {
+        "upcoming": "Próximas",
+        "pending": "Por confirmar",
+        "past": "Pasadas",
+        "cancelled": "Canceladas"
+      },
+      "actions": {
+        "confirm": "Confirmar",
+        "cancel": "Cancelar cita",
+        "complete": "Marcar como atendida"
+      },
+      "confirm": {
+        "cancel": {
+          "title": "¿Cancelar esta cita?",
+          "message": "Se cancelará la cita con {name}. Te recomendamos avisarle."
+        },
+        "complete": {
+          "title": "¿Marcar como atendida?",
+          "message": "Confirma que la sesión con {name} se realizó."
+        }
+      },
+      "done": {
+        "confirm": "Cita confirmada",
+        "cancel": "Cita cancelada",
+        "complete": "Cita marcada como atendida"
+      },
+      "availability": "Disponibilidad",
+      "availabilityHint": "Los pacientes la ven en tu perfil del directorio.",
+      "saveAvailability": "Guardar disponibilidad",
+      "availabilitySaved": "Disponibilidad guardada",
+      "errors": {
+        "noDays": "Elige al menos un día."
+      }
+    },
+    "profile": {
+      "subtitle": "Lo que verán los pacientes en el directorio.",
+      "licensePrivate": "Solo tú y el equipo de NeuroZen ven este dato.",
+      "setAvailability": "Configurar disponibilidad",
+      "professionalData": "Datos profesionales",
+      "nameLocked": "Tu nombre fue verificado con el CPsP. Para cambiarlo, contacta a soporte.",
+      "bio": "Biografía",
+      "bioPlaceholder": "Cuéntales a los pacientes tu enfoque, formación y en qué puedes ayudarles…",
+      "bioHint": "Mínimo 30 caracteres.",
+      "experience": "Años de experiencia",
+      "price": "Tarifa por sesión (USD)",
+      "errors": {
+        "experience": "Ingresa un valor entre 0 y 60.",
+        "price": "Ingresa un valor entre 0 y 1000."
+      }
+    },
+    "notifications": {
+      "toConfirm": "{count} cita(s) por confirmar",
+      "toConfirmHint": "Revisa tu agenda"
+    }
+  },
+  "admin": {
+    "nav": "Verificación",
+    "title": "Verificación de psicólogos",
+    "subtitle": "Revisa las solicitudes y valida la colegiatura de cada profesional.",
+    "procedure": {
+      "title": "Cómo verificar",
+      "text": "Busca el número de colegiatura en la consulta de colegiados del portal del CPsP. Comprueba que el nombre coincide con la solicitud y que el estado figura como «HABILITADO». Solo entonces aprueba."
+    },
+    "openCpsp": "Abrir portal del CPsP",
+    "filter": "Filtrar solicitudes",
+    "search": "Buscar por nombre, correo o colegiatura",
+    "tabs": {
+      "pending": "Pendientes",
+      "verified": "Verificados",
+      "rejected": "Rechazados"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "verified": "Verificado",
+      "rejected": "Rechazado"
+    },
+    "empty": {
+      "pending": "No hay solicitudes pendientes",
+      "verified": "Aún no hay psicólogos verificados",
+      "rejected": "No hay solicitudes rechazadas"
+    },
+    "requestedAt": "Solicitud",
+    "copyLicense": "Copiar número de colegiatura",
+    "copied": "Número copiado",
+    "checklist": {
+      "title": "Comprobaciones en el portal del CPsP",
+      "nameMatches": "El nombre registrado en el CPsP coincide con «{name}».",
+      "enabled": "El estado del colegiado figura como «HABILITADO».",
+      "required": "Marca ambas comprobaciones para aprobar."
+    },
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "approveDialog": {
+      "title": "¿Aprobar a este psicólogo?",
+      "message": "{name} podrá recibir citas y aparecerá en el directorio."
+    },
+    "rejectDialog": {
+      "title": "Rechazar solicitud",
+      "message": "{name} verá el motivo y podrá corregir sus datos.",
+      "reason": "Motivo del rechazo",
+      "choose": "Elegir un motivo frecuente…",
+      "placeholder": "Explica qué debe corregir"
+    },
+    "reasons": {
+      "notFound": "No se encontró el número de colegiatura en el portal del CPsP.",
+      "nameMismatch": "El nombre registrado no coincide con el que figura en el CPsP.",
+      "notEnabled": "El colegiado no figura como HABILITADO en el CPsP.",
+      "notClinical": "La especialidad indicada no coincide con el registro del CPsP."
+    },
+    "approved": "{name} fue verificado",
+    "rejected": "Solicitud de {name} rechazada",
+    "notifications": {
+      "pending": "{count} psicólogo(s) por verificar",
+      "pendingHint": "Revisa las solicitudes pendientes"
+    }
+  },
+  "zenbot": {
+    "open": "Abrir ZenBot, tu asistente",
+    "subtitle": "Asistente de NeuroZen",
+    "restart": "Reiniciar conversación",
+    "typing": "ZenBot está escribiendo…",
+    "placeholder": "Escribe cómo te sientes…",
+    "send": "Enviar",
+    "disclaimer": "ZenBot da respuestas automáticas y no reemplaza a un profesional. Ante una emergencia, llama al 106 (SAMU).",
+    "quick": {
+      "stressed": "Me siento estresado",
+      "sleep": "No puedo dormir",
+      "work": "Mucha carga de trabajo",
+      "specialist": "Quiero hablar con un psicólogo"
+    },
+    "links": {
+      "breathing": "Respiración guiada",
+      "trigger": "Registrar desencadenante",
+      "breaks": "Pausas activas",
+      "resources": "Biblioteca de recursos",
+      "specialist": "Hablar con un especialista",
+      "directory": "Ver psicólogos",
+      "appointments": "Mis citas",
+      "plans": "Ver planes",
+      "test": "Test de estrés"
+    },
+    "crisis": {
+      "line113": "Línea 113, opción 5 (salud mental, gratuita, 24 h)",
+      "samu": "SAMU 106 (emergencias)"
+    },
+    "answers": {
+      "welcome": "¡Hola! Soy ZenBot 🌿 Estoy aquí para orientarte con tu estrés laboral. Cuéntame cómo te sientes o elige una opción.",
+      "empty": "Escríbeme algo y te ayudo.",
+      "crisis": "Siento mucho que estés pasando por esto. No estás solo/a y tu vida importa. Por favor, busca ayuda ahora mismo: llama gratis a la Línea 113 (opción 5) o, si estás en peligro inmediato, al SAMU 106. También puedes hablar hoy con un especialista de NeuroZen.",
+      "sad": "Lamento que te sientas así; tus emociones son válidas. Hablar con un profesional puede ayudarte mucho. Mientras tanto, un ejercicio de respiración puede darte un momento de calma.",
+      "anxiety": "Entiendo, el estrés puede ser agotador. Te propongo dos cosas: un ejercicio de respiración guiada de pocos minutos y registrar qué lo provocó, para descubrir tus patrones.",
+      "sleep": "Dormir mal aumenta el estrés. Intenta desconectarte de las pantallas antes de dormir y prueba la respiración 4-7-8, que ayuda a relajarte. En la biblioteca tienes recursos sobre el descanso.",
+      "work": "La carga laboral es una de las causas más comunes de estrés. Programar pausas activas en tu jornada y registrar las situaciones difíciles te ayudará a manejarla mejor.",
+      "breathing": "¡Buena idea! La respiración guiada reduce la tensión en pocos minutos. Tenemos tres ejercicios: consciente, cuadrada y 4-7-8.",
+      "breaks": "Las pausas activas son descansos cortos para moverte y estirarte durante la jornada. Puedes configurar cada cuánto hacerlas.",
+      "trigger": "Registrar lo que te estresa (cuándo, qué pasó y con qué intensidad) te ayuda a encontrar patrones. Tus registros alimentan tus estadísticas.",
+      "test": "El test de autoevaluación tiene 10 preguntas sobre el último mes y te da una orientación sobre tu nivel de estrés.",
+      "resources": "En la biblioteca encontrarás audios, videos, lecturas y ejercicios para tu bienestar.",
+      "appointments": "En «Mis citas» puedes ver tus sesiones, cancelarlas, compartir un informe con tu psicólogo y calificar las sesiones atendidas.",
+      "specialist": "Hablar con un profesional es una gran decisión. Todos nuestros psicólogos tienen la colegiatura verificada. Puedes reservar una sesión en pocos pasos.",
+      "subscription": "Tenemos planes Básico, Avanzado y Profesional. Puedes ver qué incluye cada uno en la sección de suscripciones.",
+      "thanks": "¡De nada! Aquí estaré cuando me necesites. 🌿",
+      "bye": "¡Hasta pronto! Recuerda tomarte un momento para ti hoy.",
+      "help": "Puedo orientarte sobre estrés, ansiedad, sueño o carga de trabajo, y llevarte a las herramientas de NeuroZen: respiración, pausas activas, registro de estrés, recursos o un especialista.",
+      "greeting": "¡Hola! ¿Cómo te sientes hoy? Puedes contarme qué te preocupa.",
+      "fallback": "No estoy seguro de haberte entendido. Prueba con otras palabras o elige una opción de abajo.",
+      "fallbackSpecialist": "Parece que tu situación necesita una atención más personal de la que puedo darte. Te recomiendo hablar con uno de nuestros especialistas."
+    }
+  },
+  "onboardingProfile": {
+    "step": "Último paso",
+    "title": "Cuéntanos un poco de ti",
+    "subtitle": "Es opcional: nos ayuda a personalizar tus recomendaciones.",
+    "age": "Edad",
+    "ages": {
+      "18-24": "18-24",
+      "25-34": "25-34",
+      "35-44": "35-44",
+      "45-54": "45-54",
+      "55+": "55 o más"
+    },
+    "occupation": "Ocupación",
+    "occupationPlaceholder": "Ej.: analista, docente, vendedora…",
+    "workType": "Tipo de trabajo",
+    "workTypes": {
+      "formal": {
+        "title": "Formal",
+        "text": "Con contrato y horario establecido"
+      },
+      "informal": {
+        "title": "Informal / independiente",
+        "text": "Por cuenta propia o sin horario fijo"
+      }
+    },
+    "privacy": "Estos datos solo se usan para personalizar tu experiencia.",
+    "continue": "Continuar al test",
+    "saveError": "No pudimos guardar tus datos, pero puedes continuar."
+  },
+  "assessment": {
+    "title": "Test de autoevaluación de estrés",
+    "intro": "Responde 10 preguntas sobre cómo te has sentido. Obtendrás una orientación sobre tu nivel de estrés y recomendaciones.",
+    "duration": "Toma unos 3 minutos.",
+    "period": "Piensa en el último mes.",
+    "privacy": "Tus respuestas son privadas.",
+    "notDiagnosis": "Basado en la Escala de Estrés Percibido (PSS-10). Es una orientación y no reemplaza un diagnóstico profesional.",
+    "start": "Comenzar test",
+    "later": "Hacerlo después",
+    "repeat": "Repetir test",
+    "questionOf": "Pregunta {current} de {total}",
+    "inLastMonth": "En el último mes, ¿con qué frecuencia…",
+    "seeResult": "Ver resultado",
+    "yourResult": "Tu resultado",
+    "recommended": "Te recomendamos",
+    "goDashboard": "Ir al inicio",
+    "savedLocally": "Sin conexión con el servidor: el resultado se guardó en este dispositivo.",
+    "cta": "Descubre tu nivel de estrés en 3 minutos.",
+    "lastResult": "Último resultado: {score}/40 · {level}",
+    "options": {
+      "o0": "Nunca",
+      "o1": "Casi nunca",
+      "o2": "A veces",
+      "o3": "Con frecuencia",
+      "o4": "Muy a menudo"
+    },
+    "questions": {
+      "q1": "…te has alterado por algo que ocurrió de forma inesperada?",
+      "q2": "…has sentido que no podías controlar las cosas importantes de tu vida?",
+      "q3": "…te has sentido nervioso/a o estresado/a?",
+      "q4": "…te has sentido seguro/a de tu capacidad para manejar tus problemas personales?",
+      "q5": "…has sentido que las cosas te salían bien?",
+      "q6": "…has sentido que no podías con todo lo que tenías que hacer?",
+      "q7": "…has podido controlar las situaciones que te irritan?",
+      "q8": "…has sentido que tenías todo bajo control?",
+      "q9": "…te has enojado por cosas que estaban fuera de tu control?",
+      "q10": "…has sentido que las dificultades se acumulaban tanto que no podías superarlas?"
+    },
+    "levels": {
+      "low": {
+        "label": "Estrés bajo",
+        "text": "Estás manejando bien las demandas de tu día a día. Mantén tus hábitos y sigue usando las herramientas de bienestar."
+      },
+      "moderate": {
+        "label": "Estrés moderado",
+        "text": "Tienes un nivel de estrés que conviene atender. Practicar respiración, tomar pausas y registrar lo que te estresa puede ayudarte a reducirlo."
+      },
+      "high": {
+        "label": "Estrés alto",
+        "text": "Tu nivel de estrés es alto. Te recomendamos hablar con un psicólogo; no tienes que manejarlo solo/a. Mientras tanto, las herramientas de NeuroZen pueden darte alivio."
+      }
+    }
+  },
+  "password": {
+    "backToLogin": "Volver al inicio de sesión",
+    "current": "Contraseña actual",
+    "new": "Nueva contraseña",
+    "forgot": {
+      "title": "Recupera tu contraseña",
+      "subtitle": "Te enviaremos un enlace para crear una nueva contraseña.",
+      "submit": "Enviar enlace",
+      "sent": "Si existe una cuenta con {email}, recibirás un correo con el enlace en unos minutos.",
+      "demoNote": "Modo demostración: no se envían correos. Usa este enlace para continuar:",
+      "demoLink": "Restablecer contraseña"
+    },
+    "reset": {
+      "title": "Crea una nueva contraseña",
+      "subtitle": "Elige una contraseña segura que no hayas usado antes.",
+      "submit": "Guardar contraseña",
+      "done": "Contraseña actualizada. Ya puedes iniciar sesión.",
+      "invalidLink": "El enlace no es válido o ya venció.",
+      "requestNew": "Solicitar uno nuevo"
+    },
+    "change": {
+      "title": "Cambiar contraseña",
+      "submit": "Actualizar contraseña",
+      "done": "Contraseña actualizada",
+      "wrongCurrent": "La contraseña actual no es correcta.",
+      "samePassword": "La nueva contraseña debe ser distinta de la actual."
+    }
+  },
+  "account": {
+    "delete": {
+      "title": "Eliminar cuenta",
+      "text": "Se eliminarán tu cuenta y tus datos de forma permanente. Esta acción no se puede deshacer.",
+      "button": "Eliminar mi cuenta",
+      "confirm": "Esta acción es permanente y no se puede deshacer.",
+      "typeEmail": "Para confirmar, escribe tu correo: {email}",
+      "emailMismatch": "El correo no coincide.",
+      "done": "Tu cuenta fue eliminada."
+    }
+  },
+  "reports": {
+    "current": "Nivel actual",
+    "average": "Promedio semanal",
+    "triggers": "Registros (7 días)",
+    "lastTest": "Último test",
+    "noTest": "Sin test",
+    "noteLabel": "Mensaje para tu psicólogo (opcional)",
+    "notePlaceholder": "Ej.: esta semana tuve mucha presión por una entrega…",
+    "privacy": "Solo lo verá el psicólogo de esta cita.",
+    "demoWarning": "Aún tienes pocos registros: el resumen incluye datos de ejemplo.",
+    "shared": "Informe compartido con {name}",
+    "received": "Informes compartidos",
+    "sharedOn": "Compartido el {date}",
+    "notification": "{count} informe(s) compartido(s) esta semana",
+    "notificationHint": "Revisa la ficha de tus pacientes"
   }
 }

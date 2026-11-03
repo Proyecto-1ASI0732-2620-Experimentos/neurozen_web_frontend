@@ -18,7 +18,7 @@ import { ApiError } from './ApiError.js'
 
 export { ApiError }
 
-const AUTH_ENDPOINTS = ['/authentication/sign-in', '/authentication/sign-up']
+const AUTH_ENDPOINTS = ['/authentication/']
 let staticAdapter = null
 
 function isStaticMode() {
@@ -120,6 +120,7 @@ export class HttpClient {
   get(endpoint) { return this.request('GET', endpoint) }
   post(endpoint, data) { return this.request('POST', endpoint, data ?? {}) }
   put(endpoint, data) { return this.request('PUT', endpoint, data ?? {}) }
+  patch(endpoint, data) { return this.request('PATCH', endpoint, data ?? {}) }
   delete(endpoint) { return this.request('DELETE', endpoint) }
 
   /** Desempaqueta { data } / { success, data } o devuelve el objeto tal cual */

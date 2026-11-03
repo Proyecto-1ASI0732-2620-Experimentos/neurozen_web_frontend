@@ -49,9 +49,8 @@
         <section class="nz-card space-y-2 p-5">
           <h2 class="mb-2 font-bold">{{ $t('userProfile.accountActions.title') }}</h2>
           <button type="button" class="nz-btn-secondary w-full justify-start" @click="downloadData"><i class="fas fa-download" aria-hidden="true"></i>{{ $t('userProfile.accountActions.downloadData') }}</button>
-          <button type="button" class="nz-btn-secondary w-full justify-start" disabled :title="$t('userProfile.backendPending')"><i class="fas fa-key" aria-hidden="true"></i>{{ $t('userProfile.accountActions.changePassword') }}</button>
-          <button type="button" class="nz-btn-secondary w-full justify-start text-red-700" disabled :title="$t('userProfile.backendPending')"><i class="fas fa-user-xmark" aria-hidden="true"></i>{{ $t('userProfile.accountActions.deleteAccount') }}</button>
-          <p class="nz-hint">{{ $t('userProfile.backendPending') }}</p>
+          <router-link :to="{ name: 'Settings', query: { tab: 'security' } }" class="nz-btn-secondary w-full justify-start"><i class="fas fa-key" aria-hidden="true"></i>{{ $t('userProfile.accountActions.changePassword') }}</router-link>
+          <router-link :to="{ name: 'Settings', query: { tab: 'security' } }" class="nz-btn-secondary w-full justify-start text-red-700"><i class="fas fa-user-xmark" aria-hidden="true"></i>{{ $t('userProfile.accountActions.deleteAccount') }}</router-link>
         </section>
       </aside>
 

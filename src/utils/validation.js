@@ -37,3 +37,16 @@ export function isFutureExpiry(v) {
 export const isCvv = (v) => /^\d{3,4}$/.test(String(v || ''))
 
 export const minLength = (v, n) => String(v || '').trim().length >= n
+
+/** Contraseña con reglas de complejidad: mínimo 8 caracteres, al menos una letra y un número */
+export const isStrongPassword = (v) => /^(?=.*[A-Za-zÁÉÍÓÚÑáéíóúñ])(?=.*\d).{8,}$/.test(String(v || ''))
+
+/**
+ * Número de colegiatura del CPsP. Acepta solo dígitos (3 a 6) o con el prefijo
+ * habitual: "C.Ps.P. 12345", "CPsP 12345", "CN.PsP. 12345".
+ */
+export const isLicenseNumber = (v) =>
+  /^(?:C\.?\s?N?\.?\s?Ps\.?\s?P\.?\s*)?\d{3,6}$/i.test(String(v || '').trim())
+
+/** Deja solo el número de la colegiatura (para guardarlo y buscarlo en el CPsP) */
+export const normalizeLicenseNumber = (v) => (String(v || '').match(/\d{3,6}$/) || [''])[0]

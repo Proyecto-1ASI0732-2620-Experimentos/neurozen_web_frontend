@@ -32,7 +32,11 @@
     "nextBreak": "Next active break today",
     "noNotifications": "You have no notifications",
     "openMenu": "Open menu",
-    "userMenu": "User menu"
+    "userMenu": "User menu",
+    "roles": {
+      "psychologist": "Psychologist",
+      "admin": "Administrator"
+    }
   },
   "footer": {
     "company": "NeuroZen",
@@ -561,7 +565,8 @@
       "general": "General",
       "notifications": "Notifications",
       "privacy": "Privacy & data",
-      "about": "About"
+      "about": "About",
+      "security": "Security"
     },
     "display": "Display",
     "fontSize": "Text size",
@@ -872,7 +877,11 @@
     "card": "Invalid card number.",
     "expiry": "Invalid or expired date (MM/YY).",
     "cvv": "CVV must be 3 or 4 digits.",
-    "fixErrors": "Check the highlighted fields."
+    "fixErrors": "Check the highlighted fields.",
+    "fullName": "Enter your first and last name.",
+    "passwordStrength": "At least 8 characters, with at least one letter and one number.",
+    "license": "Invalid license number. Example: C.Ps.P. 12345",
+    "acceptTerms": "You must accept the Terms and Privacy Policy."
   },
   "notFound": {
     "title": "Page not found",
@@ -918,6 +927,33 @@
       "none": "None.",
       "empty": "You have no appointments yet",
       "emptyHint": "Book a session with a professional whenever you need."
+    },
+    "actions": {
+      "cancel": "Cancel appointment",
+      "share": "Share report",
+      "review": "Rate",
+      "reportShared": "Report shared",
+      "reviewed": "Rated"
+    },
+    "cancelDialog": {
+      "title": "Cancel your appointment?",
+      "message": "Your session with {name} will be cancelled.",
+      "keep": "Keep appointment",
+      "done": "Appointment cancelled"
+    },
+    "shareDialog": {
+      "title": "Share progress report",
+      "message": "{name} will see this summary of your week to prepare the session."
+    },
+    "reviewDialog": {
+      "title": "Rate your session",
+      "message": "How was your session with {name}?",
+      "rating": "Rating",
+      "comment": "Comment (optional)",
+      "placeholder": "Tell us about your experience…",
+      "send": "Send rating",
+      "ratingRequired": "Choose 1 to 5 stars.",
+      "done": "Thanks for your rating!"
     }
   },
   "payments": {
@@ -967,5 +1003,476 @@
     "notFoundTitle": "Resource unavailable",
     "notFoundMessage": "The resource wasn't found or couldn't be loaded.",
     "noAudioSupport": "Your browser can't play this audio."
+  },
+  "register": {
+    "chooseSubtitle": "How do you want to use NeuroZen?",
+    "changeType": "Change account type",
+    "passwordRules": "At least 8 characters, with at least one letter and one number.",
+    "acceptPrefix": "I have read and accept the",
+    "termsLink": "Terms and Privacy Policy",
+    "errors": {
+      "licenseInUse": "That license number is already registered."
+    },
+    "user": {
+      "title": "I'm looking for support",
+      "description": "Manage your work stress with tools, resources and sessions with professionals.",
+      "formTitle": "Create your account",
+      "formSubtitle": "We only ask for the essentials; you'll personalize your experience later.",
+      "submit": "Create account"
+    },
+    "psychologist": {
+      "title": "I'm a psychologist",
+      "description": "Offer sessions to workers seeking support. Your license will be verified.",
+      "badge": "License verification required",
+      "formTitle": "Psychologist registration",
+      "formSubtitle": "Create your professional account to see clients on NeuroZen.",
+      "verificationNote": "Your account will stay under review until our team verifies your license with the Peruvian College of Psychologists (CPsP). You can't receive appointments until then.",
+      "nameHint": "Must match your ID and your CPsP record.",
+      "specialty": "Main specialty",
+      "selectSpecialty": "Select your specialty",
+      "license": "License number (CPsP)",
+      "licenseHint": "We'll use it to verify you're licensed to practice.",
+      "submit": "Submit application",
+      "successLogin": "Application sent. Sign in to see your verification status."
+    }
+  },
+  "specialties": {
+    "clinical": "Clinical psychology",
+    "organizational": "Organizational psychology",
+    "educational": "Educational psychology",
+    "family": "Family and couples psychology",
+    "childAdolescent": "Child and adolescent psychology",
+    "health": "Health psychology",
+    "social": "Social and community psychology",
+    "neuropsychology": "Neuropsychology"
+  },
+  "legal": {
+    "title": "Terms and Privacy Policy",
+    "accept": "Got it, I accept",
+    "purpose": {
+      "title": "1. Purpose of the service",
+      "text": "NeuroZen offers tools to manage work stress and connects workers with licensed psychologists. It does not replace emergency care: in a crisis, call the local emergency line or go to the nearest emergency service."
+    },
+    "data": {
+      "title": "2. Data we process",
+      "text": "We process your account data (name, email) and the information you record on the platform, in accordance with Peru's Personal Data Protection Law No. 29733 and its regulations."
+    },
+    "health": {
+      "title": "3. Sensitive health data",
+      "text": "Your stress records and mental health information are sensitive data. They are used only to provide the service, are never sold, and are only seen by a professional when you book a session with them."
+    },
+    "professionals": {
+      "title": "4. Verified professionals",
+      "text": "Psychologists can only see clients on NeuroZen after our team verifies their license number and status with the Peruvian College of Psychologists."
+    },
+    "rights": {
+      "title": "5. Your rights",
+      "text": "You can access, rectify, cancel or object to the processing of your data by writing to info{'@'}neurozen.com."
+    }
+  },
+  "pro": {
+    "patientFallback": "Patient #{id}",
+    "badge": {
+      "verified": "Verified psychologist"
+    },
+    "nav": {
+      "home": "Home",
+      "patients": "Patients",
+      "schedule": "Schedule",
+      "profile": "Profile"
+    },
+    "appointmentStatus": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "progress": {
+      "label": "{done} of {total} steps completed",
+      "done": "done",
+      "pending": "pending",
+      "steps": {
+        "license": "License verified",
+        "bio": "Professional bio (min. 30 characters)",
+        "pricing": "Years of experience and session rate",
+        "availability": "Weekly availability"
+      }
+    },
+    "status": {
+      "title": "Verification status",
+      "pendingTitle": "Your account is under review",
+      "pendingText": "Our team is verifying your license with the Peruvian College of Psychologists. We'll let you know when you can receive appointments.",
+      "steps": {
+        "created": {
+          "title": "Account created",
+          "text": "We received your application."
+        },
+        "review": {
+          "title": "License verification",
+          "text": "We check your name and license status with the CPsP."
+        },
+        "active": {
+          "title": "Active account",
+          "text": "You'll be able to complete your profile and receive appointments."
+        }
+      },
+      "rejectedTitle": "We couldn't verify your license",
+      "rejectedText": "Review the reason, correct your data and resubmit your application.",
+      "reason": "Reason",
+      "noReason": "No reason was given.",
+      "fixData": "Correct your data",
+      "resubmit": "Resubmit application",
+      "resubmitted": "Application resubmitted. Your account is under review again.",
+      "submittedData": "Submitted data",
+      "checkAgain": "Check status",
+      "approvedToast": "Your license has been verified!"
+    },
+    "welcome": {
+      "title": "Account verified!",
+      "text": "Your license was validated with the Peruvian College of Psychologists. You can now receive appointments.",
+      "completeProfile": "Complete your profile so clients can find you",
+      "goProfile": "Complete profile",
+      "goPanel": "Go to my dashboard"
+    },
+    "dashboard": {
+      "hello": "Hello, {name}",
+      "metrics": "Summary",
+      "today": "Appointments today",
+      "toConfirm": "To confirm",
+      "activePatients": "Active patients",
+      "incompleteTitle": "Your profile is incomplete",
+      "incompleteText": "Clients choose better when they see your bio, rate and schedule.",
+      "upcoming": "Upcoming appointments",
+      "viewSchedule": "View schedule",
+      "noUpcoming": "You have no upcoming appointments",
+      "noUpcomingHint": "When a client books with you, it will appear here."
+    },
+    "patients": {
+      "subtitle": "People who have booked sessions with you.",
+      "search": "Search client",
+      "filter": "Filter clients",
+      "filters": {
+        "active": "Active",
+        "all": "All"
+      },
+      "sessions": "{count} session held | {count} sessions held",
+      "lastSession": "Last",
+      "nextSession": "Next",
+      "noNext": "No upcoming session",
+      "history": "Appointment history",
+      "empty": "You have no clients yet",
+      "emptyHint": "Your clients will appear when they book a session with you."
+    },
+    "schedule": {
+      "subtitle": "Manage your appointments and weekly availability.",
+      "appointments": "Appointments",
+      "today": "Today",
+      "session": "Session",
+      "empty": "No appointments in this section",
+      "tabs": {
+        "upcoming": "Upcoming",
+        "pending": "To confirm",
+        "past": "Past",
+        "cancelled": "Cancelled"
+      },
+      "actions": {
+        "confirm": "Confirm",
+        "cancel": "Cancel appointment",
+        "complete": "Mark as completed"
+      },
+      "confirm": {
+        "cancel": {
+          "title": "Cancel this appointment?",
+          "message": "The appointment with {name} will be cancelled. We recommend letting them know."
+        },
+        "complete": {
+          "title": "Mark as completed?",
+          "message": "Confirm that the session with {name} took place."
+        }
+      },
+      "done": {
+        "confirm": "Appointment confirmed",
+        "cancel": "Appointment cancelled",
+        "complete": "Appointment marked as completed"
+      },
+      "availability": "Availability",
+      "availabilityHint": "Clients see it on your directory profile.",
+      "saveAvailability": "Save availability",
+      "availabilitySaved": "Availability saved",
+      "errors": {
+        "noDays": "Choose at least one day."
+      }
+    },
+    "profile": {
+      "subtitle": "What clients will see in the directory.",
+      "licensePrivate": "Only you and the NeuroZen team see this.",
+      "setAvailability": "Set availability",
+      "professionalData": "Professional details",
+      "nameLocked": "Your name was verified with the CPsP. To change it, contact support.",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell clients about your approach, training and how you can help…",
+      "bioHint": "At least 30 characters.",
+      "experience": "Years of experience",
+      "price": "Rate per session (USD)",
+      "errors": {
+        "experience": "Enter a value between 0 and 60.",
+        "price": "Enter a value between 0 and 1000."
+      }
+    },
+    "notifications": {
+      "toConfirm": "{count} appointment(s) to confirm",
+      "toConfirmHint": "Check your schedule"
+    }
+  },
+  "admin": {
+    "nav": "Verification",
+    "title": "Psychologist verification",
+    "subtitle": "Review applications and validate each professional's license.",
+    "procedure": {
+      "title": "How to verify",
+      "text": "Look up the license number in the CPsP member search. Check that the name matches the application and that the status is “HABILITADO” (enabled). Only then approve."
+    },
+    "openCpsp": "Open CPsP portal",
+    "filter": "Filter applications",
+    "search": "Search by name, email or license",
+    "tabs": {
+      "pending": "Pending",
+      "verified": "Verified",
+      "rejected": "Rejected"
+    },
+    "status": {
+      "pending": "Pending",
+      "verified": "Verified",
+      "rejected": "Rejected"
+    },
+    "empty": {
+      "pending": "No pending applications",
+      "verified": "No verified psychologists yet",
+      "rejected": "No rejected applications"
+    },
+    "requestedAt": "Applied",
+    "copyLicense": "Copy license number",
+    "copied": "Number copied",
+    "checklist": {
+      "title": "Checks on the CPsP portal",
+      "nameMatches": "The name registered with the CPsP matches “{name}”.",
+      "enabled": "The member's status is “HABILITADO” (enabled).",
+      "required": "Check both items to approve."
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "approveDialog": {
+      "title": "Approve this psychologist?",
+      "message": "{name} will be able to receive appointments and will appear in the directory."
+    },
+    "rejectDialog": {
+      "title": "Reject application",
+      "message": "{name} will see the reason and can correct their data.",
+      "reason": "Reason for rejection",
+      "choose": "Choose a common reason…",
+      "placeholder": "Explain what needs to be corrected"
+    },
+    "reasons": {
+      "notFound": "The license number was not found on the CPsP portal.",
+      "nameMismatch": "The registered name doesn't match the CPsP record.",
+      "notEnabled": "The member is not listed as enabled with the CPsP.",
+      "notClinical": "The stated specialty doesn't match the CPsP record."
+    },
+    "approved": "{name} has been verified",
+    "rejected": "{name}'s application was rejected",
+    "notifications": {
+      "pending": "{count} psychologist(s) to verify",
+      "pendingHint": "Review pending applications"
+    }
+  },
+  "zenbot": {
+    "open": "Open ZenBot, your assistant",
+    "subtitle": "NeuroZen assistant",
+    "restart": "Restart conversation",
+    "typing": "ZenBot is typing…",
+    "placeholder": "Tell me how you feel…",
+    "send": "Send",
+    "disclaimer": "ZenBot gives automatic answers and doesn't replace a professional. In an emergency, call your local emergency number.",
+    "quick": {
+      "stressed": "I feel stressed",
+      "sleep": "I can't sleep",
+      "work": "Too much workload",
+      "specialist": "I want to talk to a psychologist"
+    },
+    "links": {
+      "breathing": "Guided breathing",
+      "trigger": "Log a trigger",
+      "breaks": "Active breaks",
+      "resources": "Resource library",
+      "specialist": "Talk to a specialist",
+      "directory": "See psychologists",
+      "appointments": "My appointments",
+      "plans": "View plans",
+      "test": "Stress test"
+    },
+    "crisis": {
+      "line113": "Peru mental health line: 113, option 5",
+      "samu": "SAMU 106 (emergencies)"
+    },
+    "answers": {
+      "welcome": "Hi! I'm ZenBot 🌿 I'm here to guide you with work stress. Tell me how you feel or pick an option.",
+      "empty": "Write something and I'll help.",
+      "crisis": "I'm really sorry you're going through this. You're not alone and your life matters. Please reach out for help right now: call a crisis line or, if you're in immediate danger, your local emergency number. You can also talk to a NeuroZen specialist today.",
+      "sad": "I'm sorry you feel this way; your feelings are valid. Talking to a professional can really help. Meanwhile, a breathing exercise can give you a moment of calm.",
+      "anxiety": "I understand, stress can be exhausting. Two suggestions: a few minutes of guided breathing, and logging what caused it so you can spot your patterns.",
+      "sleep": "Poor sleep increases stress. Try disconnecting from screens before bed and practice 4-7-8 breathing, which helps you relax. The library has resources about rest.",
+      "work": "Workload is one of the most common causes of stress. Scheduling active breaks during your day and logging difficult situations will help you manage it.",
+      "breathing": "Great idea! Guided breathing reduces tension in minutes. We have three exercises: mindful, box and 4-7-8.",
+      "breaks": "Active breaks are short pauses to move and stretch during your workday. You can set how often to take them.",
+      "trigger": "Logging what stresses you (when, what happened, how intense) helps you find patterns. Your logs feed your statistics.",
+      "test": "The self-assessment has 10 questions about the last month and gives you guidance on your stress level.",
+      "resources": "In the library you'll find audio, videos, readings and exercises for your wellbeing.",
+      "appointments": "In “My appointments” you can see your sessions, cancel them, share a report with your psychologist and rate completed sessions.",
+      "specialist": "Talking to a professional is a great decision. All our psychologists have verified licenses. You can book a session in a few steps.",
+      "subscription": "We have Basic, Advanced and Professional plans. You can see what each includes in the subscriptions section.",
+      "thanks": "You're welcome! I'll be here when you need me. 🌿",
+      "bye": "See you soon! Remember to take a moment for yourself today.",
+      "help": "I can guide you about stress, anxiety, sleep or workload, and take you to NeuroZen's tools: breathing, active breaks, stress log, resources or a specialist.",
+      "greeting": "Hi! How are you feeling today? You can tell me what's on your mind.",
+      "fallback": "I'm not sure I understood. Try other words or pick an option below.",
+      "fallbackSpecialist": "It seems your situation needs more personal attention than I can give. I recommend talking to one of our specialists."
+    }
+  },
+  "onboardingProfile": {
+    "step": "Last step",
+    "title": "Tell us a bit about you",
+    "subtitle": "It's optional: it helps us personalize your recommendations.",
+    "age": "Age",
+    "ages": {
+      "18-24": "18-24",
+      "25-34": "25-34",
+      "35-44": "35-44",
+      "45-54": "45-54",
+      "55+": "55+"
+    },
+    "occupation": "Occupation",
+    "occupationPlaceholder": "E.g. analyst, teacher, salesperson…",
+    "workType": "Type of work",
+    "workTypes": {
+      "formal": {
+        "title": "Formal",
+        "text": "With a contract and set schedule"
+      },
+      "informal": {
+        "title": "Informal / freelance",
+        "text": "Self-employed or without fixed hours"
+      }
+    },
+    "privacy": "This data is only used to personalize your experience.",
+    "continue": "Continue to the test",
+    "saveError": "We couldn't save your data, but you can continue."
+  },
+  "assessment": {
+    "title": "Stress self-assessment",
+    "intro": "Answer 10 questions about how you've felt. You'll get guidance on your stress level and recommendations.",
+    "duration": "Takes about 3 minutes.",
+    "period": "Think about the last month.",
+    "privacy": "Your answers are private.",
+    "notDiagnosis": "Based on the Perceived Stress Scale (PSS-10). It's guidance and doesn't replace a professional diagnosis.",
+    "start": "Start test",
+    "later": "Do it later",
+    "repeat": "Retake test",
+    "questionOf": "Question {current} of {total}",
+    "inLastMonth": "In the last month, how often have you…",
+    "seeResult": "See result",
+    "yourResult": "Your result",
+    "recommended": "We recommend",
+    "goDashboard": "Go to home",
+    "savedLocally": "No server connection: the result was saved on this device.",
+    "cta": "Find out your stress level in 3 minutes.",
+    "lastResult": "Last result: {score}/40 · {level}",
+    "options": {
+      "o0": "Never",
+      "o1": "Almost never",
+      "o2": "Sometimes",
+      "o3": "Fairly often",
+      "o4": "Very often"
+    },
+    "questions": {
+      "q1": "…been upset by something that happened unexpectedly?",
+      "q2": "…felt unable to control the important things in your life?",
+      "q3": "…felt nervous or stressed?",
+      "q4": "…felt confident in your ability to handle your personal problems?",
+      "q5": "…felt that things were going well for you?",
+      "q6": "…felt you couldn't cope with everything you had to do?",
+      "q7": "…been able to control the things that irritate you?",
+      "q8": "…felt that you had everything under control?",
+      "q9": "…been angered by things outside your control?",
+      "q10": "…felt difficulties piling up so much you couldn't overcome them?"
+    },
+    "levels": {
+      "low": {
+        "label": "Low stress",
+        "text": "You're handling daily demands well. Keep your habits and keep using the wellbeing tools."
+      },
+      "moderate": {
+        "label": "Moderate stress",
+        "text": "Your stress level is worth paying attention to. Breathing practice, breaks and logging what stresses you can help reduce it."
+      },
+      "high": {
+        "label": "High stress",
+        "text": "Your stress level is high. We recommend talking to a psychologist; you don't have to handle it alone. Meanwhile, NeuroZen's tools can bring relief."
+      }
+    }
+  },
+  "password": {
+    "backToLogin": "Back to sign in",
+    "current": "Current password",
+    "new": "New password",
+    "forgot": {
+      "title": "Recover your password",
+      "subtitle": "We'll send you a link to create a new password.",
+      "submit": "Send link",
+      "sent": "If an account exists for {email}, you'll receive an email with the link in a few minutes.",
+      "demoNote": "Demo mode: no emails are sent. Use this link to continue:",
+      "demoLink": "Reset password"
+    },
+    "reset": {
+      "title": "Create a new password",
+      "subtitle": "Choose a secure password you haven't used before.",
+      "submit": "Save password",
+      "done": "Password updated. You can now sign in.",
+      "invalidLink": "The link is invalid or has expired.",
+      "requestNew": "Request a new one"
+    },
+    "change": {
+      "title": "Change password",
+      "submit": "Update password",
+      "done": "Password updated",
+      "wrongCurrent": "The current password is incorrect.",
+      "samePassword": "The new password must be different from the current one."
+    }
+  },
+  "account": {
+    "delete": {
+      "title": "Delete account",
+      "text": "Your account and data will be permanently deleted. This can't be undone.",
+      "button": "Delete my account",
+      "confirm": "This action is permanent and can't be undone.",
+      "typeEmail": "To confirm, type your email: {email}",
+      "emailMismatch": "The email doesn't match.",
+      "done": "Your account was deleted."
+    }
+  },
+  "reports": {
+    "current": "Current level",
+    "average": "Weekly average",
+    "triggers": "Logs (7 days)",
+    "lastTest": "Last test",
+    "noTest": "No test",
+    "noteLabel": "Message for your psychologist (optional)",
+    "notePlaceholder": "E.g. this week I was under pressure because of a deadline…",
+    "privacy": "Only this appointment's psychologist will see it.",
+    "demoWarning": "You have few logs yet: the summary includes sample data.",
+    "shared": "Report shared with {name}",
+    "received": "Shared reports",
+    "sharedOn": "Shared on {date}",
+    "notification": "{count} report(s) shared this week",
+    "notificationHint": "Check your clients' records"
   }
 }

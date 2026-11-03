@@ -64,6 +64,19 @@
       </div>
     </section>
 
+    <!-- Test de autoevaluación (US04) -->
+    <section class="nz-card mt-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center" aria-labelledby="test-title">
+      <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><i class="fas fa-clipboard-list text-lg" aria-hidden="true"></i></span>
+      <div class="min-w-0 flex-1">
+        <h2 id="test-title" class="font-bold text-foreground-light">{{ $t('assessment.title') }}</h2>
+        <p v-if="lastAssessment" class="text-sm text-muted-light">
+          {{ $t('assessment.lastResult', { score: lastAssessment.score, level: $t(`assessment.levels.${lastAssessment.level}.label`) }) }}
+        </p>
+        <p v-else class="text-sm text-muted-light">{{ $t('assessment.cta') }}</p>
+      </div>
+      <router-link :to="{ name: 'Assessment' }" class="nz-btn-secondary shrink-0">{{ lastAssessment ? $t('assessment.repeat') : $t('assessment.start') }}</router-link>
+    </section>
+
     <!-- Herramientas (antes duplicadas en dos bloques) -->
     <section class="mt-10" aria-labelledby="tools-title">
       <h2 id="tools-title" class="mb-4 text-xl font-bold text-foreground-light">{{ $t('dashboard.tools.title') }}</h2>
@@ -97,6 +110,7 @@ import StressLevelChart from '../../components/StressLevelChart.vue'
 import LoadingState from '../../components/ui/LoadingState.vue'
 import ErrorState from '../../components/ui/ErrorState.vue'
 import { formatLongDate } from '../../utils/date.js'
+import { AssessmentService } from '../../services/AssessmentService.js'
 
 export default {
   name: 'DashboardComponent',
@@ -107,6 +121,7 @@ export default {
       isLoading: true,
       errorMessage: '',
       selectedPeriod: 'week',
+      lastAssessment: null,
       periods: ['day', 'week', 'month'],
       dashboardService: new DashboardService(),
       tools: [
@@ -155,6 +170,7 @@ export default {
   },
   created() {
     this.loadStressData()
+    new AssessmentService().getLatest().then((r) => { this.lastAssessment = r }).catch(() => {})
   },
   methods: {
     async loadStressData() {

@@ -4,9 +4,7 @@ Aplicación web para la gestión del estrés laboral: registro de desencadenante
 pausas activas, respiración guiada, biblioteca de recursos, reserva de sesiones
 con profesionales y suscripciones.
 
-> Este repositorio contiene **solo el frontend**. El backend (.NET) se desarrolla
-> por separado. El historial detallado de correcciones está en
-> [`CAMBIOS_FRONTEND.md`](./CAMBIOS_FRONTEND.md).
+
 
 ## Stack
 

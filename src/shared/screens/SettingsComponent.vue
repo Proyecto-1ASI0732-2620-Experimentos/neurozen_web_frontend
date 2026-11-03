@@ -4,7 +4,7 @@
 
     <div class="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
       <nav class="-mx-4 flex gap-1 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:px-0" role="tablist" :aria-label="$t('settings.title')">
-        <button v-for="tab in tabs" :id="`tab-${tab.id}`" :key="tab.id" type="button" role="tab" :aria-selected="activeTab === tab.id" :aria-controls="`panel-${tab.id}`"
+        <button v-for="tab in visibleTabs" :id="`tab-${tab.id}`" :key="tab.id" type="button" role="tab" :aria-selected="activeTab === tab.id" :aria-controls="`panel-${tab.id}`"
           class="flex shrink-0 items-center gap-3 rounded-lg px-4 py-2.5 text-left text-sm font-semibold transition-colors"
           :class="activeTab === tab.id ? 'bg-primary text-white' : 'text-foreground-light hover:bg-primary/10'" @click="activeTab = tab.id">
           <i :class="[tab.icon, 'w-4 text-center']" aria-hidden="true"></i>{{ $t(`settings.tabs.${tab.id}`) }}
@@ -68,6 +68,41 @@
         </div>
       </section>
 
+      <!-- Seguridad: cambiar contraseña y eliminar cuenta -->
+      <section v-else-if="activeTab === 'security'" id="panel-security" role="tabpanel" aria-labelledby="tab-security" class="space-y-6">
+        <form class="nz-card space-y-4 p-5 sm:p-6" novalidate @submit.prevent="changePassword">
+          <h2 class="text-lg font-bold">{{ $t('password.change.title') }}</h2>
+          <div>
+            <label class="nz-label" for="cp-current">{{ $t('password.current') }}</label>
+            <input id="cp-current" v-model="pwd.current" type="password" autocomplete="current-password" class="nz-input sm:max-w-sm" :class="{ 'nz-input-error': pwdErrors.current }" />
+            <p v-if="pwdErrors.current" class="nz-field-error">{{ pwdErrors.current }}</p>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="nz-label" for="cp-new">{{ $t('password.new') }}</label>
+              <input id="cp-new" v-model="pwd.next" type="password" autocomplete="new-password" class="nz-input" :class="{ 'nz-input-error': pwdErrors.next }" />
+              <p v-if="pwdErrors.next" class="nz-field-error">{{ pwdErrors.next }}</p>
+              <p v-else class="nz-hint">{{ $t('register.passwordRules') }}</p>
+            </div>
+            <div>
+              <label class="nz-label" for="cp-confirm">{{ $t('auth.register.confirmPassword') }}</label>
+              <input id="cp-confirm" v-model="pwd.confirm" type="password" autocomplete="new-password" class="nz-input" :class="{ 'nz-input-error': pwdErrors.confirm }" />
+              <p v-if="pwdErrors.confirm" class="nz-field-error">{{ pwdErrors.confirm }}</p>
+            </div>
+          </div>
+          <button type="submit" class="nz-btn-primary" :disabled="pwdSaving">
+            <span v-if="pwdSaving" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+            {{ $t('password.change.submit') }}
+          </button>
+        </form>
+
+        <div class="nz-card space-y-3 border-red-200 p-5 sm:p-6">
+          <h2 class="text-lg font-bold text-red-800">{{ $t('account.delete.title') }}</h2>
+          <p class="text-sm text-muted-light">{{ $t('account.delete.text') }}</p>
+          <button type="button" class="nz-btn-danger" @click="openDeleteAccount"><i class="fas fa-user-xmark" aria-hidden="true"></i>{{ $t('account.delete.button') }}</button>
+        </div>
+      </section>
+
       <!-- Acerca de -->
       <section v-else id="panel-about" role="tabpanel" aria-labelledby="tab-about" class="space-y-6">
         <div class="nz-card flex items-center gap-4 p-5 sm:p-6">
@@ -96,6 +131,15 @@
       </section>
     </div>
 
+    <ConfirmDialog :open="showDeleteAccount" danger :busy="deletingAccount" :title="$t('account.delete.title')" :message="$t('account.delete.confirm')"
+      :confirm-text="$t('account.delete.button')" @cancel="showDeleteAccount = false" @confirm="deleteAccount">
+      <label class="mt-4 block">
+        <span class="nz-label">{{ $t('account.delete.typeEmail', { email: userEmail }) }}</span>
+        <input v-model.trim="deleteConfirmEmail" type="email" class="nz-input" :class="{ 'nz-input-error': deleteError }" autocomplete="off" />
+        <p v-if="deleteError" class="nz-field-error">{{ deleteError }}</p>
+      </label>
+    </ConfirmDialog>
+
     <ConfirmDialog :open="showDeleteDialog" danger :title="$t('settings.deleteLocalData')" :message="$t('settings.deleteLocalDataConfirm')"
       :confirm-text="$t('common.delete')" @cancel="showDeleteDialog = false" @confirm="deleteLocalData" />
   </div>
@@ -114,7 +158,10 @@ import PageHeader from '../../components/ui/PageHeader.vue'
 import ConfirmDialog from '../../components/ui/ConfirmDialog.vue'
 import { loadSettings, saveSettings } from '../../services/preferences.js'
 import { setLocale } from '../../i18n/index.js'
-import { clearSession, getUserId } from '../../services/session.js'
+import { clearSession, getUserId, session } from '../../services/session.js'
+import { UserService } from '../../services/UserService.js'
+import { getRole, ROLES } from '../../services/roles.js'
+import { isStrongPassword } from '../../utils/validation.js'
 import { HttpClient } from '../../services/HttpClient.js'
 import { toast } from '../../composables/useToast.js'
 
@@ -147,7 +194,14 @@ export default {
     const saved = loadSettings() || {}
     const base = defaults()
     return {
-      activeTab: 'general',
+      activeTab: ['general', 'notifications', 'privacy', 'security', 'about'].includes(this.$route.query.tab) ? this.$route.query.tab : 'general',
+      pwd: { current: '', next: '', confirm: '' },
+      pwdErrors: {},
+      pwdSaving: false,
+      showDeleteAccount: false,
+      deletingAccount: false,
+      deleteConfirmEmail: '',
+      deleteError: '',
       settings: {
         general: { ...base.general, ...(saved.general || {}) },
         notifications: { ...base.notifications, ...(saved.notifications || {}) },
@@ -157,6 +211,7 @@ export default {
         { id: 'general', icon: 'fas fa-sliders' },
         { id: 'notifications', icon: 'fas fa-bell' },
         { id: 'privacy', icon: 'fas fa-shield-halved' },
+        { id: 'security', icon: 'fas fa-key' },
         { id: 'about', icon: 'fas fa-circle-info' }
       ],
       version: __APP_VERSION__,
@@ -167,9 +222,23 @@ export default {
     }
   },
   computed: {
+    /** Los recordatorios (respiración, pausas, sesiones) solo aplican al trabajador */
+    visibleTabs() {
+      return this.isWorker ? this.tabs : this.tabs.filter((t) => t.id !== 'notifications')
+    },
+    isWorker() {
+      return getRole(session.user) === ROLES.USER
+    },
+    userEmail() {
+      return session.user?.email || ''
+    },
     apiModeLabel() {
       return import.meta.env.VITE_API_MODE === 'static' ? this.$t('settings.demoMode') : this.$t('settings.apiMode')
     }
+  },
+  created() {
+    // Si se pide una pestaña que este rol no tiene, se abre la general
+    if (!this.visibleTabs.some((t) => t.id === this.activeTab)) this.activeTab = 'general'
   },
   methods: {
     save() {
@@ -203,6 +272,50 @@ export default {
       clearSession()
       toast.info(this.$t('settings.localDataDeleted'))
       this.$router.push({ name: 'Login' })
+    },
+    async changePassword() {
+      const e = {}
+      if (!this.pwd.current) e.current = this.$t('validation.required')
+      if (!isStrongPassword(this.pwd.next)) e.next = this.$t('validation.passwordStrength')
+      else if (this.pwd.next === this.pwd.current) e.next = this.$t('password.change.samePassword')
+      if (this.pwd.confirm !== this.pwd.next) e.confirm = this.$t('validation.passwordMatch')
+      this.pwdErrors = e
+      if (Object.keys(e).length || this.pwdSaving) return
+      this.pwdSaving = true
+      try {
+        await new UserService().changePassword(getUserId(), { currentPassword: this.pwd.current, newPassword: this.pwd.next })
+        this.pwd = { current: '', next: '', confirm: '' }
+        toast.success(this.$t('password.change.done'))
+      } catch (error) {
+        if (error.status === 400) this.pwdErrors = { current: this.$t('password.change.wrongCurrent') }
+        else toast.error(error.message)
+      } finally {
+        this.pwdSaving = false
+      }
+    },
+    openDeleteAccount() {
+      this.deleteConfirmEmail = ''
+      this.deleteError = ''
+      this.showDeleteAccount = true
+    },
+    async deleteAccount() {
+      // Confirmación escribiendo el correo: evita eliminaciones por error
+      if (this.deleteConfirmEmail.toLowerCase() !== this.userEmail.toLowerCase()) {
+        this.deleteError = this.$t('account.delete.emailMismatch')
+        return
+      }
+      this.deletingAccount = true
+      try {
+        await new UserService().deleteAccount(getUserId())
+        Object.keys(localStorage).filter((k) => k.startsWith('neurozen_') && k.endsWith(`:${getUserId()}`)).forEach((k) => localStorage.removeItem(k))
+        clearSession()
+        toast.info(this.$t('account.delete.done'))
+        this.$router.replace({ name: 'Login' })
+      } catch (error) {
+        toast.error(error.message)
+      } finally {
+        this.deletingAccount = false
+      }
     },
     async runDiagnostic() {
       this.diagnosing = true

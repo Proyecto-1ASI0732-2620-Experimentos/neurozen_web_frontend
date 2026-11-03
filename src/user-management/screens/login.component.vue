@@ -41,13 +41,10 @@
           <input id="remember-me" v-model="formData.rememberMe" type="checkbox" class="h-4 w-4 rounded border-primary/40 text-primary focus:ring-primary" :disabled="isLoading" />
           {{ $t('auth.login.rememberMe') }}
         </label>
-        <button type="button" class="text-sm font-semibold text-primary hover:underline" @click="showForgot = !showForgot">
+        <router-link :to="{ name: 'ForgotPassword' }" class="text-sm font-semibold text-primary hover:underline">
           {{ $t('auth.login.forgotPassword') }}
-        </button>
+        </router-link>
       </div>
-      <p v-if="showForgot" class="rounded-lg bg-white p-3 text-sm text-muted-light" role="status">
-        {{ $t('auth.login.forgotPasswordInfo') }}
-      </p>
 
       <button type="submit" class="nz-btn-primary w-full py-3 text-base" :disabled="isLoading">
         <span v-if="isLoading" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
@@ -71,6 +68,7 @@
 import AuthLayout from '../../components/AuthLayout.vue'
 import { AuthService } from '../../services/AuthService.js'
 import { isEmail } from '../../utils/validation.js'
+import { homeRouteFor } from '../../services/roles.js'
 
 export default {
   name: 'LoginComponent',
@@ -82,7 +80,6 @@ export default {
       isLoading: false,
       errorMessage: '',
       showPassword: false,
-      showForgot: false,
       authService: new AuthService()
     }
   },
@@ -100,9 +97,10 @@ export default {
       if (!this.validate() || this.isLoading) return
       this.isLoading = true
       try {
-        await this.authService.login(this.formData.email, this.formData.password, { remember: this.formData.rememberMe })
+        const user = await this.authService.login(this.formData.email, this.formData.password, { remember: this.formData.rememberMe })
+        // Vuelve a la página pedida; si no hay o no corresponde a su rol, el router lo envía a su inicio
         const redirect = this.$route.query.redirect
-        this.$router.replace(typeof redirect === 'string' && redirect.startsWith('/') ? redirect : { name: 'Dashboard' })
+        this.$router.replace(typeof redirect === 'string' && redirect.startsWith('/') ? redirect : homeRouteFor(user))
       } catch (error) {
         this.errorMessage = error.message
       } finally {

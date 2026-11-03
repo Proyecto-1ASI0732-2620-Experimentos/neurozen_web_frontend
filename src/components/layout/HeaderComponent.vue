@@ -14,13 +14,20 @@
       </button>
 
       <!-- Marca -->
-      <router-link :to="{ name: 'Dashboard' }" class="flex shrink-0 items-center gap-2.5" :aria-label="$t('header.goHome')">
+      <router-link :to="homeRoute" class="flex shrink-0 items-center gap-2.5" :aria-label="$t('header.goHome')">
         <img src="/neurozen1_logo.png" alt="" class="h-9 w-9 rounded-lg object-contain" width="36" height="36" />
         <span class="text-lg font-extrabold tracking-tight text-primary">{{ $t('app.name') }}</span>
       </router-link>
 
       <!-- Navegación escritorio -->
-      <nav class="ml-6 hidden items-center gap-1 lg:flex" :aria-label="$t('header.mainNav')">
+      <nav v-if="role !== 'user' && roleLinks.length" class="ml-6 hidden items-center gap-1 lg:flex" :aria-label="$t('header.mainNav')">
+        <router-link v-for="link in roleLinks" :key="link.name" :to="{ name: link.name }" class="nav-link" :class="{ 'nav-link-active': $route.name === link.name }">
+          <i :class="link.icon" aria-hidden="true"></i>{{ $t(link.label) }}
+        </router-link>
+      </nav>
+      <span v-if="role === 'admin' || role === 'psychologist'" class="hidden rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary sm:inline">{{ $t(`header.roles.${role}`) }}</span>
+
+      <nav v-if="role === 'user'" class="ml-6 hidden items-center gap-1 lg:flex" :aria-label="$t('header.mainNav')">
         <router-link :to="{ name: 'Dashboard' }" class="nav-link" :class="{ 'nav-link-active': $route.name === 'Dashboard' }">
           <i class="fas fa-house" aria-hidden="true"></i>{{ $t('navigation.dashboard') }}
         </router-link>
@@ -100,7 +107,7 @@
             </button>
             <div v-show="openMenu === 'user'" class="dropdown right-0 w-56" role="menu">
               <p class="truncate border-b border-[#E3DED2] px-4 pb-2 pt-1 text-xs text-muted-light">{{ userEmail }}</p>
-              <router-link v-for="item in accountItems" :key="item.to" :to="item.to" class="dropdown-item" role="menuitem">
+              <router-link v-for="item in roleAccountItems" :key="item.to" :to="item.to" class="dropdown-item" role="menuitem">
                 <i :class="[item.icon, 'w-4 text-center text-primary']" aria-hidden="true"></i>{{ $t(item.label) }}
               </router-link>
               <button type="button" class="dropdown-item w-full text-red-700" role="menuitem" @click="logout">
@@ -124,16 +131,21 @@
       class="max-h-[calc(100vh-var(--header-height))] overflow-y-auto border-t border-[#E3DED2] bg-white px-4 pb-6 pt-2 lg:hidden"
       :aria-label="$t('header.mainNav')"
     >
-      <router-link :to="{ name: 'Dashboard' }" class="mobile-link"><i class="fas fa-house" aria-hidden="true"></i>{{ $t('navigation.dashboard') }}</router-link>
-      <template v-for="group in groups" :key="group.id">
+      <template v-if="role !== 'user'">
+        <router-link v-for="link in roleLinks" :key="link.name" :to="{ name: link.name }" class="mobile-link">
+          <i :class="link.icon" aria-hidden="true"></i>{{ $t(link.label) }}
+        </router-link>
+      </template>
+      <router-link v-if="role === 'user'" :to="{ name: 'Dashboard' }" class="mobile-link"><i class="fas fa-house" aria-hidden="true"></i>{{ $t('navigation.dashboard') }}</router-link>
+      <template v-for="group in (role === 'user' ? groups : [])" :key="group.id">
         <p class="mt-4 px-3 text-xs font-bold text-muted-light">{{ $t(group.label) }}</p>
         <router-link v-for="item in group.items" :key="item.to" :to="item.to" class="mobile-link">
           <i :class="item.icon" aria-hidden="true"></i>{{ $t(item.label) }}
         </router-link>
       </template>
       <p class="mt-4 px-3 text-xs font-bold text-muted-light">{{ $t('header.account') }}</p>
-      <router-link :to="{ name: 'Subscriptions' }" class="mobile-link"><i class="fas fa-credit-card" aria-hidden="true"></i>{{ $t('navigation.subscriptions') }}</router-link>
-      <router-link v-for="item in accountItems" :key="item.to" :to="item.to" class="mobile-link">
+      <router-link v-if="role === 'user'" :to="{ name: 'Subscriptions' }" class="mobile-link"><i class="fas fa-credit-card" aria-hidden="true"></i>{{ $t('navigation.subscriptions') }}</router-link>
+      <router-link v-for="item in roleAccountItems" :key="item.to" :to="item.to" class="mobile-link">
         <i :class="item.icon" aria-hidden="true"></i>{{ $t(item.label) }}
       </router-link>
       <button v-if="authenticated" type="button" class="mobile-link w-full text-red-700" @click="logout">
@@ -157,6 +169,10 @@ import { session, isAuthenticated, getDisplayName, clearSession, getUserId } fro
 import { AppointmentService } from '../../services/AppointmentService.js'
 import { ActiveBreaksService } from '../../services/ActiveBreaksService.js'
 import { formatShortDate, formatClock } from '../../utils/date.js'
+import { ROLES, getRole, homeRouteFor, isVerifiedPsychologist } from '../../services/roles.js'
+import { ProfessionalService, appointmentState } from '../../services/ProfessionalService.js'
+import { AdminService } from '../../services/AdminService.js'
+import { ReportService } from '../../services/ReportService.js'
 
 export default {
   name: 'HeaderComponent',
@@ -198,6 +214,31 @@ export default {
     }
   },
   computed: {
+    role() {
+      return session.user ? getRole(session.user) : 'user'
+    },
+    homeRoute() {
+      return session.user ? homeRouteFor(session.user) : { name: 'Login' }
+    },
+    /** Navegación del psicólogo (igual que la app móvil) y del administrador */
+    roleLinks() {
+      if (this.role === ROLES.ADMIN) return [{ name: 'AdminProfessionals', icon: 'fas fa-user-check', label: 'admin.nav' }]
+      if (this.role === ROLES.PSYCHOLOGIST && isVerifiedPsychologist(session.user)) {
+        return [
+          { name: 'ProDashboard', icon: 'fas fa-house', label: 'pro.nav.home' },
+          { name: 'ProPatients', icon: 'fas fa-user-group', label: 'pro.nav.patients' },
+          { name: 'ProSchedule', icon: 'fas fa-calendar-days', label: 'pro.nav.schedule' },
+          { name: 'ProProfile', icon: 'fas fa-id-card', label: 'pro.nav.profile' }
+        ]
+      }
+      if (this.role === ROLES.PSYCHOLOGIST) return [{ name: 'ProStatus', icon: 'fas fa-hourglass-half', label: 'pro.status.title' }]
+      return []
+    },
+    roleAccountItems() {
+      if (this.role === ROLES.USER) return this.accountItems
+      // El perfil del psicólogo ya está en su navegación principal
+      return [{ to: '/settings', icon: 'fas fa-gear', label: 'header.settings' }]
+    },
     authenticated() {
       return !!session.token && isAuthenticated()
     },
@@ -258,6 +299,8 @@ export default {
     },
     /** Notificaciones reales: próxima cita y próxima pausa activa de hoy */
     async loadNotifications() {
+      if (this.role === ROLES.PSYCHOLOGIST) return this.loadProNotifications()
+      if (this.role === ROLES.ADMIN) return this.loadAdminNotifications()
       const items = []
       const locale = this.$i18n.locale
       const breaks = new ActiveBreaksService()
@@ -284,6 +327,44 @@ export default {
         }
       }
       this.notifications = items
+    },
+    /** Psicólogo: citas pendientes de confirmar y la próxima cita confirmada */
+    async loadProNotifications() {
+      const items = []
+      const professionalId = session.user?.professionalId
+      if (isVerifiedPsychologist(session.user) && professionalId != null) {
+        try {
+          const now = new Date()
+          const list = (await new ProfessionalService().getMyAppointments(professionalId)).map((a) => ({ ...a, state: appointmentState(a) }))
+          const toConfirm = list.filter((a) => a.state === 'pending' && a.dateTime && a.dateTime >= now)
+          if (toConfirm.length) {
+            items.push({ id: 'to-confirm', icon: 'fas fa-hourglass-half', to: '/pro/schedule', title: this.$t('pro.notifications.toConfirm', { count: toConfirm.length }), message: this.$t('pro.notifications.toConfirmHint') })
+          }
+          const reports = await new ReportService().getReceived(professionalId).catch(() => [])
+          const recent = reports.filter((r) => r.createdAt && new Date(r.createdAt) >= new Date(Date.now() - 7 * 86400000))
+          if (recent.length) {
+            items.push({ id: 'reports', icon: 'fas fa-file-medical', to: '/pro/patients', title: this.$t('reports.notification', { count: recent.length }), message: this.$t('reports.notificationHint') })
+          }
+          const next = list.find((a) => a.state === 'confirmed' && a.dateTime && a.dateTime >= now)
+          if (next) {
+            items.push({ id: 'next', icon: 'fas fa-calendar-check', to: '/pro/schedule', title: this.$t('header.nextAppointment'), message: `${formatShortDate(next.dateTime, this.$i18n.locale)} · ${formatClock(next.time, this.$i18n.locale)}` })
+          }
+        } catch {
+          /* sin backend: sin notificaciones */
+        }
+      }
+      this.notifications = items
+    },
+    /** Administrador: solicitudes de psicólogos pendientes de verificar */
+    async loadAdminNotifications() {
+      try {
+        const pending = await new AdminService().getProfessionals('pending')
+        this.notifications = pending.length
+          ? [{ id: 'pending-pros', icon: 'fas fa-user-clock', to: '/admin/professionals', title: this.$t('admin.notifications.pending', { count: pending.length }), message: this.$t('admin.notifications.pendingHint') }]
+          : []
+      } catch {
+        this.notifications = []
+      }
     },
     logout() {
       clearSession()

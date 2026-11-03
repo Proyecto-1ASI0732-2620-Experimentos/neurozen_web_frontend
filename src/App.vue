@@ -11,6 +11,7 @@
     </main>
 
     <FooterComponent v-if="showChrome" />
+    <ZenBotWidget v-if="showZenBot" />
     <ToastHost />
   </div>
 </template>
@@ -23,11 +24,18 @@
 import HeaderComponent from './components/layout/HeaderComponent.vue'
 import FooterComponent from './components/layout/FooterComponent.vue'
 import ToastHost from './components/ui/ToastHost.vue'
+import ZenBotWidget from './zenbot/ZenBotWidget.vue'
+import { session } from './services/session.js'
+import { getRole, ROLES } from './services/roles.js'
 
 export default {
   name: 'App',
-  components: { HeaderComponent, FooterComponent, ToastHost },
+  components: { HeaderComponent, FooterComponent, ToastHost, ZenBotWidget },
   computed: {
+    /** ZenBot acompaña al trabajador en la plataforma (no a psicólogos ni administradores) */
+    showZenBot() {
+      return this.showChrome && !!session.token && getRole(session.user) === ROLES.USER
+    },
     showChrome() {
       // Mientras el router resuelve la primera ruta, matched está vacío
       return this.$route.matched.length > 0 && this.$route.meta.layout !== 'bare'

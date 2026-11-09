@@ -97,7 +97,7 @@ export default {
             ...this.form
           })
           updateUser({ ...this.form })
-        } catch (error) {
+        } catch {
           // No bloquea el onboarding: los datos son opcionales
           toast.warning(this.$t('onboardingProfile.saveError'))
         } finally {

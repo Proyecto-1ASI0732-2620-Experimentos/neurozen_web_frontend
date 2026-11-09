@@ -8,7 +8,7 @@ import { TherapistService } from '../services/TherapistService.js'
 export async function loadAppointmentDetails(appointmentId, query = {}) {
   const appointments = new AppointmentService()
   const therapists = new TherapistService()
-  let appointment = null
+  let appointment
   try {
     appointment = await appointments.getAppointment(appointmentId)
   } catch {
@@ -26,7 +26,7 @@ export async function loadAppointmentDetails(appointmentId, query = {}) {
       status: 'scheduled'
     }
   }
-  let professional = null
+  let professional
   try {
     professional = await therapists.getTherapist(appointment.professionalId)
   } catch {

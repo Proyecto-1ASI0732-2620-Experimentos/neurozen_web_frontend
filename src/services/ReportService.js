@@ -65,7 +65,7 @@ export class ReportService {
   }
 
   async share({ professionalId, appointmentId, summary, note = '' }) {
-    const { isDemoData, ...data } = summary
+    const data = Object.fromEntries(Object.entries(summary).filter(([key]) => key !== 'isDemoData'))
     const payload = { ...data, patientId: getUserId(), professionalId, appointmentId, note: note.trim(), createdAt: new Date().toISOString() }
     return normalizeReport(HttpClient.extractData(await this.httpClient.post('/api/v1/reports', payload)) || payload)
   }

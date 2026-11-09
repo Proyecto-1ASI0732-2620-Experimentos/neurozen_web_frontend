@@ -32,7 +32,8 @@ const sameId = (a, b) => a != null && b != null && String(a) === String(b)
 
 function stripSensitive(user) {
   if (!user) return user
-  const { password, ...rest } = user
+  const rest = { ...user }
+  delete rest.password
   return rest
 }
 

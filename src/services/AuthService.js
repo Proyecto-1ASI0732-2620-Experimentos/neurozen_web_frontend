@@ -68,7 +68,7 @@ export class AuthService {
       })
     } catch (error) {
       if (error.status === 401 || error.status === 400 || error.status === 404) {
-        throw new Error(t('auth.errors.invalidCredentials'))
+        throw new Error(t('auth.errors.invalidCredentials'), { cause: error })
       }
       throw error
     }

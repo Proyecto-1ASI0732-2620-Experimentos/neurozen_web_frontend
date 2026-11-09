@@ -145,7 +145,7 @@ export default {
         this.isFavorite = readUserData(FAVORITES_KEY, []).some((id) => sameId(id, this.resource.id))
         this.isCompleted = readUserData(COMPLETED_KEY, []).some((id) => sameId(id, this.resource.id))
         this.related = await this.service.getRelatedResources(this.resource)
-      } catch (error) {
+      } catch {
         this.resource = null
         this.error = this.$t('resource.notFoundMessage')
       } finally {

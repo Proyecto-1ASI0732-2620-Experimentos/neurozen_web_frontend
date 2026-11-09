@@ -319,7 +319,8 @@ export default {
       }
     },
     downloadData() {
-      const { token, ...safeUser } = this.user
+      const safeUser = { ...this.user }
+      delete safeUser.token
       const data = { profile: safeUser, extra: this.extra, exportedAt: new Date().toISOString() }
       const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
       const link = document.createElement('a')

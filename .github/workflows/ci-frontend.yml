@@ -1,43 +1,138 @@
-# Integración continua del frontend de NeuroZen (basado en el workflow visto en clase).
-# En cada push o Pull Request: instala dependencias, ejecuta las pruebas y compila la app.
-# Si alguna prueba falla, el workflow queda en rojo y el cambio no se considera válido.
-name: Vue CI - Tests 
+# Pipeline CI/CD del frontend de NeuroZen (adaptado de la guía del Lab CI/CD visto en clase).
+# Reemplaza al workflow "Vue CI - Tests": mantiene sus pruebas y build, y agrega
+# lint, cobertura, Quality Gate de SonarQube, publicación en Docker Hub y despliegue.
+# Si las pruebas, el lint o el Quality Gate fallan, nada se publica ni se despliega.
+name: NeuroZen Web Frontend CI CD
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main, develop]
   pull_request:
-    branches: [main, master, develop]
+    branches: [main, develop]
   workflow_dispatch: # permite ejecutarlo a mano desde la pestaña Actions
 
 permissions:
   contents: read
 
 jobs:
-  test-and-build:
-    name: Test and build
+  # 1. QUALITY: en cada push y Pull Request
+  quality:
+    name: Quality (lint, tests, coverage, SonarQube)
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Descarga el código del repositorio
+      # Descarga el código con todo el historial (SonarQube lo necesita)
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2. Instala Node.js 22 (las herramientas de prueba necesitan Node 22 o superior)
+      # Node.js 22 (las herramientas de prueba necesitan Node 22 o superior)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      # 3. Instala las dependencias exactas de package-lock.json
+      # Dependencias exactas de package-lock.json
       - name: Install dependencies
         run: npm ci
 
-      # 4. Ejecuta las pruebas unitarias y de integración (Vitest)
-      - name: Run unit and integration tests
-        run: npx vitest run --reporter=verbose
+      # Estándares de código (ESLint)
+      - name: Lint
+        run: npm run lint
 
-      # 5. Compila la aplicación para comprobar que el build no se rompe
+      # Pruebas unitarias y de integración con reporte de cobertura (lcov para SonarQube)
+      - name: Run unit and integration tests with coverage
+        run: npm run test:coverage
+
+      # Comprueba que el build no se rompe
       - name: Build Vue app
         run: npm run build
+
+      # Guarda el reporte de cobertura como evidencia
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      # Análisis de calidad y seguridad; el job falla si el Quality Gate no pasa
+      - name: SonarQube Cloud Quality Gate
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=${{ vars.SONAR_ORG }}
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
+            -Dsonar.qualitygate.wait=true
+
+  # 2. PUBLISH: solo en push a main y solo si quality pasó
+  publish:
+    name: Publish Docker image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: quality
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.digest.outputs.image }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Imagen inmutable etiquetada con el commit
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/neurozen-web-frontend:sha-${{ github.sha }}
+
+      # Guarda la referencia por digest para trazabilidad
+      - name: Save image digest
+        id: digest
+        env:
+          DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: echo "image=${DOCKER_USER}/neurozen-web-frontend@${DIGEST}" >> "$GITHUB_OUTPUT"
+
+  # 3. DEPLOY: producción en Vercel, solo si publish pasó
+  deploy:
+    name: Deploy to Vercel (production)
+    needs: publish
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel
+
+      - name: Pull Vercel project settings
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build for production
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to production
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

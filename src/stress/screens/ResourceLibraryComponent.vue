@@ -144,7 +144,7 @@ export default {
         const { items, isDemo } = await this.service.getResources()
         this.resources = items
         this.isDemo = isDemo
-      } catch (error) {
+      } catch {
         this.error = this.$t('common.errorLoadingResources')
       } finally {
         this.loading = false

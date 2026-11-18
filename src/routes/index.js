@@ -111,7 +111,8 @@ router.beforeEach((to) => {
 // 403 de psicólogo no verificado en cualquier petición (citas, directorio, recursos...):
 // se lleva a la pantalla de cuenta pendiente en lugar de mostrar un error genérico.
 setProfessionalNotVerifiedHandler(() => {
-  if (router.currentRoute.value.name !== 'ProStatus') router.replace({ name: 'ProStatus' })
+  // void: la navegación no devuelve nada que esperar aquí (vue-router resuelve sin lanzar errores)
+  if (router.currentRoute.value.name !== 'ProStatus') void router.replace({ name: 'ProStatus' })
 })
 
 router.afterEach((to) => {

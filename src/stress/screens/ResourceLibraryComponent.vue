@@ -162,8 +162,8 @@ export default {
     }
   },
   created() {
-    this.loadResources()
-    this.loadPlan()
+    void this.loadResources() // maneja sus errores (muestra "Reintentar")
+    void this.loadPlan() // si falla, no se muestra el banner
   },
   beforeUnmount() {
     clearTimeout(this.searchTimeout)

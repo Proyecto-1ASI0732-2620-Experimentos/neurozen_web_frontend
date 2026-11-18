@@ -177,7 +177,7 @@ export default {
       if (!this.validate() || this.saving) return
       // Antes de enviar un cambio de nombre se pide confirmación explícita
       if (this.nameChanged) this.confirmNameChange = true
-      else this.submit()
+      else void this.submit() // submit() maneja sus propios errores
     },
     async submit() {
       if (this.saving) return
@@ -194,7 +194,7 @@ export default {
         updateUser({ verificationStatus: this.profile.verificationStatus, name: this.profile.name, fullName: this.profile.name })
         if (this.profile.verificationStatus !== 'verified') {
           toast.info(this.$t('pro.profile.backToReview'))
-          this.$router.replace({ name: 'ProStatus' })
+          await this.$router.replace({ name: 'ProStatus' })
           return
         }
         this.resetForm()

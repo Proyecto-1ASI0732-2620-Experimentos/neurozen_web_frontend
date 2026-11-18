@@ -255,7 +255,7 @@ export default {
     this.extra = { ...defaultExtra(), ...readUserData(EXTRA_KEY, {}) }
     this.extra.preferences = { ...defaultExtra().preferences, ...(this.extra.preferences || {}) }
     this.loadSubscription()
-    this.loadDni()
+    void this.loadDni() // si falla, muestra "No registrado"
   },
   beforeUnmount() {
     this.dni = ''

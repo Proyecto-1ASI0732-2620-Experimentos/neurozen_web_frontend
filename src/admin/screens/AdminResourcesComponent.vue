@@ -142,7 +142,7 @@ export default {
     }
   },
   created() {
-    this.load()
+    void this.load() // maneja sus errores (muestra "Reintentar")
   },
   methods: {
     async load() {

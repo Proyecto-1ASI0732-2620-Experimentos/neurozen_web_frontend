@@ -147,9 +147,10 @@ describe('LibraryPlans', () => {
     expect(iframe.attributes('src')).toBe(`https://www.youtube-nocookie.com/embed/${yt}?rel=0`)
     expect(iframe.attributes('loading')).toBe('lazy')
     expect(iframe.attributes('title')).toContain('Reproductor de YouTube')
-    const link = page.find('[data-testid="watch-on-youtube"]')
-    expect(link.attributes('href')).toBe(`https://www.youtube.com/watch?v=${yt}`)
-    expect(link.attributes('target')).toBe('_blank')
+    // «Ver en YouTube» abre una pestaña nueva (noopener) con la URL armada desde el id validado
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    await page.find('[data-testid="watch-on-youtube"]').trigger('click')
+    expect(open).toHaveBeenCalledWith(`https://www.youtube.com/watch?v=${yt}`, '_blank', 'noopener,noreferrer')
     expect(page.find('audio').exists()).toBe(false)
   })
 

@@ -79,12 +79,13 @@ export function fullNameError(v) {
 }
 
 /** Deja solo los dígitos ASCII 0-9 (también al pegar) y limita la longitud */
-export const onlyDigits = (v, max = Infinity) => String(v ?? '').replace(/[^0-9]/g, '').slice(0, max)
+export const onlyDigits = (v, max = Infinity) => String(v ?? '').replace(/\D/g, '').slice(0, max)
 
 export const DNI_LENGTH = 8
 
 /** DNI peruano: exactamente 8 dígitos 0-9 (solo formato; no se consulta RENIEC) */
-export const isDni = (v) => /^[0-9]{8}$/.test(String(v ?? '').trim())
+// En JavaScript \d equivale a [0-9] (sin la bandera u no incluye dígitos de otros alfabetos)
+export const isDni = (v) => /^\d{8}$/.test(String(v ?? '').trim())
 
 /** Clave del error del DNI ('dniRequired' | 'dniFormat') o '' si es válido */
 export function dniError(v) {
@@ -94,7 +95,7 @@ export function dniError(v) {
 }
 
 /** Colegiatura tal como la espera el backend: de 3 a 6 dígitos 0-9 */
-export const isLicenseDigits = (v) => /^[0-9]{3,6}$/.test(String(v ?? '').trim())
+export const isLicenseDigits = (v) => /^\d{3,6}$/.test(String(v ?? '').trim())
 
 /** DNI enmascarado para mostrarlo en pantalla: "12345678" → "****5678" */
 export const maskDni = (v) => {

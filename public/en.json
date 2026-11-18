@@ -1027,7 +1027,8 @@
       "lockedTitle": "Resource not included in your plan",
       "lockedFallback": "This resource is not included in your current plan.",
       "backToLibrary": "Back to the library"
-    }
+    },
+    "watchOnYouTubeAria": "Watch on YouTube (opens in a new tab)"
   },
   "register": {
     "chooseSubtitle": "How do you want to use NeuroZen?",

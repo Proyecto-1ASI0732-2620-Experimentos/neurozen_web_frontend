@@ -45,9 +45,10 @@
               <!-- Si el dueño no permite insertar el video, YouTube muestra un error: alternativa en pestaña nueva -->
               <p class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-xs text-muted-light">
                 <span>{{ $t('resource.youTubeHint') }}</span>
-                <a :href="watchUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline" data-testid="watch-on-youtube">
+                <button type="button" class="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline" data-testid="watch-on-youtube"
+                  :aria-label="$t('resource.watchOnYouTubeAria')" @click="openOnYouTube">
                   <i class="fab fa-youtube" aria-hidden="true"></i>{{ $t('resource.watchOnYouTube') }}
-                </a>
+                </button>
               </p>
             </template>
             <video v-else-if="mediaType === 'video'" class="aspect-video w-full bg-black" :src="resource.contentUrl" :poster="resource.thumbnail" controls preload="metadata" @ended="markAsCompleted"></video>
@@ -209,6 +210,13 @@ export default {
       writeUserData(COMPLETED_KEY, list)
       this.isCompleted = true
       toast.success(this.$t('resource.markedCompleted'), { duration: 2500 })
+    },
+    /**
+     * Abre el video en YouTube en una pestaña nueva. La URL se construye solo con el id validado
+     * (11 caracteres [A-Za-z0-9_-]); nunca con texto arbitrario de la API.
+     */
+    openOnYouTube() {
+      if (this.watchUrl) window.open(this.watchUrl, '_blank', 'noopener,noreferrer')
     },
     async shareResource() {
       const url = window.location.href

@@ -167,17 +167,20 @@ import {
   DNI_LENGTH, FULL_NAME_MAX_LENGTH
 } from '../../utils/validation.js'
 
+// Campos de texto del formulario (todos empiezan vacíos) y casillas, siempre desmarcadas
+const TEXT_FIELDS = ['name', 'dni', 'email', 'password', 'confirmPassword', 'specialty', 'licenseNumber']
 const emptyForm = () => ({
-  name: '', dni: '', email: '', password: '', confirmPassword: '', specialty: '', licenseNumber: '',
-  acceptedTerms: false, acceptedPrivacyPolicy: false
+  ...Object.fromEntries(TEXT_FIELDS.map((field) => [field, ''])),
+  acceptedTerms: false,
+  acceptedPrivacyPolicy: false
 })
 
-/** Campo del backend → campo del formulario */
-const SERVER_FIELDS = {
-  fullName: 'name', firstName: 'name', lastName: 'name', dni: 'dni', email: 'email', username: 'email',
-  password: 'password', confirmPassword: 'confirmPassword', acceptedTerms: 'acceptedTerms',
-  acceptedPrivacyPolicy: 'acceptedPrivacyPolicy', specialty: 'specialty', licenseNumber: 'licenseNumber'
-}
+/** Campos del backend con otro nombre en el formulario; el resto se llama igual en ambos */
+const SERVER_ALIASES = { fullName: 'name', firstName: 'name', lastName: 'name', username: 'email' }
+const FORM_FIELDS = [...TEXT_FIELDS, 'acceptedTerms', 'acceptedPrivacyPolicy']
+
+/** Campo del backend → campo del formulario (null si no corresponde a ninguno, p. ej. "role") */
+const formFieldFor = (serverField) => SERVER_ALIASES[serverField] || (FORM_FIELDS.includes(serverField) ? serverField : null)
 
 /** Segundos que el botón queda deshabilitado tras un 429 (demasiados intentos) */
 const THROTTLE_SECONDS = 30
@@ -257,7 +260,7 @@ export default {
       this.touched = { ...this.touched, [field]: true }
       this.validate({ onlyTouched: !this.submitted })
     },
-    /** Campos numéricos (DNI, colegiatura): descarta todo lo que no sea 0-9, también al pegar */
+    /** Campos numéricos (DNI, colegiatura): solo se conservan los dígitos 0-9, también al pegar */
     onDigitsInput(field, max, event) {
       const clean = onlyDigits(event.target.value, max)
       if (event.target.value !== clean) event.target.value = clean
@@ -306,7 +309,7 @@ export default {
       const server = {}
       if (error.status === 400) {
         Object.entries(fieldErrors(error)).forEach(([field, message]) => {
-          const target = SERVER_FIELDS[field]
+          const target = formFieldFor(field)
           if (target) server[target] = message
         })
         this.errorMessage = Object.keys(server).length ? this.$t('validation.fixErrors') : error.message

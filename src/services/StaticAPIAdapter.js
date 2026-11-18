@@ -319,7 +319,7 @@ export class StaticAPIAdapter {
       const dni = String(body.dni ?? '').trim()
       const errors = {}
       if (!dni) errors.dni = ['El DNI es obligatorio']
-      else if (!/^[0-9]{8}$/.test(dni)) errors.dni = ['El DNI debe tener exactamente 8 dígitos numéricos']
+      else if (!/^\d{8}$/.test(dni)) errors.dni = ['El DNI debe tener exactamente 8 dígitos numéricos']
       if (body.confirmPassword != null && body.confirmPassword !== body.password) errors.confirmPassword = ['Las contraseñas no coinciden']
       if (body.acceptedPrivacyPolicy === false) errors.acceptedPrivacyPolicy = ['Debes aceptar la Política de Privacidad']
       if (Object.keys(errors).length) {

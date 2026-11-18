@@ -49,7 +49,7 @@
           <div class="min-w-0 flex-1">
             <p class="font-bold text-foreground-light">{{ r.title }}</p>
             <p class="text-xs text-muted-light">{{ r.resourceType }} · {{ r.durationMinutes }} min</p>
-            <a v-if="r.contentUrl" :href="r.contentUrl" target="_blank" rel="noopener noreferrer" class="block truncate text-xs text-primary hover:underline">{{ r.contentUrl }}</a>
+            <p v-if="r.contentUrl" class="truncate font-mono text-xs text-primary" :title="r.contentUrl">{{ r.contentUrl }}</p>
           </div>
           <button type="button" class="nz-btn-secondary" :aria-expanded="editingId === r.id" @click="toggleEdit(r)">
             <i :class="editingId === r.id ? 'fas fa-xmark' : 'fas fa-pen'" aria-hidden="true"></i>{{ editingId === r.id ? $t('common.cancel') : $t('common.edit') }}

@@ -337,7 +337,7 @@ export class StaticAPIAdapter {
       const user = {
         id: String(Date.now()),
         email: body.email,
-        username: body.username,
+        username: body.email,
         name: body.fullName,
         role: isPsychologist ? 'psychologist' : 'user',
         acceptedTermsAt: new Date().toISOString(),

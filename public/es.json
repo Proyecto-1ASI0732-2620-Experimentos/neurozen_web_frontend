@@ -1028,7 +1028,10 @@
       "lockedFallback": "Este recurso no está incluido en tu plan actual.",
       "backToLibrary": "Volver a la biblioteca"
     },
-    "watchOnYouTubeAria": "Ver en YouTube (se abre en una pestaña nueva)"
+    "watchOnYouTubeAria": "Ver en YouTube (se abre en una pestaña nueva)",
+    "reading": "Lectura",
+    "steps": "Pasos",
+    "readingTime": "{n} min de lectura"
   },
   "register": {
     "chooseSubtitle": "¿Cómo quieres usar NeuroZen?",
@@ -1165,7 +1168,8 @@
       "submittedData": "Datos enviados",
       "checkAgain": "Comprobar estado",
       "approvedToast": "¡Tu colegiatura fue verificada!",
-      "backToReviewNotice": "Tu cuenta profesional volvió a revisión. Te avisaremos cuando el administrador la apruebe."
+      "backToReviewNotice": "Tu cuenta profesional volvió a revisión. Te avisaremos cuando el administrador la apruebe.",
+      "availabilityRequired": "Para reenviar tu solicitud indica también tus días y horario de atención."
     },
     "welcome": {
       "title": "¡Cuenta verificada!",
@@ -1265,7 +1269,10 @@
         "message": "Si cambias tu nombre, tu cuenta volverá a revisión del administrador. Mientras tanto no podrás ver ni atender citas.",
         "confirm": "Cambiar y enviar a revisión"
       },
-      "backToReview": "Tu nombre se actualizó. Tu cuenta volvió a revisión del administrador."
+      "backToReview": "Tu nombre se actualizó. Tu cuenta volvió a revisión del administrador.",
+      "availabilityTitle": "Disponibilidad semanal",
+      "availabilityRequired": "Para guardar tu perfil indica tus días y horario de atención. Puedes cambiarlos cuando quieras en «Horario».",
+      "draftRestored": "Recuperamos los cambios que no habías guardado."
     },
     "notifications": {
       "toConfirm": "{count} cita(s) por confirmar",
@@ -1544,11 +1551,13 @@
       "duration": "Duración (minutos)",
       "thumbnail": "Miniatura (URL)",
       "description": "Descripción",
-      "content": "Contenido (artículos y ejercicios)",
-      "author": "Autor",
+      "content": "Contenido (texto)",
+      "author": "Autor (opcional)",
       "tags": "Etiquetas",
       "resourceType": "Tipo",
-      "requiredPlan": "Plan mínimo"
+      "requiredPlan": "Plan mínimo",
+      "contentUrlRequired": "Enlace del video o audio (YouTube u otra URL)",
+      "contentUrlOptional": "Enlace de video (opcional)"
     },
     "plans": {
       "1": "Básico",
@@ -1561,7 +1570,37 @@
       "url": "Ingresa una URL http(s) válida de hasta 500 caracteres.",
       "duration": "La duración debe estar entre 0 y 600 minutos.",
       "tags": "Máximo 10 etiquetas de hasta 30 caracteres cada una.",
-      "plan": "Selecciona Básico, Avanzado o Profesional."
+      "plan": "Selecciona Básico, Avanzado o Profesional.",
+      "urlRequired": "El enlace es obligatorio para videos y audios.",
+      "content": "El contenido no puede superar 20 000 caracteres.",
+      "author": "El autor no puede superar 120 caracteres.",
+      "type": "Elige el tipo de recurso."
+    },
+    "editTitle": "Editar recurso",
+    "typeLocked": "El tipo no se puede cambiar después de crear el recurso.",
+    "contentHint": "Texto plano: separa los párrafos con una línea en blanco; una línea corta sin punto es un subtítulo; las líneas que empiezan con \"- \" o \"1. \" son listas.",
+    "contentOptionalHint": "Opcional en videos y audios.",
+    "tagsLimit": "Máximo {max} etiquetas de hasta {chars} caracteres. Pulsa Enter o coma para agregar.",
+    "removeTag": "Quitar la etiqueta {tag}",
+    "basicSummary": "Recursos del plan Básico por tipo",
+    "basicCount": "{count} en Básico",
+    "filterByType": "Filtrar por tipo",
+    "allTypes": "Todos",
+    "search": "Buscar por título o etiqueta",
+    "durationShort": "Duración",
+    "actions": "Acciones",
+    "editAria": "Editar {title}",
+    "types": {
+      "Video": "Video",
+      "Audio": "Audio",
+      "Article": "Lectura",
+      "Exercise": "Ejercicio"
+    },
+    "typesPlural": {
+      "Video": "Videos",
+      "Audio": "Audios",
+      "Article": "Lecturas",
+      "Exercise": "Ejercicios"
     }
   }
 }

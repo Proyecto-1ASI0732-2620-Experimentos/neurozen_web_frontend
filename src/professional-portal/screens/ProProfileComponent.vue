@@ -20,7 +20,7 @@
         </section>
         <section class="nz-card p-5">
           <ProfileProgress :profile="previewProfile" />
-          <router-link v-if="!previewProfile.availabilitySchedule?.days?.length" :to="{ name: 'ProSchedule' }" class="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
+          <router-link v-if="!needsSchedule && !previewProfile.availabilitySchedule?.days?.length" :to="{ name: 'ProSchedule' }" class="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
             {{ $t('pro.profile.setAvailability') }} →
           </router-link>
         </section>
@@ -72,6 +72,17 @@
           </div>
         </div>
 
+        <!-- Sin horario guardado: el backend no acepta el perfil sin días y horario, se pide aquí mismo -->
+        <fieldset v-if="needsSchedule" class="space-y-3 rounded-lg border border-amber-200 bg-amber-50/60 p-4" data-testid="profile-availability">
+          <legend class="px-1 text-sm font-bold text-foreground-light">{{ $t('pro.profile.availabilityTitle') }}</legend>
+          <p class="text-sm text-amber-900">{{ $t('pro.profile.availabilityRequired') }}</p>
+          <AvailabilityEditor v-model="form.availabilitySchedule" id-prefix="pp-av" :server-error="serverAvailabilityError" />
+        </fieldset>
+
+        <p v-if="restoredDraft" class="flex gap-2 rounded-lg bg-sky-50 p-3 text-sm text-sky-900" role="status" data-testid="draft-restored">
+          <i class="fas fa-rotate-left mt-0.5" aria-hidden="true"></i>{{ $t('pro.profile.draftRestored') }}
+        </p>
+
         <div class="flex justify-end">
           <button type="submit" class="nz-btn-primary" :disabled="saving">
             <span v-if="saving" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
@@ -91,6 +102,12 @@
 <script>
 /**
  * ProProfileComponent - Perfil profesional del psicólogo verificado.
+ *
+ * El backend exige el horario (`availabilitySchedule`) en cada PUT /professionals/me. Antes, un psicólogo recién
+ * verificado (sin horario) no podía guardar biografía, años ni tarifa, y al ir a «Horario» perdía lo escrito.
+ * Ahora: si no hay horario guardado se pide aquí mismo (se guarda en el mismo envío) y lo escrito se conserva como borrador
+ * en memoria al cambiar de pantalla.
+ *
  * La colegiatura no se edita aquí. El nombre fue validado con el CPsP: puede corregirse,
  * pero antes se avisa de que la cuenta volverá a revisión del administrador (el backend la
  * devuelve a PENDING). Tras guardar se consulta GET /professionals/me y, si está pendiente,
@@ -104,19 +121,31 @@ import ProfileProgress from '../components/ProfileProgress.vue'
 import { loadPortalData, proService } from '../usePortal.js'
 import { SPECIALTIES } from '../../services/ProfessionalService.js'
 import ConfirmDialog from '../../components/ui/ConfirmDialog.vue'
-import { session, updateUser } from '../../services/session.js'
-import { isProfessionalNotVerified } from '../../services/ApiError.js'
+import AvailabilityEditor from '../components/AvailabilityEditor.vue'
+import { session, updateUser, getUserId } from '../../services/session.js'
+import { isProfessionalNotVerified, fieldErrors } from '../../services/ApiError.js'
+import { hasAvailability, defaultAvailability, availabilityErrorKey, availabilityServerError } from '../availability.js'
+import { saveProfileDraft, readProfileDraft, clearProfileDraft } from '../profileDraft.js'
 import { toast } from '../../composables/useToast.js'
 import { fullNameError, normalizeFullName } from '../../utils/validation.js'
 
 export default {
   name: 'ProProfileComponent',
-  components: { PageHeader, LoadingState, ErrorState, UserAvatar, ProfileProgress, ConfirmDialog },
+  components: { PageHeader, LoadingState, ErrorState, UserAvatar, ProfileProgress, ConfirmDialog, AvailabilityEditor },
   data() {
     return {
       loading: true, error: '', saving: false, profile: null, errors: {}, specialties: SPECIALTIES,
-      editingName: false, confirmNameChange: false,
-      form: { fullName: '', specialty: '', bio: '', experienceYears: 0, price: 0 }
+      editingName: false, confirmNameChange: false, restoredDraft: false, serverAvailabilityError: '',
+      form: { fullName: '', specialty: '', bio: '', experienceYears: 0, price: 0, availabilitySchedule: defaultAvailability() }
+    }
+  },
+  watch: {
+    /** Lo que se escribe se guarda como borrador (en memoria) para no perderlo al ir a otra pantalla */
+    form: {
+      deep: true,
+      handler(value) {
+        if (this.profile && this.isDirty()) saveProfileDraft(getUserId(), value)
+      }
     }
   },
   computed: {
@@ -125,7 +154,13 @@ export default {
     },
     /** El progreso se actualiza mientras se escribe */
     previewProfile() {
-      return { ...this.profile, ...this.form }
+      // El horario cuenta como completado solo cuando está guardado (no por la propuesta inicial del formulario)
+      const { availabilitySchedule, ...rest } = this.form
+      return { ...this.profile, ...rest, availabilitySchedule: this.needsSchedule ? null : availabilitySchedule }
+    },
+    /** Aún no hay horario guardado en el backend */
+    needsSchedule() {
+      return !!this.profile && !hasAvailability(this.profile.availabilitySchedule)
     },
     nameChanged() {
       return this.editingName && normalizeFullName(this.form.fullName) !== normalizeFullName(this.profile?.name)
@@ -141,14 +176,34 @@ export default {
       try {
         this.profile = (await loadPortalData({ withAppointments: false })).profile
         this.resetForm()
+        this.restoreDraft()
       } catch (error) {
         if (!isProfessionalNotVerified(error)) this.error = error.message
       } finally {
         this.loading = false
       }
     },
+    /** Valores guardados en el backend */
+    savedForm() {
+      const p = this.profile
+      return {
+        fullName: p.name, specialty: p.specialty, bio: p.bio || '', experienceYears: p.experienceYears || 0, price: p.price || 0,
+        availabilitySchedule: hasAvailability(p.availabilitySchedule) ? { ...p.availabilitySchedule } : defaultAvailability()
+      }
+    },
     resetForm() {
-      this.form = { fullName: this.profile.name, specialty: this.profile.specialty, bio: this.profile.bio || '', experienceYears: this.profile.experienceYears || 0, price: this.profile.price || 0 }
+      this.form = this.savedForm()
+    },
+    isDirty() {
+      return JSON.stringify(this.form) !== JSON.stringify(this.savedForm())
+    },
+    /** Recupera lo escrito y no guardado (por ejemplo, tras ir a «Horario» y volver) */
+    restoreDraft() {
+      const draft = readProfileDraft(getUserId())
+      if (!draft) return
+      this.form = { ...this.savedForm(), ...draft, fullName: this.profile.name }
+      if (hasAvailability(this.profile.availabilitySchedule)) this.form.availabilitySchedule = { ...this.profile.availabilitySchedule }
+      this.restoredDraft = this.isDirty()
     },
     toggleNameEdit() {
       this.editingName = !this.editingName
@@ -166,6 +221,7 @@ export default {
       if (this.form.bio.trim() && this.form.bio.trim().length < 30) e.bio = this.$t('validation.minChars', { n: 30 })
       if (!(this.form.experienceYears >= 0 && this.form.experienceYears <= 60)) e.experienceYears = this.$t('pro.profile.errors.experience')
       if (!(this.form.price >= 0 && this.form.price <= 1000)) e.price = this.$t('pro.profile.errors.price')
+      if (this.needsSchedule && availabilityErrorKey(this.form.availabilitySchedule)) e.availabilitySchedule = true
       if (this.nameChanged) {
         const key = fullNameError(this.form.fullName)
         if (key) e.fullName = this.$t(key === 'required' ? 'validation.fullName' : `validation.${key}`)
@@ -179,18 +235,33 @@ export default {
       if (this.nameChanged) this.confirmNameChange = true
       else void this.submit() // submit() maneja sus propios errores
     },
+    /** 400 del backend: cada error bajo su campo; si no corresponde a ninguno, aviso general */
+    showServerErrors(error) {
+      const server = fieldErrors(error)
+      const mapped = {}
+      for (const field of ['bio', 'experienceYears', 'price', 'specialty', 'fullName']) if (server[field]) mapped[field] = server[field]
+      this.serverAvailabilityError = availabilityServerError(server)
+      this.errors = { ...this.errors, ...mapped }
+      if (!Object.keys(mapped).length && !this.serverAvailabilityError) toast.error(`${this.$t('userProfile.actions.errorMessage')}: ${error.message}`)
+      else toast.error(this.$t('validation.fixErrors'))
+    },
     async submit() {
       if (this.saving) return
       const changingName = this.nameChanged
-      const { fullName, ...rest } = this.form
+      const { fullName, availabilitySchedule, ...rest } = this.form
       this.saving = true
+      this.serverAvailabilityError = ''
       try {
         const changes = changingName ? { ...rest, fullName: normalizeFullName(fullName) } : { ...rest }
+        // Sin horario guardado, se envía el del formulario (el backend lo exige en cada actualización)
+        if (this.needsSchedule) changes.availabilitySchedule = { ...availabilitySchedule }
         const updated = await proService.updateMyProfile(changes)
         // Tras un cambio de nombre el backend decide el estado: se vuelve a consultar GET /professionals/me
         this.profile = changingName ? await proService.getMyProfile() : updated
         this.confirmNameChange = false
         this.editingName = false
+        this.restoredDraft = false
+        clearProfileDraft(getUserId())
         updateUser({ verificationStatus: this.profile.verificationStatus, name: this.profile.name, fullName: this.profile.name })
         if (this.profile.verificationStatus !== 'verified') {
           toast.info(this.$t('pro.profile.backToReview'))
@@ -201,7 +272,7 @@ export default {
         toast.success(this.$t('userProfile.actions.successMessage'))
       } catch (error) {
         this.confirmNameChange = false
-        if (!isProfessionalNotVerified(error)) toast.error(`${this.$t('userProfile.actions.errorMessage')}: ${error.message}`)
+        if (!isProfessionalNotVerified(error)) this.showServerErrors(error)
       } finally {
         this.saving = false
       }

@@ -22,6 +22,22 @@ const ROWS = [
   [12, 'Caminata Meditativa - Guía de Audio', 'Audio', 15, 'QLkFTi02Geo', 2]
 ]
 
+// 50 lecturas y 20 ejercicios como en el backend (2 de cada tipo en el plan Básico)
+function readingsAndExercises() {
+  const articles = Array.from({ length: 50 }, (_, i) => ({
+    id: 1000 + i, title: `Lectura ${i + 1}`, resourceType: 'Article', duration: 5, plan: i < 2 ? 1 : 2,
+    description: `Resumen de la lectura ${i + 1}.`, contentUrl: '', thumbnail: '', tags: ['estrés'], author: 'Equipo NeuroZen',
+    content: `Qué es el estrés laboral\n\nEl estrés aparece cuando las demandas superan los recursos.\nPuede afectar el sueño.\n\nSeñales frecuentes\n\n- Cansancio\n- Irritabilidad\n\nEste texto <b>No es HTML</b> <script>alert(1)</script> y se muestra tal cual.`,
+    createdAt: '2026-11-18T10:00:00Z'
+  }))
+  const exercises = Array.from({ length: 20 }, (_, i) => ({
+    id: 2000 + i, title: `Ejercicio ${i + 1}`, resourceType: 'Exercise', duration: 6, plan: i < 2 ? 1 : 2,
+    description: `Ejercicio guiado ${i + 1}.`, contentUrl: i === 0 ? 'https://www.youtube.com/watch?v=Ki-y10XIVA8' : '', thumbnail: '', tags: ['pausa'],
+    author: '', content: `Pasos\n\n1. Siéntate derecho.\n2. Respira profundo.\n3. Estira los brazos.`, createdAt: '2026-11-18T10:00:00Z'
+  }))
+  return [...articles, ...exercises]
+}
+
 export function libraryResources() {
   const list = ROWS.map(([id, title, resourceType, duration, yt, plan]) => ({
     id, title, resourceType, duration, plan,
@@ -44,12 +60,16 @@ const toApi = (r) => {
   return copy
 }
 
+const toAdmin = (r) => ({ ...toApi(r), content: r.content || '', requiredPlan: r.plan, requiredPlanName: PLAN_NAMES[r.plan] })
+
 /**
  * Instala los manejadores. `state.plan` = plan activo (null = sin suscripción). POST /subscriptions lo cambia.
  * Devuelve `state` para que la prueba lo lea o lo modifique.
  */
-export function useLibrary(server, { plan = null } = {}) {
-  const state = { plan, resources: libraryResources(), requests: [] }
+export function useLibrary(server, { plan = null, withReadings = false } = {}) {
+  const base = libraryResources()
+  const resources = withReadings ? [...base.filter((r) => ['Video', 'Audio'].includes(r.resourceType)), ...readingsAndExercises()] : base
+  const state = { plan, resources, requests: [], created: [], patches: [] }
   const callerPlan = () => state.plan ?? 1
   const detail = (id) => {
     const r = state.resources.find((x) => String(x.id) === String(id))
@@ -67,6 +87,26 @@ export function useLibrary(server, { plan = null } = {}) {
     http.get(API + '/subscriptions/user/:id', () => (state.plan == null
       ? HttpResponse.json({ message: 'Sin suscripción' }, { status: 404 })
       : HttpResponse.json({ id: 1, userId: 7, planId: state.plan, isActive: true, holderFirstName: 'Ana', holderLastName: 'Torres', email: 'ana@neurozen.com', cardLast4: '1111' }))),
+    // Administración: todos los recursos con su plan
+    http.get(API + '/admin/resource-libraries', () => HttpResponse.json(state.resources.map(toAdmin))),
+    http.get(API + '/admin/resource-libraries/:id', ({ params }) => {
+      const r = state.resources.find((x) => String(x.id) === String(params.id))
+      return r ? HttpResponse.json(toAdmin(r)) : HttpResponse.json({ message: 'El recurso no existe' }, { status: 404 })
+    }),
+    http.post(API + '/resource-libraries', async ({ request }) => {
+      const body = await request.json()
+      state.created.push(body)
+      const r = { ...body, id: 9000 + state.created.length, plan: body.requiredPlan ?? 2 }
+      state.resources.push(r)
+      return HttpResponse.json(toAdmin(r), { status: 201 })
+    }),
+    http.patch(API + '/resource-libraries/:id', async ({ params, request }) => {
+      const body = await request.json()
+      state.patches.push(body)
+      const r = state.resources.find((x) => String(x.id) === String(params.id))
+      Object.assign(r, body, body.requiredPlan ? { plan: body.requiredPlan } : {})
+      return HttpResponse.json(toAdmin(r))
+    }),
     http.post(API + '/subscriptions', async ({ request }) => {
       const body = await request.json()
       const created = state.plan == null

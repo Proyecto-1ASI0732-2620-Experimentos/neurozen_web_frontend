@@ -52,22 +52,7 @@
           <h2 id="availability-title" class="text-lg font-bold text-foreground-light">{{ $t('pro.schedule.availability') }}</h2>
           <p class="text-sm text-muted-light">{{ $t('pro.schedule.availabilityHint') }}</p>
         </div>
-        <fieldset>
-          <legend class="nz-label">{{ $t('stress.activeBreaks.workingDays') }}</legend>
-          <div class="flex flex-wrap gap-2">
-            <button v-for="day in weekDays" :key="day" type="button" class="h-10 w-10 rounded-full text-sm font-bold transition-colors"
-              :class="availability.days.includes(day) ? 'bg-primary text-white' : 'border border-[#D6D2C7] bg-white text-foreground-light hover:border-primary'"
-              :aria-pressed="availability.days.includes(day)" :aria-label="$t(`common.days.${day}`)" @click="toggleDay(day)">
-              {{ $t(`stress.activeBreaks.weekDays.${day}`) }}
-            </button>
-          </div>
-        </fieldset>
-        <div class="grid grid-cols-2 gap-3">
-          <label class="text-sm text-muted-light">{{ $t('stress.activeBreaks.start') }}<input v-model="availability.start" type="time" class="nz-input mt-1" /></label>
-          <label class="text-sm text-muted-light">{{ $t('stress.activeBreaks.end') }}<input v-model="availability.end" type="time" class="nz-input mt-1" :class="{ 'nz-input-error': availabilityError }" /></label>
-        </div>
-        <p v-if="availabilityError" class="nz-field-error">{{ availabilityError }}</p>
-        <p v-else-if="preview" class="rounded-lg bg-primary/5 px-3 py-2 text-sm text-primary"><i class="far fa-clock mr-1" aria-hidden="true"></i>{{ preview }}</p>
+        <AvailabilityEditor v-model="availability" id-prefix="schedule" />
         <button type="button" class="nz-btn-primary w-full" :disabled="savingAvailability" @click="saveAvailability">
           <span v-if="savingAvailability" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
           {{ $t('pro.schedule.saveAvailability') }}
@@ -94,9 +79,11 @@ import ErrorState from '../../components/ui/ErrorState.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import ConfirmDialog from '../../components/ui/ConfirmDialog.vue'
 import StatusChip from '../components/StatusChip.vue'
+import AvailabilityEditor from '../components/AvailabilityEditor.vue'
+import { availabilityErrorKey, defaultAvailability } from '../availability.js'
 import { loadPortalData, proService, patientLabel } from '../usePortal.js'
 import { isProfessionalNotVerified } from '../../services/ApiError.js'
-import { WEEK_DAYS, APPOINTMENT_STATUS, availabilityText } from '../../services/ProfessionalService.js'
+import { APPOINTMENT_STATUS } from '../../services/ProfessionalService.js'
 import { DEFAULT_APPOINTMENT_TYPES } from '../../services/AppointmentService.js'
 import { formatLongDate, formatClock, toLocalISODate } from '../../utils/date.js'
 import { toast } from '../../composables/useToast.js'
@@ -106,7 +93,7 @@ const ACTION_STATE = { confirm: 'confirmed', cancel: 'cancelled', complete: 'com
 
 export default {
   name: 'ProScheduleComponent',
-  components: { PageHeader, LoadingState, ErrorState, EmptyState, ConfirmDialog, StatusChip },
+  components: { PageHeader, LoadingState, ErrorState, EmptyState, ConfirmDialog, StatusChip, AvailabilityEditor },
   data() {
     return {
       loading: true,
@@ -117,8 +104,7 @@ export default {
       activeTab: 'upcoming',
       busyId: null,
       pending: null,
-      weekDays: WEEK_DAYS,
-      availability: { days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'], start: '09:00', end: '18:00' },
+      availability: defaultAvailability(),
       savingAvailability: false,
       actionIcons: { confirm: 'fas fa-check', cancel: 'fas fa-ban', complete: 'fas fa-check-double' }
     }
@@ -139,12 +125,7 @@ export default {
       return [...map.values()]
     },
     availabilityError() {
-      if (!this.availability.days.length) return this.$t('pro.schedule.errors.noDays')
-      if (this.availability.end <= this.availability.start) return this.$t('stress.activeBreaks.invalidHours')
-      return ''
-    },
-    preview() {
-      return availabilityText(this.availability)
+      return availabilityErrorKey(this.availability)
     }
   },
   created() {
@@ -220,10 +201,6 @@ export default {
       } finally {
         this.busyId = null
       }
-    },
-    toggleDay(day) {
-      const days = this.availability.days
-      this.availability.days = days.includes(day) ? days.filter((d) => d !== day) : WEEK_DAYS.filter((d) => [...days, day].includes(d))
     },
     async saveAvailability() {
       if (this.availabilityError || this.savingAvailability) return

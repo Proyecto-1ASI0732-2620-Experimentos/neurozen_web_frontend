@@ -33,8 +33,8 @@
 
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div class="space-y-6">
-          <!-- Contenido / reproductor -->
-          <div class="nz-card overflow-hidden">
+          <!-- Reproductor (videos, audios y ejercicios con video) o imagen. Una lectura sin video va directo al texto. -->
+          <div v-if="showMediaCard" class="nz-card overflow-hidden">
             <!-- Videos Y audios de YouTube: se reproducen dentro de NeuroZen -->
             <template v-if="resource.youTubeId">
               <div class="aspect-video bg-black">
@@ -64,10 +64,14 @@
             <h2 class="mb-2 text-lg font-bold text-foreground-light">{{ $t('resource.description') }}</h2>
             <!-- Descripción completa (incluye el aviso clínico que envía el backend al final) -->
             <p class="whitespace-pre-line leading-relaxed text-foreground-light" data-testid="resource-description">{{ text.description(resource) }}</p>
-            <!-- Texto plano por párrafos (antes v-html sin sanitizar) -->
-            <div v-if="resource.content" class="mt-4 space-y-3 leading-relaxed text-foreground-light">
-              <p v-for="(paragraph, i) in paragraphs" :key="i">{{ paragraph }}</p>
-            </div>
+          </section>
+
+          <!-- Lecturas y ejercicios: texto plano con subtítulos, listas y párrafos (nunca HTML) -->
+          <section v-if="resource.content" class="nz-card p-5 sm:p-7" aria-labelledby="content-title">
+            <h2 id="content-title" class="mb-4 text-lg font-bold text-foreground-light">
+              {{ $t(resource.category === 'exercises' ? 'resource.steps' : 'resource.reading') }}
+            </h2>
+            <ReadingContent :content="resource.content" />
           </section>
 
           <div v-if="resource.tags.length" class="flex flex-wrap gap-2">
@@ -79,7 +83,7 @@
           <div class="nz-card space-y-4 p-5">
             <dl class="grid grid-cols-2 gap-3 text-sm">
               <div><dt class="text-muted-light">{{ $t('resource.type') }}</dt><dd class="font-bold">{{ $t(`stress.management.resourceLibrary.categories.${resource.category}`) }}</dd></div>
-              <div><dt class="text-muted-light">{{ $t('resource.duration') }}</dt><dd class="font-bold">{{ resource.durationMinutes }} min</dd></div>
+              <div><dt class="text-muted-light">{{ $t('resource.duration') }}</dt><dd class="font-bold" data-testid="resource-duration">{{ durationLabel }}</dd></div>
             </dl>
             <a v-if="resource.contentUrl && !isPlayable" :href="resource.contentUrl" target="_blank" rel="noopener noreferrer" class="nz-btn-primary w-full">
               <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>{{ resource.category === 'reading' ? $t('resource.openArticle') : $t('resource.openResource') }}
@@ -122,6 +126,7 @@
 import PageHeader from '../../components/ui/PageHeader.vue'
 import LoadingState from '../../components/ui/LoadingState.vue'
 import ErrorState from '../../components/ui/ErrorState.vue'
+import ReadingContent from '../components/ReadingContent.vue'
 import { ResourceLibraryService, youTubeWatchUrl } from '../../services/ResourceLibraryService.js'
 import { isPlanRequired, isProfessionalNotVerified, RESOURCE_NOT_FOUND } from '../../services/ApiError.js'
 import { readUserData, writeUserData } from '../../services/session.js'
@@ -134,7 +139,7 @@ const sameId = (a, b) => String(a) === String(b)
 
 export default {
   name: 'ResourceDetailComponent',
-  components: { PageHeader, LoadingState, ErrorState },
+  components: { PageHeader, LoadingState, ErrorState, ReadingContent },
   data() {
     return { service: new ResourceLibraryService(), resource: null, related: [], loading: true, error: '', planMessage: '', isFavorite: false, isCompleted: false }
   },
@@ -154,8 +159,20 @@ export default {
     isPlayable() {
       return !!(this.resource?.youTubeId || this.mediaType)
     },
-    paragraphs() {
-      return String(this.resource?.content || '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+    isTextResource() {
+      return ['reading', 'exercises'].includes(this.resource?.category)
+    },
+    /** Una lectura o un ejercicio sin video ni imagen propia no muestra la imagen genérica de relleno */
+    showMediaCard() {
+      const r = this.resource
+      if (!r) return false
+      if (r.youTubeId || this.mediaType) return true
+      return !this.isTextResource || (!!r.thumbnail && r.thumbnail !== r.fallbackThumbnail)
+    },
+    /** "5 min de lectura" en lecturas; "6 min" en el resto */
+    durationLabel() {
+      const minutes = this.resource?.durationMinutes ?? 0
+      return this.resource?.category === 'reading' ? this.$t('resource.readingTime', { n: minutes }) : `${minutes} min`
     }
   },
   watch: {

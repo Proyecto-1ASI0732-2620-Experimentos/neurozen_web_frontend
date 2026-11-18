@@ -10,8 +10,7 @@
  *   GET   /api/v1/resource-libraries        → lista YA FILTRADA por el plan del usuario
  *   GET   /api/v1/resource-libraries/{id}   → 200 | 403 «Este recurso está disponible desde el plan …» | 404
  *   GET   /api/v1/resources/{id}            → alias del anterior
- *   POST  /api/v1/resource-libraries        → (ADMIN) crear, con requiredPlan 1|2|3 (por defecto 2)
- *   PATCH /api/v1/resource-libraries/{id}   → (ADMIN) editar; campos ausentes se conservan, "" vacía
+ * La administración (crear, editar y ver el plan de cada recurso) está en AdminResourceService.
  * La lista siempre viene de la API: no hay recursos escritos en el código. El cliente nunca intenta
  * "desbloquear" un recurso que el backend no entregó.
  *
@@ -34,12 +33,6 @@ const FALLBACK_THUMBNAILS = {
 }
 
 export const RESOURCE_PLACEHOLDER = '/images/resource-reading.svg'
-
-/** Tipos de recurso que acepta el backend (no se pueden editar después de crear) */
-export const RESOURCE_TYPES = ['Video', 'Audio', 'Article', 'Exercise']
-
-/** Plan mínimo de un recurso: 1 = Básico, 2 = Avanzado, 3 = Profesional (mismos valores que planId) */
-export const RESOURCE_PLANS = [1, 2, 3]
 
 /**
  * Extrae el id de un video de YouTube. Acepta watch?v= (www., m. o sin subdominio), youtu.be/,
@@ -132,17 +125,5 @@ export class ResourceLibraryService {
       .filter((r) => String(r.id) !== String(resource.id))
       .filter((r) => r.category === resource.category || r.tags.some((t) => resource.tags.includes(t)))
       .slice(0, limit)
-  }
-
-  /** (ADMIN) PATCH: solo se envían los campos indicados; los ausentes se conservan en el backend */
-  async updateResource(id, changes) {
-    const response = await this.httpClient.patch(`/api/v1/resource-libraries/${encodeURIComponent(id)}`, changes)
-    return normalizeResource(HttpClient.extractData(response) || {})
-  }
-
-  /** (ADMIN) POST: crea un recurso; requiredPlan 1|2|3 (el backend usa 2 = Avanzado si no se envía) */
-  async createResource(payload) {
-    const response = await this.httpClient.post('/api/v1/resource-libraries', payload)
-    return normalizeResource(HttpClient.extractData(response) || {})
   }
 }

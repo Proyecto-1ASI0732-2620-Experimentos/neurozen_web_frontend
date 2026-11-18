@@ -120,18 +120,19 @@ export class AuthService {
    * El DNI (8 dígitos) es obligatorio para ambos. Se envían dos consentimientos separados
    * (acceptedTerms y acceptedPrivacyPolicy) y confirmPassword para que el backend lo valide.
    * El DNI y la contraseña solo viajan en esta petición: no se guardan en la sesión.
+   *
+   * Contrato del backend (un solo campo por dato): fullName, dni, email, password, confirmPassword, role,
+   * acceptedTerms, acceptedPrivacyPolicy, specialty, licenseNumber. Ya no se envían username,
+   * firstName ni lastName (el backend los ignora y exige fullName y email).
    */
   async register({ email, password, confirmPassword, name, dni, role = ROLES.USER, specialty, licenseNumber, acceptedTerms, acceptedPrivacyPolicy }) {
     const fullName = normalizeFullName(name)
     const payload = {
-      username: email.trim(),
+      fullName,
+      dni: String(dni ?? '').trim(),
       email: email.trim(),
       password,
       confirmPassword: confirmPassword ?? password,
-      fullName,
-      firstName: fullName.split(' ')[0] || fullName,
-      lastName: fullName.split(' ').slice(1).join(' '),
-      dni: String(dni ?? '').trim(),
       role: role === ROLES.PSYCHOLOGIST ? 'PSYCHOLOGIST' : 'USER',
       acceptedTerms: !!acceptedTerms,
       acceptedPrivacyPolicy: !!acceptedPrivacyPolicy

@@ -1028,7 +1028,10 @@
       "lockedFallback": "This resource is not included in your current plan.",
       "backToLibrary": "Back to the library"
     },
-    "watchOnYouTubeAria": "Watch on YouTube (opens in a new tab)"
+    "watchOnYouTubeAria": "Watch on YouTube (opens in a new tab)",
+    "reading": "Reading",
+    "steps": "Steps",
+    "readingTime": "{n} min read"
   },
   "register": {
     "chooseSubtitle": "How do you want to use NeuroZen?",
@@ -1165,7 +1168,8 @@
       "submittedData": "Submitted data",
       "checkAgain": "Check status",
       "approvedToast": "Your license has been verified!",
-      "backToReviewNotice": "Your professional account is back under review. We'll let you know when the administrator approves it."
+      "backToReviewNotice": "Your professional account is back under review. We'll let you know when the administrator approves it.",
+      "availabilityRequired": "To resubmit your request, also set your working days and hours."
     },
     "welcome": {
       "title": "Account verified!",
@@ -1265,7 +1269,10 @@
         "message": "If you change your name, your account will go back to administrator review. Meanwhile you won't be able to see or attend appointments.",
         "confirm": "Change and send for review"
       },
-      "backToReview": "Your name was updated. Your account is back under administrator review."
+      "backToReview": "Your name was updated. Your account is back under administrator review.",
+      "availabilityTitle": "Weekly availability",
+      "availabilityRequired": "To save your profile, set your working days and hours. You can change them anytime in «Schedule».",
+      "draftRestored": "We recovered the changes you hadn't saved."
     },
     "notifications": {
       "toConfirm": "{count} appointment(s) to confirm",
@@ -1544,11 +1551,13 @@
       "duration": "Duration (minutes)",
       "thumbnail": "Thumbnail (URL)",
       "description": "Description",
-      "content": "Content (articles and exercises)",
-      "author": "Author",
+      "content": "Content (text)",
+      "author": "Author (optional)",
       "tags": "Tags",
       "resourceType": "Type",
-      "requiredPlan": "Minimum plan"
+      "requiredPlan": "Minimum plan",
+      "contentUrlRequired": "Video or audio link (YouTube or another URL)",
+      "contentUrlOptional": "Video link (optional)"
     },
     "plans": {
       "1": "Basic",
@@ -1561,7 +1570,37 @@
       "url": "Enter a valid http(s) URL up to 500 characters.",
       "duration": "Duration must be between 0 and 600 minutes.",
       "tags": "Up to 10 tags of up to 30 characters each.",
-      "plan": "Select Basic, Advanced or Professional."
+      "plan": "Select Basic, Advanced or Professional.",
+      "urlRequired": "The link is required for videos and audios.",
+      "content": "Content cannot exceed 20,000 characters.",
+      "author": "Author cannot exceed 120 characters.",
+      "type": "Choose the resource type."
+    },
+    "editTitle": "Edit resource",
+    "typeLocked": "The type cannot be changed after the resource is created.",
+    "contentHint": "Plain text: separate paragraphs with a blank line; a short line without a period is a subtitle; lines starting with \"- \" or \"1. \" are lists.",
+    "contentOptionalHint": "Optional for videos and audios.",
+    "tagsLimit": "Up to {max} tags of up to {chars} characters. Press Enter or comma to add.",
+    "removeTag": "Remove tag {tag}",
+    "basicSummary": "Basic plan resources by type",
+    "basicCount": "{count} in Basic",
+    "filterByType": "Filter by type",
+    "allTypes": "All",
+    "search": "Search by title or tag",
+    "durationShort": "Duration",
+    "actions": "Actions",
+    "editAria": "Edit {title}",
+    "types": {
+      "Video": "Video",
+      "Audio": "Audio",
+      "Article": "Reading",
+      "Exercise": "Exercise"
+    },
+    "typesPlural": {
+      "Video": "Videos",
+      "Audio": "Audios",
+      "Article": "Readings",
+      "Exercise": "Exercises"
     }
   }
 }

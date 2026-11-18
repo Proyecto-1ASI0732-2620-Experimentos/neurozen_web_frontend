@@ -62,6 +62,12 @@
                 <p v-if="errors.licenseNumber" class="nz-field-error">{{ errors.licenseNumber }}</p>
               </div>
             </div>
+            <!-- Sin horario guardado, el backend rechaza el reenvío: se pide aquí (no se puede entrar a «Horario» sin verificar) -->
+            <fieldset v-if="needsSchedule" class="space-y-3 rounded-lg border border-amber-200 bg-amber-50/60 p-4" data-testid="resubmit-availability">
+              <legend class="px-1 text-sm font-bold text-foreground-light">{{ $t('pro.profile.availabilityTitle') }}</legend>
+              <p class="text-sm text-amber-900">{{ $t('pro.status.availabilityRequired') }}</p>
+              <AvailabilityEditor v-model="form.availabilitySchedule" id-prefix="rs-av" :server-error="serverAvailabilityError" />
+            </fieldset>
             <button type="submit" class="nz-btn-primary" :disabled="saving">
               <span v-if="saving" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
               {{ $t('pro.status.resubmit') }}
@@ -103,15 +109,25 @@ import { SPECIALTIES } from '../../services/ProfessionalService.js'
 import { homeRouteFor } from '../../services/roles.js'
 import { getCurrentUser, updateUser } from '../../services/session.js'
 import { toast } from '../../composables/useToast.js'
+import AvailabilityEditor from '../components/AvailabilityEditor.vue'
+import { hasAvailability, defaultAvailability, availabilityErrorKey, availabilityServerError } from '../availability.js'
+import { fieldErrors } from '../../services/ApiError.js'
 import { normalizeLicenseNumber, isLicenseDigits, onlyDigits, fullNameError, normalizeFullName } from '../../utils/validation.js'
 
 export default {
   name: 'ProStatusComponent',
-  components: { LoadingState, ErrorState },
+  components: { LoadingState, ErrorState, AvailabilityEditor },
   data() {
-    return { loading: true, error: '', profile: null, saving: false, errors: {}, form: { fullName: '', specialty: '', licenseNumber: '' }, specialties: SPECIALTIES }
+    return {
+      loading: true, error: '', profile: null, saving: false, errors: {}, serverAvailabilityError: '', specialties: SPECIALTIES,
+      form: { fullName: '', specialty: '', licenseNumber: '', availabilitySchedule: defaultAvailability() }
+    }
   },
   computed: {
+    /** El backend exige el horario en cada actualización del perfil y un psicólogo nuevo aún no lo tiene */
+    needsSchedule() {
+      return !!this.profile && !hasAvailability(this.profile.availabilitySchedule)
+    },
     timeline() {
       return [
         { key: 'created', state: 'done' },
@@ -134,7 +150,11 @@ export default {
       try {
         const { profile } = await loadPortalData({ withAppointments: false })
         this.profile = profile
-        this.form = { fullName: profile.name, specialty: profile.specialty, licenseNumber: normalizeLicenseNumber(profile.licenseNumber) || onlyDigits(profile.licenseNumber, 6) }
+        this.form = {
+          fullName: profile.name, specialty: profile.specialty,
+          licenseNumber: normalizeLicenseNumber(profile.licenseNumber) || onlyDigits(profile.licenseNumber, 6),
+          availabilitySchedule: hasAvailability(profile.availabilitySchedule) ? { ...profile.availabilitySchedule } : defaultAvailability()
+        }
         // Si ya fue aprobado, pasa a la bienvenida / su panel
         if (profile.verificationStatus === 'verified') {
           toast.success(this.$t('pro.status.approvedToast'))
@@ -157,20 +177,21 @@ export default {
       const nameKey = fullNameError(this.form.fullName)
       if (nameKey) e.fullName = this.$t(nameKey === 'required' ? 'validation.fullName' : `validation.${nameKey}`)
       if (!isLicenseDigits(this.form.licenseNumber)) e.licenseNumber = this.$t('validation.licenseDigits')
+      if (this.needsSchedule && availabilityErrorKey(this.form.availabilitySchedule)) e.availabilitySchedule = true
       this.errors = e
       if (Object.keys(e).length || this.saving) return
       this.saving = true
       try {
         const fullName = normalizeFullName(this.form.fullName)
-        this.profile = await proService.updateMyProfile({
-          fullName,
-          specialty: this.form.specialty,
-          licenseNumber: this.form.licenseNumber
-        })
+        const changes = { fullName, specialty: this.form.specialty, licenseNumber: this.form.licenseNumber }
+        if (this.needsSchedule) changes.availabilitySchedule = { ...this.form.availabilitySchedule }
+        this.serverAvailabilityError = ''
+        this.profile = await proService.updateMyProfile(changes)
         updateUser({ verificationStatus: this.profile.verificationStatus, name: fullName, fullName })
         toast.success(this.$t('pro.status.resubmitted'))
       } catch (error) {
-        toast.error(error.message)
+        this.serverAvailabilityError = availabilityServerError(fieldErrors(error))
+        if (!this.serverAvailabilityError) toast.error(error.message)
       } finally {
         this.saving = false
       }

@@ -314,6 +314,17 @@ export class StaticAPIAdapter {
       return { ...stripSensitive(user), token: `static-demo-token.${user.id}` }
     }
     if (action === 'sign-up') {
+      // Mismo contrato que el backend: DNI obligatorio (8 dígitos). En modo demo el DNI se valida
+      // pero NO se guarda (los datos de la demo viven en sessionStorage).
+      const dni = String(body.dni ?? '').trim()
+      const errors = {}
+      if (!dni) errors.dni = ['El DNI es obligatorio']
+      else if (!/^[0-9]{8}$/.test(dni)) errors.dni = ['El DNI debe tener exactamente 8 dígitos numéricos']
+      if (body.confirmPassword != null && body.confirmPassword !== body.password) errors.confirmPassword = ['Las contraseñas no coinciden']
+      if (body.acceptedPrivacyPolicy === false) errors.acceptedPrivacyPolicy = ['Debes aceptar la Política de Privacidad']
+      if (Object.keys(errors).length) {
+        throw new ApiError('Datos inválidos', { status: 400, details: { message: 'Datos inválidos', errors } })
+      }
       const email = String(body.email || '').toLowerCase()
       if (users.some((u) => String(u.email).toLowerCase() === email)) {
         throw new ApiError('Ya existe una cuenta con este correo', { status: 409 })

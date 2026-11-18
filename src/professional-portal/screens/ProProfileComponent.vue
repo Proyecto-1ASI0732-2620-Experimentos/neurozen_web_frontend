@@ -30,9 +30,17 @@
         <h2 class="text-lg font-bold text-foreground-light">{{ $t('pro.profile.professionalData') }}</h2>
 
         <div>
-          <label class="nz-label" for="pp-name">{{ $t('auth.register.name') }}</label>
-          <input id="pp-name" :value="profile.name" class="nz-input" readonly aria-describedby="pp-name-hint" />
-          <p id="pp-name-hint" class="nz-hint">{{ $t('pro.profile.nameLocked') }}</p>
+          <div class="flex items-baseline justify-between gap-2">
+            <label class="nz-label" for="pp-name">{{ $t('auth.register.name') }}</label>
+            <button type="button" class="text-sm font-semibold text-primary hover:underline" @click="toggleNameEdit">
+              {{ editingName ? $t('pro.profile.cancelNameEdit') : $t('pro.profile.editName') }}
+            </button>
+          </div>
+          <input v-if="editingName" id="pp-name" v-model="form.fullName" class="nz-input" :class="{ 'nz-input-error': errors.fullName }" maxlength="120"
+            autocomplete="name" :aria-invalid="!!errors.fullName" aria-describedby="pp-name-hint" />
+          <input v-else id="pp-name" :value="profile.name" class="nz-input" readonly aria-describedby="pp-name-hint" />
+          <p v-if="errors.fullName" id="pp-name-hint" class="nz-field-error">{{ errors.fullName }}</p>
+          <p v-else id="pp-name-hint" class="nz-hint" :class="{ 'font-semibold text-amber-800': editingName }">{{ $t('pro.profile.nameLocked') }}</p>
         </div>
         <div>
           <label class="nz-label" for="pp-specialty">{{ $t('register.psychologist.specialty') }}</label>
@@ -72,14 +80,21 @@
         </div>
       </form>
     </div>
+
+    <!-- Aviso previo: cambiar el nombre devuelve la cuenta a revisión (PENDING) -->
+    <ConfirmDialog :open="confirmNameChange" :busy="saving" :title="$t('pro.profile.nameChangeDialog.title')"
+      :message="$t('pro.profile.nameChangeDialog.message')" :confirm-text="$t('pro.profile.nameChangeDialog.confirm')"
+      @cancel="confirmNameChange = false" @confirm="submit" />
   </div>
 </template>
 
 <script>
 /**
  * ProProfileComponent - Perfil profesional del psicólogo verificado.
- * El nombre y la colegiatura no se editan aquí: fueron validados con el CPsP y
- * cambiarlos exigiría una nueva verificación.
+ * La colegiatura no se edita aquí. El nombre fue validado con el CPsP: puede corregirse,
+ * pero antes se avisa de que la cuenta volverá a revisión del administrador (el backend la
+ * devuelve a PENDING). Tras guardar se consulta GET /professionals/me y, si está pendiente,
+ * se redirige a la pantalla de cuenta pendiente de verificación.
  */
 import PageHeader from '../../components/ui/PageHeader.vue'
 import LoadingState from '../../components/ui/LoadingState.vue'
@@ -88,14 +103,21 @@ import UserAvatar from '../../components/ui/UserAvatar.vue'
 import ProfileProgress from '../components/ProfileProgress.vue'
 import { loadPortalData, proService } from '../usePortal.js'
 import { SPECIALTIES } from '../../services/ProfessionalService.js'
-import { session } from '../../services/session.js'
+import ConfirmDialog from '../../components/ui/ConfirmDialog.vue'
+import { session, updateUser } from '../../services/session.js'
+import { isProfessionalNotVerified } from '../../services/ApiError.js'
 import { toast } from '../../composables/useToast.js'
+import { fullNameError, normalizeFullName } from '../../utils/validation.js'
 
 export default {
   name: 'ProProfileComponent',
-  components: { PageHeader, LoadingState, ErrorState, UserAvatar, ProfileProgress },
+  components: { PageHeader, LoadingState, ErrorState, UserAvatar, ProfileProgress, ConfirmDialog },
   data() {
-    return { loading: true, error: '', saving: false, profile: null, errors: {}, specialties: SPECIALTIES, form: { specialty: '', bio: '', experienceYears: 0, price: 0 } }
+    return {
+      loading: true, error: '', saving: false, profile: null, errors: {}, specialties: SPECIALTIES,
+      editingName: false, confirmNameChange: false,
+      form: { fullName: '', specialty: '', bio: '', experienceYears: 0, price: 0 }
+    }
   },
   computed: {
     email() {
@@ -104,6 +126,9 @@ export default {
     /** El progreso se actualiza mientras se escribe */
     previewProfile() {
       return { ...this.profile, ...this.form }
+    },
+    nameChanged() {
+      return this.editingName && normalizeFullName(this.form.fullName) !== normalizeFullName(this.profile?.name)
     }
   },
   created() {
@@ -115,12 +140,22 @@ export default {
       this.error = ''
       try {
         this.profile = (await loadPortalData({ withAppointments: false })).profile
-        this.form = { specialty: this.profile.specialty, bio: this.profile.bio || '', experienceYears: this.profile.experienceYears || 0, price: this.profile.price || 0 }
+        this.resetForm()
       } catch (error) {
-        this.error = error.message
+        if (!isProfessionalNotVerified(error)) this.error = error.message
       } finally {
         this.loading = false
       }
+    },
+    resetForm() {
+      this.form = { fullName: this.profile.name, specialty: this.profile.specialty, bio: this.profile.bio || '', experienceYears: this.profile.experienceYears || 0, price: this.profile.price || 0 }
+    },
+    toggleNameEdit() {
+      this.editingName = !this.editingName
+      this.form.fullName = this.profile.name
+      const rest = { ...this.errors }
+      delete rest.fullName
+      this.errors = rest
     },
     specialtyLabel(key) {
       const text = this.$t(`specialties.${key}`)
@@ -131,17 +166,42 @@ export default {
       if (this.form.bio.trim() && this.form.bio.trim().length < 30) e.bio = this.$t('validation.minChars', { n: 30 })
       if (!(this.form.experienceYears >= 0 && this.form.experienceYears <= 60)) e.experienceYears = this.$t('pro.profile.errors.experience')
       if (!(this.form.price >= 0 && this.form.price <= 1000)) e.price = this.$t('pro.profile.errors.price')
+      if (this.nameChanged) {
+        const key = fullNameError(this.form.fullName)
+        if (key) e.fullName = this.$t(key === 'required' ? 'validation.fullName' : `validation.${key}`)
+      }
       this.errors = e
       return !Object.keys(e).length
     },
-    async save() {
+    save() {
       if (!this.validate() || this.saving) return
+      // Antes de enviar un cambio de nombre se pide confirmación explícita
+      if (this.nameChanged) this.confirmNameChange = true
+      else this.submit()
+    },
+    async submit() {
+      if (this.saving) return
+      const changingName = this.nameChanged
+      const { fullName, ...rest } = this.form
       this.saving = true
       try {
-        this.profile = await proService.updateMyProfile({ ...this.form })
+        const changes = changingName ? { ...rest, fullName: normalizeFullName(fullName) } : { ...rest }
+        const updated = await proService.updateMyProfile(changes)
+        // Tras un cambio de nombre el backend decide el estado: se vuelve a consultar GET /professionals/me
+        this.profile = changingName ? await proService.getMyProfile() : updated
+        this.confirmNameChange = false
+        this.editingName = false
+        updateUser({ verificationStatus: this.profile.verificationStatus, name: this.profile.name, fullName: this.profile.name })
+        if (this.profile.verificationStatus !== 'verified') {
+          toast.info(this.$t('pro.profile.backToReview'))
+          this.$router.replace({ name: 'ProStatus' })
+          return
+        }
+        this.resetForm()
         toast.success(this.$t('userProfile.actions.successMessage'))
       } catch (error) {
-        toast.error(`${this.$t('userProfile.actions.errorMessage')}: ${error.message}`)
+        this.confirmNameChange = false
+        if (!isProfessionalNotVerified(error)) toast.error(`${this.$t('userProfile.actions.errorMessage')}: ${error.message}`)
       } finally {
         this.saving = false
       }

@@ -689,7 +689,12 @@
         "preferNotToSay": "Prefer not to say"
       },
       "username": "Username",
-      "address": "Address"
+      "address": "Address",
+      "dni": "DNI",
+      "dniNotRegistered": "Not registered",
+      "dniReadOnly": "The DNI cannot be changed from the profile.",
+      "showDni": "Show DNI",
+      "hideDni": "Hide DNI"
     },
     "healthInfo": {
       "title": "Health Information",
@@ -861,7 +866,8 @@
     "notFound": "The requested information was not found.",
     "conflict": "A record with that data already exists.",
     "server": "The server had a problem. Try again later.",
-    "unknown": "An unexpected error occurred."
+    "unknown": "An unexpected error occurred.",
+    "tooManyRequests": "Too many attempts. Wait a moment and try again."
   },
   "validation": {
     "required": "This field is required.",
@@ -881,7 +887,15 @@
     "fullName": "Enter your first and last name.",
     "passwordStrength": "At least 8 characters, with at least one letter and one number.",
     "license": "Invalid license number. Example: C.Ps.P. 12345",
-    "acceptTerms": "You must accept the Terms and Privacy Policy."
+    "acceptTerms": "You must accept the Terms and Privacy Policy.",
+    "fullNameChars": "The name may only contain letters, spaces, apostrophes, hyphens and periods.",
+    "fullNameLength": "The name cannot exceed 120 characters.",
+    "dniRequired": "DNI is required.",
+    "dniFormat": "The DNI must have exactly 8 numeric digits.",
+    "acceptTermsOnly": "You must accept the Terms and Conditions.",
+    "acceptPrivacy": "You must accept the Privacy Policy.",
+    "specialty": "Select a valid specialty.",
+    "licenseDigits": "The license number must have between 3 and 6 digits."
   },
   "notFound": {
     "title": "Page not found",
@@ -1002,7 +1016,18 @@
     "shareError": "The link couldn't be shared.",
     "notFoundTitle": "Resource unavailable",
     "notFoundMessage": "The resource wasn't found or couldn't be loaded.",
-    "noAudioSupport": "Your browser can't play this audio."
+    "noAudioSupport": "Your browser can't play this audio.",
+    "playerTitle": "YouTube player: {title}",
+    "youTubeHint": "If the video doesn't play here, open it on YouTube.",
+    "watchOnYouTube": "Watch on YouTube",
+    "plans": {
+      "bannerTitle": "Unlock the whole library with the Advanced plan",
+      "bannerText": "Your current plan includes part of the videos and audios. Upgrade to access every resource.",
+      "upgrade": "Upgrade plan",
+      "lockedTitle": "Resource not included in your plan",
+      "lockedFallback": "This resource is not included in your current plan.",
+      "backToLibrary": "Back to the library"
+    }
   },
   "register": {
     "chooseSubtitle": "How do you want to use NeuroZen?",
@@ -1011,7 +1036,9 @@
     "acceptPrefix": "I have read and accept the",
     "termsLink": "Terms and Privacy Policy",
     "errors": {
-      "licenseInUse": "That license number is already registered."
+      "licenseInUse": "That license number is already registered.",
+      "dniInUse": "An account with this DNI already exists.",
+      "tooManyAttempts": "Too many attempts. Wait a few seconds and try again."
     },
     "user": {
       "title": "I'm looking for support",
@@ -1034,7 +1061,16 @@
       "licenseHint": "We'll use it to verify you're licensed to practice.",
       "submit": "Submit application",
       "successLogin": "Application sent. Sign in to see your verification status."
-    }
+    },
+    "dni": "DNI (national ID)",
+    "dniPlaceholder": "8 digits",
+    "dniHint": "Numbers only: exactly 8 digits, no spaces.",
+    "consentsLegend": "Consents",
+    "acceptTermsPrefix": "I accept the",
+    "termsOnlyLink": "Terms and Conditions",
+    "acceptPrivacyPrefix": "I accept the",
+    "privacyLink": "Privacy Policy",
+    "acceptPrivacySuffix": "and the processing of my personal data"
   },
   "specialties": {
     "clinical": "Clinical psychology",
@@ -1068,7 +1104,9 @@
     "rights": {
       "title": "5. Your rights",
       "text": "You can access, rectify, cancel or object to the processing of your data by writing to info{'@'}neurozen.com."
-    }
+    },
+    "termsTitle": "Terms and Conditions",
+    "privacyTitle": "Privacy Policy"
   },
   "pro": {
     "patientFallback": "Patient #{id}",
@@ -1125,7 +1163,8 @@
       "resubmitted": "Application resubmitted. Your account is under review again.",
       "submittedData": "Submitted data",
       "checkAgain": "Check status",
-      "approvedToast": "Your license has been verified!"
+      "approvedToast": "Your license has been verified!",
+      "backToReviewNotice": "Your professional account is back under review. We'll let you know when the administrator approves it."
     },
     "welcome": {
       "title": "Account verified!",
@@ -1208,7 +1247,7 @@
       "licensePrivate": "Only you and the NeuroZen team see this.",
       "setAvailability": "Set availability",
       "professionalData": "Professional details",
-      "nameLocked": "Your name was verified with the CPsP. To change it, contact support.",
+      "nameLocked": "If you change your name, your account will go back to administrator review.",
       "bio": "Bio",
       "bioPlaceholder": "Tell clients about your approach, training and how you can help…",
       "bioHint": "At least 30 characters.",
@@ -1217,7 +1256,15 @@
       "errors": {
         "experience": "Enter a value between 0 and 60.",
         "price": "Enter a value between 0 and 1000."
-      }
+      },
+      "editName": "Correct name",
+      "cancelNameEdit": "Keep my name",
+      "nameChangeDialog": {
+        "title": "Change your name?",
+        "message": "If you change your name, your account will go back to administrator review. Meanwhile you won't be able to see or attend appointments.",
+        "confirm": "Change and send for review"
+      },
+      "backToReview": "Your name was updated. Your account is back under administrator review."
     },
     "notifications": {
       "toConfirm": "{count} appointment(s) to confirm",
@@ -1234,7 +1281,7 @@
     },
     "openCpsp": "Open CPsP portal",
     "filter": "Filter applications",
-    "search": "Search by name, email or license",
+    "search": "Search by name, email, DNI or license",
     "tabs": {
       "pending": "Pending",
       "verified": "Verified",
@@ -1283,7 +1330,9 @@
     "notifications": {
       "pending": "{count} psychologist(s) to verify",
       "pendingHint": "Review pending applications"
-    }
+    },
+    "dni": "DNI",
+    "dniMissing": "Not registered"
   },
   "zenbot": {
     "open": "Open ZenBot, your assistant",
@@ -1474,5 +1523,44 @@
     "sharedOn": "Shared on {date}",
     "notification": "{count} report(s) shared this week",
     "notificationHint": "Check your clients' records"
+  },
+  "adminResources": {
+    "nav": "Resources",
+    "title": "Resource library",
+    "subtitle": "Edit each resource's link, duration, texts and plan.",
+    "planNote": "Videos and audios play from YouTube: only the link is stored here. If a video can't be embedded, change its link.",
+    "new": "New resource",
+    "create": "Create resource",
+    "created": "Resource created",
+    "saved": "Resource updated",
+    "empty": "No resources yet",
+    "keepPlan": "Keep the current plan",
+    "thumbnailHint": "Empty = video thumbnail",
+    "tagsHint": "Comma separated",
+    "fields": {
+      "title": "Title",
+      "contentUrl": "Link (YouTube or another URL)",
+      "duration": "Duration (minutes)",
+      "thumbnail": "Thumbnail (URL)",
+      "description": "Description",
+      "content": "Content (articles and exercises)",
+      "author": "Author",
+      "tags": "Tags",
+      "resourceType": "Type",
+      "requiredPlan": "Minimum plan"
+    },
+    "plans": {
+      "1": "Basic",
+      "2": "Advanced",
+      "3": "Professional"
+    },
+    "errors": {
+      "title": "The title must have between 3 and 200 characters.",
+      "description": "The description cannot exceed 1000 characters.",
+      "url": "Enter a valid http(s) URL up to 500 characters.",
+      "duration": "Duration must be between 0 and 600 minutes.",
+      "tags": "Up to 10 tags of up to 30 characters each.",
+      "plan": "Select Basic, Advanced or Professional."
+    }
   }
 }

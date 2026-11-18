@@ -43,7 +43,12 @@
           <span class="rounded-full px-3 py-1 text-xs font-bold" :class="statusStyle(p.verificationStatus)">{{ $t(`admin.status.${p.verificationStatus}`) }}</span>
         </div>
 
-        <dl class="mt-4 grid gap-3 rounded-lg bg-[#FAF8F3] p-4 text-sm sm:grid-cols-3">
+        <dl class="mt-4 grid gap-3 rounded-lg bg-[#FAF8F3] p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <!-- DNI: solo para que el administrador revise la identidad (formato validado, no verificado con RENIEC) -->
+          <div>
+            <dt class="text-muted-light">{{ $t('admin.dni') }}</dt>
+            <dd class="font-mono font-bold text-foreground-light" :data-testid="`dni-${p.id}`">{{ p.dni || $t('admin.dniMissing') }}</dd>
+          </div>
           <div>
             <dt class="text-muted-light">{{ $t('register.psychologist.license') }}</dt>
             <dd class="flex items-center gap-2 font-mono font-bold text-foreground-light">
@@ -148,7 +153,7 @@ export default {
       const q = this.search.toLowerCase().trim()
       return this.professionals
         .filter((p) => p.verificationStatus === this.activeTab)
-        .filter((p) => !q || `${p.name} ${p.email} ${p.licenseNumber}`.toLowerCase().includes(q))
+        .filter((p) => !q || `${p.name} ${p.email} ${p.dni || ''} ${p.licenseNumber}`.toLowerCase().includes(q))
     }
   },
   watch: {

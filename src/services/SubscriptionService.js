@@ -5,6 +5,12 @@
  *   { userId, planId, nameUser, lastNameUser, emailUser, numberCard, expirationDate, cvv, isActive }
  * El backend exige los datos de tarjeta; el frontend ya no los registra en consola
  * ni conserva el CVV tras el envío (dependencia del backend documentada).
+ *
+ * El backend (sin pasarela de pago) marca la suscripción como activa al crearla o al cambiar de plan
+ * (ignora el `isActive` enviado). planId: 1 = Básico, 2 = Avanzado, 3 = Profesional, los mismos
+ * valores que usa la biblioteca para decidir qué recursos entrega.
+ * Respuesta de GET /subscriptions/user/{id}: { id, userId, planId, isActive, holderFirstName,
+ * holderLastName, email, cardLast4, ... } (404 = sin plan).
  */
 import { HttpClient } from './HttpClient.js'
 
@@ -37,13 +43,14 @@ export class SubscriptionService {
       const list = Array.isArray(response) ? response : [HttpClient.extractData(response)]
       const sub = list.find(Boolean)
       if (!sub) return null
-      const card = String(sub.numberCard || '')
+      // Nombres del backend actual (holderFirstName, cardLast4...) y, por compatibilidad, los antiguos
+      const card = String(sub.cardLast4 || sub.numberCard || '')
       return {
         planId: Number(sub.planId),
         planKey: PLAN_KEYS[Number(sub.planId)] || 'unknown',
         isActive: sub.isActive === true || sub.isActive === 'true',
-        holder: [sub.nameUser, sub.lastNameUser].filter(Boolean).join(' '),
-        email: sub.emailUser || '',
+        holder: [sub.holderFirstName ?? sub.nameUser, sub.holderLastName ?? sub.lastNameUser].filter(Boolean).join(' '),
+        email: sub.email || sub.emailUser || '',
         cardLast4: card ? card.slice(-4) : ''
       }
     } catch (error) {

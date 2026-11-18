@@ -3,7 +3,7 @@
     <div v-if="open" class="fixed inset-0 z-[10001] flex items-center justify-center bg-black/40 p-4" @click.self="$emit('close')">
       <div class="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-xl" role="dialog" aria-modal="true" aria-labelledby="terms-title" @keydown.esc="$emit('close')">
         <header class="flex items-center justify-between border-b border-[#E3DED2] px-6 py-4">
-          <h2 id="terms-title" class="text-lg font-bold text-foreground-light">{{ $t('legal.title') }}</h2>
+          <h2 id="terms-title" class="text-lg font-bold text-foreground-light">{{ $t(titleKey) }}</h2>
           <button ref="closeBtn" type="button" class="h-9 w-9 rounded-lg text-muted-light hover:bg-primary/10" :aria-label="$t('common.close')" @click="$emit('close')">
             <i class="fas fa-xmark" aria-hidden="true"></i>
           </button>
@@ -27,13 +27,33 @@
  * TermsDialog - Términos y Política de Privacidad.
  * Es un requisito legal porque la plataforma trata datos sensibles de salud
  * (Ley N.° 29733, Ley de Protección de Datos Personales del Perú).
+ *
+ * `doc` permite abrir cada documento por separado desde su casilla de consentimiento:
+ *  - 'terms':   condiciones del servicio (finalidad y profesionales verificados)
+ *  - 'privacy': tratamiento de datos personales (datos, datos de salud y derechos ARCO)
+ *  - 'all':     ambos (comportamiento anterior)
+ * Solo reorganiza los textos legales que ya existían; no añade texto legal nuevo.
  */
+const DOCUMENTS = {
+  terms: { title: 'legal.termsTitle', sections: ['purpose', 'professionals'] },
+  privacy: { title: 'legal.privacyTitle', sections: ['data', 'health', 'rights'] },
+  all: { title: 'legal.title', sections: ['purpose', 'data', 'health', 'professionals', 'rights'] }
+}
+
 export default {
   name: 'TermsDialog',
-  props: { open: { type: Boolean, default: false } },
+  props: {
+    open: { type: Boolean, default: false },
+    doc: { type: String, default: 'all', validator: (v) => v in DOCUMENTS }
+  },
   emits: ['close', 'accept'],
-  data() {
-    return { sections: ['purpose', 'data', 'health', 'professionals', 'rights'] }
+  computed: {
+    sections() {
+      return (DOCUMENTS[this.doc] || DOCUMENTS.all).sections
+    },
+    titleKey() {
+      return (DOCUMENTS[this.doc] || DOCUMENTS.all).title
+    }
   },
   watch: {
     open(value) {

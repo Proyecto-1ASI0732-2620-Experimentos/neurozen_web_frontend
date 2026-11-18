@@ -77,6 +77,7 @@ import EmptyState from '../../components/ui/EmptyState.vue'
 import UserAvatar from '../../components/ui/UserAvatar.vue'
 import StatusChip from '../components/StatusChip.vue'
 import { loadPortalData, groupPatients } from '../usePortal.js'
+import { isProfessionalNotVerified } from '../../services/ApiError.js'
 import { ReportService } from '../../services/ReportService.js'
 import { formatShortDate, formatClock } from '../../utils/date.js'
 
@@ -109,7 +110,8 @@ export default {
         this.appointments = data.appointments
         this.reports = await new ReportService().getReceived(data.profile.id).catch(() => [])
       } catch (error) {
-        this.error = error.message
+        // 403 de psicólogo no verificado: el router ya lo lleva a la pantalla de cuenta pendiente
+        if (!isProfessionalNotVerified(error)) this.error = error.message
       } finally {
         this.loading = false
       }

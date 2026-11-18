@@ -64,6 +64,18 @@
               <input id="pf-name" v-model.trim="form.fullName" class="nz-input" :class="{ 'nz-input-error': errors.fullName }" :readonly="!editMode" />
               <p v-if="errors.fullName" class="nz-field-error">{{ errors.fullName }}</p>
             </div>
+            <!-- DNI: solo lectura (PUT /users/{id} lo ignora). Se lee de GET /users/{id} y no se guarda en la sesión. -->
+            <div class="sm:col-span-2">
+              <label class="nz-label" for="pf-dni">{{ $t('userProfile.personalInfo.dni') }}</label>
+              <div class="flex items-center gap-2">
+                <input id="pf-dni" :value="dniDisplay" class="nz-input bg-[#FAF8F3] font-mono" readonly aria-readonly="true" aria-describedby="pf-dni-hint" />
+                <button v-if="dni" type="button" class="nz-btn-ghost shrink-0" :aria-pressed="showDni" @click="showDni = !showDni">
+                  <i :class="showDni ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
+                  <span class="sr-only sm:not-sr-only">{{ $t(showDni ? 'userProfile.personalInfo.hideDni' : 'userProfile.personalInfo.showDni') }}</span>
+                </button>
+              </div>
+              <p id="pf-dni-hint" class="nz-hint">{{ $t('userProfile.personalInfo.dniReadOnly') }}</p>
+            </div>
             <div>
               <label class="nz-label" for="pf-username">{{ $t('userProfile.personalInfo.username') }}</label>
               <input id="pf-username" v-model.trim="form.username" class="nz-input" :class="{ 'nz-input-error': errors.username }" :readonly="!editMode" />
@@ -181,7 +193,7 @@ import { UserService } from '../../services/UserService.js'
 import { SubscriptionService } from '../../services/SubscriptionService.js'
 import { BreathingService } from '../../services/BreathingService.js'
 import { toast } from '../../composables/useToast.js'
-import { isEmail, isPhone, minLength } from '../../utils/validation.js'
+import { isEmail, isPhone, fullNameError, normalizeFullName, maskDni } from '../../utils/validation.js'
 import { formatLongDate, toLocalISODate } from '../../utils/date.js'
 
 const EXTRA_KEY = 'neurozen_profile_extra'
@@ -208,6 +220,10 @@ export default {
       loadingSubscription: true,
       subscriptionError: '',
       today: toLocalISODate(),
+      // DNI propio: solo en memoria de esta pantalla (nunca en localStorage ni en la sesión)
+      dni: '',
+      dniLoaded: false,
+      showDni: false,
       toggles: ['sessionReminders', 'breathingReminders', 'weeklyUpdates', 'publicProfile', 'shareProgress']
     }
   },
@@ -217,6 +233,11 @@ export default {
     },
     displayName() {
       return getDisplayName(this.user) || this.$t('header.defaultUser')
+    },
+    dniDisplay() {
+      if (!this.dniLoaded) return this.$t('common.loading')
+      if (!this.dni) return this.$t('userProfile.personalInfo.dniNotRegistered')
+      return this.showDni ? this.dni : maskDni(this.dni)
     },
     avatarSrc() {
       return (this.editMode ? this.form.avatar : this.user.avatar) || ''
@@ -234,6 +255,10 @@ export default {
     this.extra = { ...defaultExtra(), ...readUserData(EXTRA_KEY, {}) }
     this.extra.preferences = { ...defaultExtra().preferences, ...(this.extra.preferences || {}) }
     this.loadSubscription()
+    this.loadDni()
+  },
+  beforeUnmount() {
+    this.dni = ''
   },
   methods: {
     resetForm() {
@@ -255,6 +280,17 @@ export default {
       const k = `subscriptions.plans.${key}.name`
       const text = this.$t(k)
       return text === k ? key : text
+    },
+    /** GET /users/{id} devuelve "dni" ("" en cuentas antiguas). No bloquea el uso de la cuenta. */
+    async loadDni() {
+      try {
+        const data = await this.userService.getUser(getUserId())
+        this.dni = String(data?.dni ?? '').trim()
+      } catch {
+        this.dni = ''
+      } finally {
+        this.dniLoaded = true
+      }
     },
     async loadSubscription() {
       this.loadingSubscription = true
@@ -290,7 +326,10 @@ export default {
     },
     validate() {
       const e = {}
-      if (!minLength(this.form.fullName, 2)) e.fullName = this.$t('validation.required')
+      // Mismas reglas que el backend; un nombre antiguo que no se modifica no bloquea el guardado
+      const nameChanged = normalizeFullName(this.form.fullName) !== normalizeFullName(getDisplayName(this.user))
+      const nameKey = fullNameError(this.form.fullName)
+      if (nameKey === 'required' || (nameChanged && nameKey)) e.fullName = this.$t(`validation.${nameKey === 'required' ? 'required' : nameKey}`)
       if (!this.form.username) e.username = this.$t('validation.required')
       if (!isEmail(this.form.email)) e.email = this.$t('validation.email')
       if (this.form.phone && !isPhone(this.form.phone)) e.phone = this.$t('validation.phone')
@@ -306,6 +345,7 @@ export default {
       }
       this.saving = true
       try {
+        this.form.fullName = normalizeFullName(this.form.fullName)
         await this.userService.updateProfile(getUserId(), this.form)
         updateUser({ ...this.form, name: this.form.fullName })
         this.extra.emergencyContacts = this.extra.emergencyContacts.filter((c) => c.name || c.phone)

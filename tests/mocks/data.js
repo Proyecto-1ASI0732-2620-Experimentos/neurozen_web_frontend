@@ -21,9 +21,10 @@ export const psychologist = {
   verificationStatus: 'verified', professionalId: 1
 }
 
-// Usuarios tal como los devuelve GET /users/{id}
+// Usuarios tal como los devuelve GET /users/{id} (incluye "dni" desde la auditoría del backend;
+// "" en cuentas antiguas)
 export const backendUsers = {
-  7: { id: 7, fullName: 'Ana Torres', email: 'ana@neurozen.com', role: 'USER' },
+  7: { id: 7, fullName: 'Ana Torres', email: 'ana@neurozen.com', role: 'USER', dni: '12345678' },
   1: { id: 1, fullName: 'Equipo NeuroZen', email: 'admin@neurozen.com', role: 'ADMIN' },
   21: { id: 21, fullName: 'Elena Ramírez', email: 'elena@psico.pe', role: 'PSYCHOLOGIST' }
 }
@@ -57,5 +58,5 @@ export const appointments = [
 // Se usa un id alto para que no coincida con las traducciones por id de es.json.
 export const resources = [
   { id: 101, title: 'Respiración para la oficina', description: 'Técnica breve para bajar la tensión entre reuniones.',
-    resourceType: 'Video', contentUrl: 'https://www.youtube.com/watch?v=abc123XYZ', duration: 15, tags: ['respiración'] }
+    resourceType: 'Video', contentUrl: 'https://www.youtube.com/watch?v=CVMBSsqTGOk', duration: 15, tags: ['respiración'] }
 ]

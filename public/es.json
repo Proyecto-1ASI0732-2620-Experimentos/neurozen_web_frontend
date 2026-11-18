@@ -689,7 +689,12 @@
         "preferNotToSay": "Prefiero no decir"
       },
       "username": "Usuario",
-      "address": "Dirección"
+      "address": "Dirección",
+      "dni": "DNI",
+      "dniNotRegistered": "No registrado",
+      "dniReadOnly": "El DNI no se puede modificar desde el perfil.",
+      "showDni": "Mostrar DNI",
+      "hideDni": "Ocultar DNI"
     },
     "healthInfo": {
       "title": "Información de Salud",
@@ -861,7 +866,8 @@
     "notFound": "No se encontró la información solicitada.",
     "conflict": "Ya existe un registro con esos datos.",
     "server": "El servidor tuvo un problema. Inténtalo más tarde.",
-    "unknown": "Ocurrió un error inesperado."
+    "unknown": "Ocurrió un error inesperado.",
+    "tooManyRequests": "Demasiados intentos. Espera un momento e inténtalo de nuevo."
   },
   "validation": {
     "required": "Este campo es obligatorio.",
@@ -878,10 +884,18 @@
     "expiry": "Fecha de vencimiento no válida o caducada (MM/AA).",
     "cvv": "El CVV debe tener 3 o 4 dígitos.",
     "fixErrors": "Revisa los campos marcados.",
-    "fullName": "Escribe tu nombre y apellido.",
+    "fullName": "Ingresa tu nombre y apellido.",
     "passwordStrength": "Mínimo 8 caracteres, con al menos una letra y un número.",
     "license": "Número de colegiatura no válido. Ejemplo: C.Ps.P. 12345",
-    "acceptTerms": "Debes aceptar los Términos y la Política de Privacidad."
+    "acceptTerms": "Debes aceptar los Términos y la Política de Privacidad.",
+    "fullNameChars": "El nombre solo puede contener letras, espacios, apóstrofos, guiones y puntos.",
+    "fullNameLength": "El nombre no puede superar 120 caracteres.",
+    "dniRequired": "El DNI es obligatorio.",
+    "dniFormat": "El DNI debe tener exactamente 8 dígitos numéricos.",
+    "acceptTermsOnly": "Debes aceptar los Términos y Condiciones.",
+    "acceptPrivacy": "Debes aceptar la Política de Privacidad.",
+    "specialty": "Selecciona una especialidad válida.",
+    "licenseDigits": "El número de colegiatura debe tener entre 3 y 6 dígitos."
   },
   "notFound": {
     "title": "Página no encontrada",
@@ -1002,7 +1016,18 @@
     "shareError": "No se pudo compartir el enlace.",
     "notFoundTitle": "Recurso no disponible",
     "notFoundMessage": "No se encontró el recurso o no se pudo cargar.",
-    "noAudioSupport": "Tu navegador no puede reproducir este audio."
+    "noAudioSupport": "Tu navegador no puede reproducir este audio.",
+    "playerTitle": "Reproductor de YouTube: {title}",
+    "youTubeHint": "Si el video no se reproduce aquí, ábrelo en YouTube.",
+    "watchOnYouTube": "Ver en YouTube",
+    "plans": {
+      "bannerTitle": "Desbloquea toda la biblioteca con el plan Avanzado",
+      "bannerText": "Con tu plan actual ves una parte de los videos y audios. Mejora tu plan para acceder a todos los recursos.",
+      "upgrade": "Mejorar plan",
+      "lockedTitle": "Recurso no incluido en tu plan",
+      "lockedFallback": "Este recurso no está incluido en tu plan actual.",
+      "backToLibrary": "Volver a la biblioteca"
+    }
   },
   "register": {
     "chooseSubtitle": "¿Cómo quieres usar NeuroZen?",
@@ -1011,7 +1036,9 @@
     "acceptPrefix": "He leído y acepto los",
     "termsLink": "Términos y la Política de Privacidad",
     "errors": {
-      "licenseInUse": "Ese número de colegiatura ya está registrado."
+      "licenseInUse": "Ese número de colegiatura ya está registrado.",
+      "dniInUse": "Ya existe una cuenta con este DNI.",
+      "tooManyAttempts": "Demasiados intentos. Espera unos segundos e inténtalo de nuevo."
     },
     "user": {
       "title": "Busco apoyo",
@@ -1034,7 +1061,16 @@
       "licenseHint": "Lo usaremos para verificar que estás habilitado para ejercer.",
       "submit": "Enviar solicitud",
       "successLogin": "Solicitud enviada. Inicia sesión para ver el estado de tu verificación."
-    }
+    },
+    "dni": "DNI",
+    "dniPlaceholder": "8 dígitos",
+    "dniHint": "Solo números: exactamente 8 dígitos, sin espacios.",
+    "consentsLegend": "Consentimientos",
+    "acceptTermsPrefix": "Acepto los",
+    "termsOnlyLink": "Términos y Condiciones",
+    "acceptPrivacyPrefix": "Acepto la",
+    "privacyLink": "Política de Privacidad",
+    "acceptPrivacySuffix": "y el tratamiento de mis datos personales"
   },
   "specialties": {
     "clinical": "Psicología clínica",
@@ -1068,7 +1104,9 @@
     "rights": {
       "title": "5. Tus derechos",
       "text": "Puedes acceder a tus datos, rectificarlos, cancelarlos u oponerte a su tratamiento (derechos ARCO) escribiendo a info{'@'}neurozen.com."
-    }
+    },
+    "termsTitle": "Términos y Condiciones",
+    "privacyTitle": "Política de Privacidad"
   },
   "pro": {
     "patientFallback": "Paciente #{id}",
@@ -1125,7 +1163,8 @@
       "resubmitted": "Solicitud reenviada. Tu cuenta vuelve a estar en revisión.",
       "submittedData": "Datos enviados",
       "checkAgain": "Comprobar estado",
-      "approvedToast": "¡Tu colegiatura fue verificada!"
+      "approvedToast": "¡Tu colegiatura fue verificada!",
+      "backToReviewNotice": "Tu cuenta profesional volvió a revisión. Te avisaremos cuando el administrador la apruebe."
     },
     "welcome": {
       "title": "¡Cuenta verificada!",
@@ -1208,7 +1247,7 @@
       "licensePrivate": "Solo tú y el equipo de NeuroZen ven este dato.",
       "setAvailability": "Configurar disponibilidad",
       "professionalData": "Datos profesionales",
-      "nameLocked": "Tu nombre fue verificado con el CPsP. Para cambiarlo, contacta a soporte.",
+      "nameLocked": "Si cambias tu nombre, tu cuenta volverá a revisión del administrador.",
       "bio": "Biografía",
       "bioPlaceholder": "Cuéntales a los pacientes tu enfoque, formación y en qué puedes ayudarles…",
       "bioHint": "Mínimo 30 caracteres.",
@@ -1217,7 +1256,15 @@
       "errors": {
         "experience": "Ingresa un valor entre 0 y 60.",
         "price": "Ingresa un valor entre 0 y 1000."
-      }
+      },
+      "editName": "Corregir nombre",
+      "cancelNameEdit": "No cambiar el nombre",
+      "nameChangeDialog": {
+        "title": "¿Cambiar tu nombre?",
+        "message": "Si cambias tu nombre, tu cuenta volverá a revisión del administrador. Mientras tanto no podrás ver ni atender citas.",
+        "confirm": "Cambiar y enviar a revisión"
+      },
+      "backToReview": "Tu nombre se actualizó. Tu cuenta volvió a revisión del administrador."
     },
     "notifications": {
       "toConfirm": "{count} cita(s) por confirmar",
@@ -1234,7 +1281,7 @@
     },
     "openCpsp": "Abrir portal del CPsP",
     "filter": "Filtrar solicitudes",
-    "search": "Buscar por nombre, correo o colegiatura",
+    "search": "Buscar por nombre, correo, DNI o colegiatura",
     "tabs": {
       "pending": "Pendientes",
       "verified": "Verificados",
@@ -1283,7 +1330,9 @@
     "notifications": {
       "pending": "{count} psicólogo(s) por verificar",
       "pendingHint": "Revisa las solicitudes pendientes"
-    }
+    },
+    "dni": "DNI",
+    "dniMissing": "No registrado"
   },
   "zenbot": {
     "open": "Abrir ZenBot, tu asistente",
@@ -1474,5 +1523,44 @@
     "sharedOn": "Compartido el {date}",
     "notification": "{count} informe(s) compartido(s) esta semana",
     "notificationHint": "Revisa la ficha de tus pacientes"
+  },
+  "adminResources": {
+    "nav": "Recursos",
+    "title": "Biblioteca de recursos",
+    "subtitle": "Edita los enlaces, la duración, los textos y el plan de cada recurso.",
+    "planNote": "Los videos y audios se reproducen desde YouTube: aquí solo se guarda el enlace. Si un video no se puede insertar, cambia su enlace.",
+    "new": "Nuevo recurso",
+    "create": "Crear recurso",
+    "created": "Recurso creado",
+    "saved": "Recurso actualizado",
+    "empty": "Aún no hay recursos",
+    "keepPlan": "Mantener el plan actual",
+    "thumbnailHint": "Vacío = miniatura del video",
+    "tagsHint": "Separadas por comas",
+    "fields": {
+      "title": "Título",
+      "contentUrl": "Enlace (YouTube u otra URL)",
+      "duration": "Duración (minutos)",
+      "thumbnail": "Miniatura (URL)",
+      "description": "Descripción",
+      "content": "Contenido (artículos y ejercicios)",
+      "author": "Autor",
+      "tags": "Etiquetas",
+      "resourceType": "Tipo",
+      "requiredPlan": "Plan mínimo"
+    },
+    "plans": {
+      "1": "Básico",
+      "2": "Avanzado",
+      "3": "Profesional"
+    },
+    "errors": {
+      "title": "El título debe tener entre 3 y 200 caracteres.",
+      "description": "La descripción no puede superar 1000 caracteres.",
+      "url": "Ingresa una URL http(s) válida de hasta 500 caracteres.",
+      "duration": "La duración debe estar entre 0 y 600 minutos.",
+      "tags": "Máximo 10 etiquetas de hasta 30 caracteres cada una.",
+      "plan": "Selecciona Básico, Avanzado o Profesional."
+    }
   }
 }

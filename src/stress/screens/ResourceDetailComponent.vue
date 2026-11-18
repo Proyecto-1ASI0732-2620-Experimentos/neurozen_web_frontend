@@ -1,6 +1,19 @@
 <template>
   <div class="nz-page">
     <LoadingState v-if="loading" :message="$t('common.loadingResource')" />
+    <!-- 403: el recurso está fuera del plan del usuario (p. ej. desde un enlace guardado o un favorito) -->
+    <template v-else-if="planMessage">
+      <PageHeader :title="$t('stress.management.resourceLibrary.title')" back="/stress/resources" />
+      <section class="nz-card mx-auto max-w-xl p-8 text-center" role="alert" data-testid="plan-required">
+        <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl text-primary"><i class="fas fa-lock" aria-hidden="true"></i></span>
+        <h2 class="mt-4 text-xl font-extrabold text-foreground-light">{{ $t('resource.plans.lockedTitle') }}</h2>
+        <p class="mt-2 text-muted-light">{{ planMessage }}</p>
+        <div class="mt-6 flex flex-col-reverse justify-center gap-2 sm:flex-row">
+          <router-link :to="{ name: 'ResourceLibrary' }" class="nz-btn-secondary">{{ $t('resource.plans.backToLibrary') }}</router-link>
+          <router-link :to="{ name: 'Subscriptions' }" class="nz-btn-primary"><i class="fas fa-arrow-up" aria-hidden="true"></i>{{ $t('resource.plans.upgrade') }}</router-link>
+        </div>
+      </section>
+    </template>
     <template v-else-if="error">
       <PageHeader :title="$t('stress.management.resourceLibrary.title')" back="/stress/resources" />
       <ErrorState :title="$t('resource.notFoundTitle')" :message="error" @retry="loadResource" />
@@ -22,13 +35,24 @@
         <div class="space-y-6">
           <!-- Contenido / reproductor -->
           <div class="nz-card overflow-hidden">
-            <div v-if="resource.youTubeId" class="aspect-video bg-black">
-              <iframe class="h-full w-full" :src="`https://www.youtube-nocookie.com/embed/${resource.youTubeId}`" :title="text.title(resource)"
-                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
-            </div>
+            <!-- Videos Y audios de YouTube: se reproducen dentro de NeuroZen -->
+            <template v-if="resource.youTubeId">
+              <div class="aspect-video bg-black">
+                <iframe class="h-full w-full" :src="`https://www.youtube-nocookie.com/embed/${resource.youTubeId}?rel=0`"
+                  :title="$t('resource.playerTitle', { title: text.title(resource) })" referrerpolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+              </div>
+              <!-- Si el dueño no permite insertar el video, YouTube muestra un error: alternativa en pestaña nueva -->
+              <p class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-xs text-muted-light">
+                <span>{{ $t('resource.youTubeHint') }}</span>
+                <a :href="watchUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline" data-testid="watch-on-youtube">
+                  <i class="fab fa-youtube" aria-hidden="true"></i>{{ $t('resource.watchOnYouTube') }}
+                </a>
+              </p>
+            </template>
             <video v-else-if="mediaType === 'video'" class="aspect-video w-full bg-black" :src="resource.contentUrl" :poster="resource.thumbnail" controls preload="metadata" @ended="markAsCompleted"></video>
             <div v-else class="relative aspect-video bg-primary/5">
-              <img :data-fallback="placeholderFor(resource.category)" :src="resource.thumbnail" alt="" class="h-full w-full object-cover" />
+              <img :data-fallback="placeholderFor(resource.category)" :src="resource.thumbnail || placeholderFor(resource.category)" alt="" class="h-full w-full object-cover" />
             </div>
             <div v-if="mediaType === 'audio'" class="p-4">
               <audio class="w-full" :src="resource.contentUrl" controls preload="metadata" @ended="markAsCompleted">{{ $t('resource.noAudioSupport') }}</audio>
@@ -37,7 +61,8 @@
 
           <section>
             <h2 class="mb-2 text-lg font-bold text-foreground-light">{{ $t('resource.description') }}</h2>
-            <p class="leading-relaxed text-foreground-light">{{ text.description(resource) }}</p>
+            <!-- Descripción completa (incluye el aviso clínico que envía el backend al final) -->
+            <p class="whitespace-pre-line leading-relaxed text-foreground-light" data-testid="resource-description">{{ text.description(resource) }}</p>
             <!-- Texto plano por párrafos (antes v-html sin sanitizar) -->
             <div v-if="resource.content" class="mt-4 space-y-3 leading-relaxed text-foreground-light">
               <p v-for="(paragraph, i) in paragraphs" :key="i">{{ paragraph }}</p>
@@ -96,7 +121,8 @@
 import PageHeader from '../../components/ui/PageHeader.vue'
 import LoadingState from '../../components/ui/LoadingState.vue'
 import ErrorState from '../../components/ui/ErrorState.vue'
-import { ResourceLibraryService } from '../../services/ResourceLibraryService.js'
+import { ResourceLibraryService, youTubeWatchUrl } from '../../services/ResourceLibraryService.js'
+import { isPlanRequired, isProfessionalNotVerified, RESOURCE_NOT_FOUND } from '../../services/ApiError.js'
 import { readUserData, writeUserData } from '../../services/session.js'
 import { useResourceText } from '../../composables/useResourceText.js'
 import { toast } from '../../composables/useToast.js'
@@ -109,7 +135,7 @@ export default {
   name: 'ResourceDetailComponent',
   components: { PageHeader, LoadingState, ErrorState },
   data() {
-    return { service: new ResourceLibraryService(), resource: null, related: [], loading: true, error: '', isFavorite: false, isCompleted: false }
+    return { service: new ResourceLibraryService(), resource: null, related: [], loading: true, error: '', planMessage: '', isFavorite: false, isCompleted: false }
   },
   computed: {
     text() {
@@ -120,6 +146,9 @@ export default {
       if (/\.(mp3|wav|ogg|m4a|aac)(\?|$)/.test(url)) return 'audio'
       if (/\.(mp4|webm|mov)(\?|$)/.test(url)) return 'video'
       return null
+    },
+    watchUrl() {
+      return this.resource?.youTubeId ? youTubeWatchUrl(this.resource.youTubeId) : ''
     },
     isPlayable() {
       return !!(this.resource?.youTubeId || this.mediaType)
@@ -140,16 +169,30 @@ export default {
     async loadResource() {
       this.loading = true
       this.error = ''
+      this.planMessage = ''
+      this.related = []
       try {
         this.resource = await this.service.getResourceById(this.$route.params.id)
         this.isFavorite = readUserData(FAVORITES_KEY, []).some((id) => sameId(id, this.resource.id))
         this.isCompleted = readUserData(COMPLETED_KEY, []).some((id) => sameId(id, this.resource.id))
+      } catch (error) {
+        this.resource = null
+        if (isPlanRequired(error)) {
+          // Mensaje del backend: «Este recurso está disponible desde el plan Avanzado»
+          this.planMessage = error.message || this.$t('resource.plans.lockedFallback')
+        } else if (!isProfessionalNotVerified(error)) {
+          // (el 403 de psicólogo no verificado ya redirige a la pantalla de cuenta pendiente)
+          this.error = error.code === RESOURCE_NOT_FOUND || error.status === 404 ? this.$t('resource.notFoundMessage') : (error.message || this.$t('resource.notFoundMessage'))
+        }
+        this.loading = false
+        return
+      }
+      this.loading = false
+      // Los relacionados son secundarios: si fallan, el detalle se muestra igual
+      try {
         this.related = await this.service.getRelatedResources(this.resource)
       } catch {
-        this.resource = null
-        this.error = this.$t('resource.notFoundMessage')
-      } finally {
-        this.loading = false
+        this.related = []
       }
     },
     toggleFavorite() {

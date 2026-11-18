@@ -45,7 +45,7 @@
             <p class="font-bold text-foreground-light">{{ $t('pro.status.fixData') }}</p>
             <div>
               <label class="nz-label" for="rs-name">{{ $t('auth.register.name') }}</label>
-              <input id="rs-name" v-model="form.fullName" class="nz-input" :class="{ 'nz-input-error': errors.fullName }" />
+              <input id="rs-name" v-model="form.fullName" class="nz-input" :class="{ 'nz-input-error': errors.fullName }" maxlength="120" autocomplete="name" :aria-invalid="!!errors.fullName" />
               <p v-if="errors.fullName" class="nz-field-error">{{ errors.fullName }}</p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
@@ -57,7 +57,8 @@
               </div>
               <div>
                 <label class="nz-label" for="rs-license">{{ $t('register.psychologist.license') }}</label>
-                <input id="rs-license" v-model.trim="form.licenseNumber" class="nz-input" :class="{ 'nz-input-error': errors.licenseNumber }" placeholder="C.Ps.P. 12345" />
+                <input id="rs-license" :value="form.licenseNumber" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" class="nz-input"
+                  :class="{ 'nz-input-error': errors.licenseNumber }" placeholder="12345" :aria-invalid="!!errors.licenseNumber" @input="onLicenseInput" />
                 <p v-if="errors.licenseNumber" class="nz-field-error">{{ errors.licenseNumber }}</p>
               </div>
             </div>
@@ -102,7 +103,7 @@ import { SPECIALTIES } from '../../services/ProfessionalService.js'
 import { homeRouteFor } from '../../services/roles.js'
 import { getCurrentUser, updateUser } from '../../services/session.js'
 import { toast } from '../../composables/useToast.js'
-import { isLicenseNumber, normalizeLicenseNumber, minLength } from '../../utils/validation.js'
+import { normalizeLicenseNumber, isLicenseDigits, onlyDigits, fullNameError, normalizeFullName } from '../../utils/validation.js'
 
 export default {
   name: 'ProStatusComponent',
@@ -133,7 +134,7 @@ export default {
       try {
         const { profile } = await loadPortalData({ withAppointments: false })
         this.profile = profile
-        this.form = { fullName: profile.name, specialty: profile.specialty, licenseNumber: profile.licenseNumber }
+        this.form = { fullName: profile.name, specialty: profile.specialty, licenseNumber: normalizeLicenseNumber(profile.licenseNumber) || onlyDigits(profile.licenseNumber, 6) }
         // Si ya fue aprobado, pasa a la bienvenida / su panel
         if (profile.verificationStatus === 'verified') {
           toast.success(this.$t('pro.status.approvedToast'))
@@ -145,20 +146,28 @@ export default {
         this.loading = false
       }
     },
+    /** Colegiatura: solo dígitos 0-9 (también al pegar), máximo 6 */
+    onLicenseInput(event) {
+      const clean = onlyDigits(event.target.value, 6)
+      if (event.target.value !== clean) event.target.value = clean
+      this.form.licenseNumber = clean
+    },
     async resubmit() {
       const e = {}
-      if (!minLength(this.form.fullName, 3)) e.fullName = this.$t('validation.fullName')
-      if (!isLicenseNumber(this.form.licenseNumber)) e.licenseNumber = this.$t('validation.license')
+      const nameKey = fullNameError(this.form.fullName)
+      if (nameKey) e.fullName = this.$t(nameKey === 'required' ? 'validation.fullName' : `validation.${nameKey}`)
+      if (!isLicenseDigits(this.form.licenseNumber)) e.licenseNumber = this.$t('validation.licenseDigits')
       this.errors = e
       if (Object.keys(e).length || this.saving) return
       this.saving = true
       try {
+        const fullName = normalizeFullName(this.form.fullName)
         this.profile = await proService.updateMyProfile({
-          fullName: this.form.fullName.trim(),
+          fullName,
           specialty: this.form.specialty,
-          licenseNumber: normalizeLicenseNumber(this.form.licenseNumber)
+          licenseNumber: this.form.licenseNumber
         })
-        updateUser({ verificationStatus: this.profile.verificationStatus, name: this.form.fullName.trim(), fullName: this.form.fullName.trim() })
+        updateUser({ verificationStatus: this.profile.verificationStatus, name: fullName, fullName })
         toast.success(this.$t('pro.status.resubmitted'))
       } catch (error) {
         toast.error(error.message)

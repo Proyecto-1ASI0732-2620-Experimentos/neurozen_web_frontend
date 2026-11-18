@@ -9,6 +9,7 @@
  *   GET   /api/v1/admin/professionals?status=PENDING|VERIFIED|REJECTED
  *   PATCH /api/v1/admin/professionals/{id}/verify
  *   PATCH /api/v1/admin/professionals/{id}/reject   { reason }
+ * Cada solicitud incluye el DNI del psicólogo para revisar su identidad ("" en cuentas antiguas).
  */
 import { HttpClient } from './HttpClient.js'
 import { normalizeProfessional } from './TherapistService.js'
@@ -23,9 +24,12 @@ export class AdminService {
   async getProfessionals(status) {
     const query = status ? `?status=${encodeURIComponent(status.toUpperCase())}` : ''
     const response = await this.httpClient.get(`/api/v1/admin/professionals${query}`)
+    // "dni" solo llega en los endpoints de administración (AdminProfessionalResource).
+    // No se añade a normalizeProfessional para que nunca aparezca en vistas públicas.
     return HttpClient.extractList(response).map((raw) => ({
       ...normalizeProfessional(raw),
-      specialty: raw.specialty || raw.specialization || ''
+      specialty: raw.specialty || raw.specialization || '',
+      dni: String(raw.dni ?? '').trim()
     }))
   }
 

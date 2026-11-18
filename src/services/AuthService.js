@@ -10,8 +10,13 @@ import { setSession, clearSession, getCurrentUser, isAuthenticated } from './ses
 import { t } from '../i18n/index.js'
 import { normalizeRole, normalizeVerification, ROLES } from './roles.js'
 import { ProfessionalService } from './ProfessionalService.js'
+import { normalizeFullName } from '../utils/validation.js'
 
-/** Normaliza el usuario devuelto por el backend al formato usado por la UI */
+/**
+ * Normaliza el usuario devuelto por el backend al formato usado por la UI.
+ * IMPORTANTE: este objeto se guarda en la sesión (localStorage/sessionStorage). NO debe incluir
+ * el DNI ni la contraseña (Ley 29733): el DNI solo se lee de GET /users/{id} en la pantalla de perfil.
+ */
 export function normalizeUser(raw = {}, fallback = {}) {
   const user = raw.user || raw
   const first = user.firstName || ''
@@ -108,26 +113,32 @@ export class AuthService {
   }
 
   /**
-   * Registro de cuenta.
+   * Registro de cuenta. POST /api/v1/authentication/sign-up
    *  - role 'user': trabajador; la cuenta queda activa.
    *  - role 'psychologist': requiere especialidad y número de colegiatura; la cuenta
    *    queda "pendiente de verificación" hasta que un administrador la apruebe.
+   * El DNI (8 dígitos) es obligatorio para ambos. Se envían dos consentimientos separados
+   * (acceptedTerms y acceptedPrivacyPolicy) y confirmPassword para que el backend lo valide.
+   * El DNI y la contraseña solo viajan en esta petición: no se guardan en la sesión.
    */
-  async register({ email, password, name, role = ROLES.USER, specialty, licenseNumber, acceptedTerms }) {
-    const fullName = name.trim()
+  async register({ email, password, confirmPassword, name, dni, role = ROLES.USER, specialty, licenseNumber, acceptedTerms, acceptedPrivacyPolicy }) {
+    const fullName = normalizeFullName(name)
     const payload = {
       username: email.trim(),
       email: email.trim(),
       password,
+      confirmPassword: confirmPassword ?? password,
       fullName,
       firstName: fullName.split(' ')[0] || fullName,
       lastName: fullName.split(' ').slice(1).join(' '),
+      dni: String(dni ?? '').trim(),
       role: role === ROLES.PSYCHOLOGIST ? 'PSYCHOLOGIST' : 'USER',
-      acceptedTerms: !!acceptedTerms
+      acceptedTerms: !!acceptedTerms,
+      acceptedPrivacyPolicy: !!acceptedPrivacyPolicy
     }
     if (role === ROLES.PSYCHOLOGIST) {
       payload.specialty = specialty
-      payload.licenseNumber = licenseNumber.trim()
+      payload.licenseNumber = String(licenseNumber ?? '').trim()
     }
     const response = await this.httpClient.post('/api/v1/authentication/sign-up', payload)
     const fallback = {

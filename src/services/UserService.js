@@ -14,6 +14,11 @@ export class UserService {
     return HttpClient.extractData(await this.httpClient.get(`/api/v1/users/${encodeURIComponent(id)}`))
   }
 
+  /**
+   * PUT /api/v1/users/{id}. El DNI NO se envía (el backend lo ignora y no es editable).
+   * dateOfBirth va exactamente como 'YYYY-MM-DD' (el backend rechaza texto extra tras la fecha).
+   * Si un psicólogo cambia aquí su nombre, el backend devuelve su verificación a PENDING.
+   */
   async updateProfile(id, { username, email, fullName, phone, address, avatar, birthDate, ageRange, occupation, workType }) {
     const birth = toDate(birthDate)
     const payload = {

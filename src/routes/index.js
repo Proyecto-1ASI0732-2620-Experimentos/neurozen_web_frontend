@@ -13,7 +13,7 @@
  * @version 2.0.0
  */
 import { createRouter, createWebHistory } from 'vue-router'
-import { isAuthenticated, getCurrentUser } from '../services/session.js'
+import { isAuthenticated, getCurrentUser, setProfessionalNotVerifiedHandler } from '../services/session.js'
 import { ROLES, getRole, homeRouteFor, isVerifiedPsychologist } from '../services/roles.js'
 import { t } from '../i18n/index.js'
 
@@ -74,6 +74,7 @@ const routes = [
 
   // Administración (validación de psicólogos)
   { path: '/admin/professionals', name: 'AdminProfessionals', component: () => import('../admin/screens/AdminProfessionalsComponent.vue'), meta: { requiresAuth: true, roles: [ROLES.ADMIN], title: 'admin.title' } },
+  { path: '/admin/resources', name: 'AdminResources', component: () => import('../admin/screens/AdminResourcesComponent.vue'), meta: { requiresAuth: true, roles: [ROLES.ADMIN], title: 'adminResources.title' } },
   { path: '/admin', redirect: { name: 'AdminProfessionals' } },
 
   // 404
@@ -105,6 +106,12 @@ router.beforeEach((to) => {
     if (to.name === 'ProStatus' && isVerifiedPsychologist(user)) return { name: 'ProDashboard' }
   }
   return true
+})
+
+// 403 de psicólogo no verificado en cualquier petición (citas, directorio, recursos...):
+// se lleva a la pantalla de cuenta pendiente en lugar de mostrar un error genérico.
+setProfessionalNotVerifiedHandler(() => {
+  if (router.currentRoute.value.name !== 'ProStatus') router.replace({ name: 'ProStatus' })
 })
 
 router.afterEach((to) => {

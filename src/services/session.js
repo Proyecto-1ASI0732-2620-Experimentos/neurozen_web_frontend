@@ -155,3 +155,17 @@ export function notifyUnauthorized() {
   clearSession()
   if (unauthorizedHandler) unauthorizedHandler()
 }
+
+/* 403 «Tu cuenta profesional aún no está verificada»: el router registra la redirección a la
+   pantalla de cuenta pendiente (igual que con el 401, los servicios no dependen del router). */
+let notVerifiedHandler = null
+export function setProfessionalNotVerifiedHandler(fn) {
+  notVerifiedHandler = fn
+}
+export function notifyProfessionalNotVerified() {
+  const user = state.user
+  // Solo aplica a psicólogos: si estaba VERIFIED, el backend lo devolvió a revisión
+  if (!user || String(user.role || '').toLowerCase() !== 'psychologist') return
+  if (user.verificationStatus === 'verified') updateUser({ verificationStatus: 'pending' })
+  if (notVerifiedHandler) notVerifiedHandler()
+}

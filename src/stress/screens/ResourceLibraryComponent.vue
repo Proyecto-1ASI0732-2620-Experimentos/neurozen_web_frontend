@@ -24,6 +24,18 @@
       <i class="fas fa-circle-info mt-0.5" aria-hidden="true"></i>{{ $t('stress.management.resourceLibrary.demoNotice') }}
     </div>
 
+    <!-- Usuario sin plan o con plan Básico: la API solo entrega parte de la biblioteca -->
+    <section v-if="showUpgradeBanner && !loading && !error" class="nz-card mb-6 flex flex-col gap-4 border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center" data-testid="upgrade-banner">
+      <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-white"><i class="fas fa-unlock-keyhole text-lg" aria-hidden="true"></i></span>
+      <div class="flex-1">
+        <p class="font-bold text-foreground-light">{{ $t('resource.plans.bannerTitle') }}</p>
+        <p class="mt-1 text-sm text-muted-light">{{ $t('resource.plans.bannerText') }}</p>
+      </div>
+      <router-link :to="{ name: 'Subscriptions' }" class="nz-btn-primary shrink-0">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>{{ $t('resource.plans.upgrade') }}
+      </router-link>
+    </section>
+
     <LoadingState v-if="loading" :message="$t('common.loadingResources')" />
     <ErrorState v-else-if="error" :message="error" @retry="loadResources" />
 
@@ -41,7 +53,7 @@
         <li v-for="resource in filteredResources" :key="resource.id">
           <router-link :to="{ name: 'ResourceDetail', params: { id: resource.id } }" class="nz-card group flex h-full flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md" @click="remember(resource)">
             <div class="relative aspect-video bg-primary/5">
-              <img :data-fallback="placeholderFor(resource.category)" :src="resource.thumbnail" alt="" class="h-full w-full object-cover" loading="lazy" />
+              <img :data-fallback="placeholderFor(resource.category)" :src="resource.thumbnail || placeholderFor(resource.category)" alt="" class="h-full w-full object-cover" loading="lazy" />
               <span class="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-primary">
                 <i :class="iconFor(resource.category)" aria-hidden="true"></i>{{ categoryLabel(resource.category) }}
               </span>
@@ -59,10 +71,10 @@
         </li>
       </ul>
 
-      <section v-if="recentlyViewed.length && !hasFilters" class="mt-10" aria-labelledby="recent-title">
+      <section v-if="visibleRecent.length && !hasFilters" class="mt-10" aria-labelledby="recent-title">
         <h2 id="recent-title" class="mb-3 text-lg font-bold text-foreground-light">{{ $t('stress.management.resourceLibrary.recentlyViewed') }}</h2>
         <div class="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-          <router-link v-for="r in recentlyViewed" :key="r.id" :to="{ name: 'ResourceDetail', params: { id: r.id } }" class="nz-card flex w-64 shrink-0 items-center gap-3 p-2 hover:border-primary/40">
+          <router-link v-for="r in visibleRecent" :key="r.id" :to="{ name: 'ResourceDetail', params: { id: r.id } }" class="nz-card flex w-64 shrink-0 items-center gap-3 p-2 hover:border-primary/40">
             <img :data-fallback="placeholderFor(r.category)" :src="r.thumbnail" alt="" class="h-14 w-20 rounded-md object-cover" />
             <span class="min-w-0 text-sm font-semibold text-foreground-light"><span class="line-clamp-2">{{ text.title(r) }}</span></span>
           </router-link>
@@ -77,13 +89,20 @@
  * ResourceLibraryComponent - Biblioteca con búsqueda (debounce) y filtros.
  * Corrige la navegación al detalle (antes /resources/:id caía en el catch-all),
  * la duración "900m" del mock y el bucle de errores de imagen.
+ *
+ * Acceso por planes: la lista llega YA FILTRADA por el backend según el plan del usuario y se pide
+ * cada vez que se entra (sin caché), así un cambio de plan se refleja sin cerrar sesión. Sin plan o
+ * con el Básico se muestra la invitación a mejorar el plan. No se muestran candados ni títulos de
+ * recursos que la API no entregó (tampoco en "vistos recientemente").
  */
 import PageHeader from '../../components/ui/PageHeader.vue'
 import LoadingState from '../../components/ui/LoadingState.vue'
 import ErrorState from '../../components/ui/ErrorState.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import { ResourceLibraryService } from '../../services/ResourceLibraryService.js'
-import { readUserData, writeUserData } from '../../services/session.js'
+import { SubscriptionService } from '../../services/SubscriptionService.js'
+import { readUserData, writeUserData, getUserId } from '../../services/session.js'
+import { getRole, ROLES } from '../../services/roles.js'
 import { useResourceText } from '../../composables/useResourceText.js'
 
 const RECENT_KEY = 'neurozen_recent_resources'
@@ -103,6 +122,9 @@ export default {
       appliedQuery: '',
       selectedCategory: 'all',
       recentlyViewed: readUserData(RECENT_KEY, []),
+      // Plan activo del usuario (1 = Básico, 2 = Avanzado, 3 = Profesional); null = sin suscripción
+      activePlanId: null,
+      planKnown: false,
       searchTimeout: null
     }
   },
@@ -116,6 +138,15 @@ export default {
         label: this.$t(`stress.management.resourceLibrary.categories.${value}`),
         icon: CATEGORY_ICONS[value] || 'fas fa-table-cells-large'
       }))
+    },
+    /** Banner solo para trabajadores sin plan activo o con el Básico (el backend decide qué se ve) */
+    showUpgradeBanner() {
+      return this.planKnown && getRole() === ROLES.USER && !this.isDemo && (this.activePlanId == null || this.activePlanId <= 1)
+    },
+    /** "Vistos recientemente" solo con recursos que la API entregó ahora (el plan pudo cambiar) */
+    visibleRecent() {
+      const ids = new Set(this.resources.map((r) => String(r.id)))
+      return this.recentlyViewed.filter((r) => ids.has(String(r.id))).map((r) => this.resources.find((x) => String(x.id) === String(r.id)) || r)
     },
     hasFilters() {
       return !!this.appliedQuery.trim() || this.selectedCategory !== 'all'
@@ -132,6 +163,7 @@ export default {
   },
   created() {
     this.loadResources()
+    this.loadPlan()
   },
   beforeUnmount() {
     clearTimeout(this.searchTimeout)
@@ -148,6 +180,17 @@ export default {
         this.error = this.$t('common.errorLoadingResources')
       } finally {
         this.loading = false
+      }
+    },
+    /** GET /subscriptions/user/{id}: 404 = sin plan. Si falla por otro motivo no se muestra el banner. */
+    async loadPlan() {
+      if (getRole() !== ROLES.USER) return
+      try {
+        const sub = await new SubscriptionService().getByUser(getUserId())
+        this.activePlanId = sub && sub.isActive ? sub.planId : null
+        this.planKnown = true
+      } catch {
+        this.planKnown = false
       }
     },
     onSearch() {

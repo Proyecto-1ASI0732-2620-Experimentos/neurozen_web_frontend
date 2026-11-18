@@ -12,9 +12,9 @@
  * @version 2.0.0
  */
 import { StaticAPIAdapter } from './StaticAPIAdapter.js'
-import { getToken, notifyUnauthorized } from './session.js'
+import { getToken, notifyUnauthorized, notifyProfessionalNotVerified } from './session.js'
 import { t } from '../i18n/index.js'
-import { ApiError } from './ApiError.js'
+import { ApiError, isNotVerifiedBody, PROFESSIONAL_NOT_VERIFIED } from './ApiError.js'
 
 export { ApiError }
 
@@ -33,6 +33,7 @@ export function messageForStatus(status) {
   if (status === 403) return t('errors.forbidden')
   if (status === 404) return t('errors.notFound')
   if (status === 409) return t('errors.conflict')
+  if (status === 429) return t('errors.tooManyRequests')
   if (status >= 500) return t('errors.server')
   return t('errors.unknown')
 }
@@ -104,10 +105,15 @@ export class HttpClient {
       if (response.status === 401 && !isAuthCall) {
         this._handleExpiredSession()
       }
+      // 403 «Tu cuenta profesional aún no está verificada»: el psicólogo volvió a PENDING o fue
+      // rechazado. Se avisa una sola vez (session.js) para llevarlo a la pantalla de verificación.
+      const notVerified = isNotVerifiedBody(response.status, body)
+      if (notVerified) notifyProfessionalNotVerified()
       const detail = serverMessage(body)
       throw new ApiError(detail || messageForStatus(response.status), {
         status: response.status,
-        details: body
+        details: body,
+        code: notVerified ? PROFESSIONAL_NOT_VERIFIED : null
       })
     }
     return body

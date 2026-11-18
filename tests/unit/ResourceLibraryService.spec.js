@@ -21,20 +21,18 @@ describe('ResourceLibraryService', () => {
   })
 
   /**
-   * NOTA DE PRUEBA:
-   * - ¿Por qué se realizó esta prueba?: Si el servidor falla, la biblioteca no debe quedar vacía.
-   * - ¿Qué hace esta prueba?: Simula la API caída y verifica recursos de ejemplo marcados como demostración.
+   * NOTA DE PRUEBA (actualizada para la biblioteca con acceso por planes):
+   * - ¿Por qué se realizó esta prueba?: Antes, si el servidor fallaba, se mostraban 8 recursos escritos en el código.
+   *   Con el acceso por planes eso mostraría recursos que el backend no entrega al usuario, así que la lista
+   *   SIEMPRE viene de la API.
+   * - ¿Qué hace esta prueba?: Simula la API caída y verifica que el servicio informe el error (la pantalla muestra
+   *   "Reintentar") en lugar de inventar recursos.
    */
-  it('libraryWithoutServer_shouldShowSampleResources', async () => {
+  it('libraryWithoutServer_shouldFailInsteadOfShowingHardcodedResources', async () => {
     // Arrange
     server.use(http.get(API + '/resource-libraries', () => HttpResponse.error()))
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-    // Act
-    const { items, isDemo } = await new ResourceLibraryService().getResources()
-
-    // Assert
-    expect(isDemo).toBe(true)
-    expect(items.length).toBeGreaterThan(0)
+    // Act + Assert
+    await expect(new ResourceLibraryService().getResources()).rejects.toMatchObject({ status: 0 })
   })
 })

@@ -95,6 +95,7 @@ import EmptyState from '../../components/ui/EmptyState.vue'
 import ConfirmDialog from '../../components/ui/ConfirmDialog.vue'
 import StatusChip from '../components/StatusChip.vue'
 import { loadPortalData, proService, patientLabel } from '../usePortal.js'
+import { isProfessionalNotVerified } from '../../services/ApiError.js'
 import { WEEK_DAYS, APPOINTMENT_STATUS, availabilityText } from '../../services/ProfessionalService.js'
 import { DEFAULT_APPOINTMENT_TYPES } from '../../services/AppointmentService.js'
 import { formatLongDate, formatClock, toLocalISODate } from '../../utils/date.js'
@@ -159,7 +160,8 @@ export default {
         this.appointments = data.appointments
         if (data.profile.availabilitySchedule?.days) this.availability = { ...data.profile.availabilitySchedule }
       } catch (error) {
-        this.error = error.message
+        // 403 de psicólogo no verificado: el router ya lo lleva a la pantalla de cuenta pendiente
+        if (!isProfessionalNotVerified(error)) this.error = error.message
       } finally {
         this.loading = false
       }
@@ -212,7 +214,9 @@ export default {
         toast.success(this.$t(`pro.schedule.done.${action}`))
         this.pending = null
       } catch (error) {
-        toast.error(error.message)
+        this.pending = null
+        // Confirmar/Completar con la cuenta en revisión → 403: redirección, sin error genérico
+        if (!isProfessionalNotVerified(error)) toast.error(error.message)
       } finally {
         this.busyId = null
       }
@@ -228,7 +232,7 @@ export default {
         this.profile = await proService.updateMyProfile({ availabilitySchedule: { ...this.availability } })
         toast.success(this.$t('pro.schedule.availabilitySaved'))
       } catch (error) {
-        toast.error(error.message)
+        if (!isProfessionalNotVerified(error)) toast.error(error.message)
       } finally {
         this.savingAvailability = false
       }

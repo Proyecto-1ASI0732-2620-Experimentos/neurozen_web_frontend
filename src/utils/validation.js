@@ -50,3 +50,54 @@ export const isLicenseNumber = (v) =>
 
 /** Deja solo el número de la colegiatura (para guardarlo y buscarlo en el CPsP) */
 export const normalizeLicenseNumber = (v) => (String(v || '').match(/\d{3,6}$/) || [''])[0]
+
+/* ------------------------------------------------------------------------------------------
+ * Reglas del registro alineadas con el backend (SignUpResource / PersonName / Dni).
+ * El backend es la autoridad final; aquí solo se adelanta el error al usuario.
+ * ---------------------------------------------------------------------------------------- */
+
+/** Máximo de caracteres del nombre completo (User.FullNameMaxLength en el backend) */
+export const FULL_NAME_MAX_LENGTH = 120
+
+/** Recorta y deja espacios simples: "  Ana   Torres " → "Ana Torres" (igual que el backend) */
+export const normalizeFullName = (v) => String(v ?? '').trim().split(/\s+/).filter(Boolean).join(' ')
+
+// Letras de cualquier alfabeto (tildes, ñ, ü...), marcas combinantes, espacio, ' ’ - .
+const FULL_NAME_CHARS = /^[\p{L}\p{M} '’.-]+$/u
+
+/**
+ * Valida el nombre completo con las reglas del backend. Devuelve la clave del error
+ * ('required' | 'fullName' | 'fullNameChars' | 'fullNameLength') o '' si es válido.
+ */
+export function fullNameError(v) {
+  const name = normalizeFullName(v)
+  if (!name) return 'required'
+  if (name.length > FULL_NAME_MAX_LENGTH) return 'fullNameLength'
+  if (!FULL_NAME_CHARS.test(name)) return 'fullNameChars'
+  if (name.split(' ').length < 2 || !/\p{L}/u.test(name)) return 'fullName'
+  return ''
+}
+
+/** Deja solo los dígitos ASCII 0-9 (también al pegar) y limita la longitud */
+export const onlyDigits = (v, max = Infinity) => String(v ?? '').replace(/[^0-9]/g, '').slice(0, max)
+
+export const DNI_LENGTH = 8
+
+/** DNI peruano: exactamente 8 dígitos 0-9 (solo formato; no se consulta RENIEC) */
+export const isDni = (v) => /^[0-9]{8}$/.test(String(v ?? '').trim())
+
+/** Clave del error del DNI ('dniRequired' | 'dniFormat') o '' si es válido */
+export function dniError(v) {
+  const dni = String(v ?? '').trim()
+  if (!dni) return 'dniRequired'
+  return isDni(dni) ? '' : 'dniFormat'
+}
+
+/** Colegiatura tal como la espera el backend: de 3 a 6 dígitos 0-9 */
+export const isLicenseDigits = (v) => /^[0-9]{3,6}$/.test(String(v ?? '').trim())
+
+/** DNI enmascarado para mostrarlo en pantalla: "12345678" → "****5678" */
+export const maskDni = (v) => {
+  const dni = String(v ?? '').trim()
+  return dni.length > 4 ? `${'*'.repeat(dni.length - 4)}${dni.slice(-4)}` : dni
+}

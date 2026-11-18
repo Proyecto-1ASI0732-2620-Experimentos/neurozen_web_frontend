@@ -222,7 +222,12 @@ export default {
     },
     /** Navegación del psicólogo (igual que la app móvil) y del administrador */
     roleLinks() {
-      if (this.role === ROLES.ADMIN) return [{ name: 'AdminProfessionals', icon: 'fas fa-user-check', label: 'admin.nav' }]
+      if (this.role === ROLES.ADMIN) {
+        return [
+          { name: 'AdminProfessionals', icon: 'fas fa-user-check', label: 'admin.nav' },
+          { name: 'AdminResources', icon: 'fas fa-photo-film', label: 'adminResources.nav' }
+        ]
+      }
       if (this.role === ROLES.PSYCHOLOGIST && isVerifiedPsychologist(session.user)) {
         return [
           { name: 'ProDashboard', icon: 'fas fa-house', label: 'pro.nav.home' },

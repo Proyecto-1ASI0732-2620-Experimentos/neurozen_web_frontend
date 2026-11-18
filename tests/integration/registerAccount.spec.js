@@ -4,9 +4,10 @@ import { server, API } from '../mocks/server.js'
 import { pendingProfessional } from '../mocks/data.js'
 import { openPage, waitFor } from '../helpers.js'
 
-// Completa los campos comunes del formulario de registro
-async function fillCommon(page, { name, email }) {
+// Completa los campos comunes del formulario de registro (el DNI es obligatorio desde la auditoría del backend)
+async function fillCommon(page, { name, email, dni = '87654321' }) {
   await page.find('#name').setValue(name)
+  await page.find('#dni').setValue(dni)
   await page.find('#email').setValue(email)
   await page.find('#password').setValue('Segura2026')
   await page.find('#confirm').setValue('Segura2026')
@@ -29,6 +30,7 @@ describe('RegisterAccount', () => {
     await page.find('#specialty').setValue('organizational')
     await page.find('#license').setValue('C.Ps.P. 99999')
     await page.find('#terms').setValue(true)
+    await page.find('#privacy').setValue(true)
     await page.find('form').trigger('submit')
 
     // Assert
@@ -41,6 +43,7 @@ describe('RegisterAccount', () => {
    * - ¿Por qué se realizó esta prueba?: Aceptar los Términos y la Política de Privacidad es un requisito legal
    *   porque la plataforma maneja datos de salud.
    * - ¿Qué hace esta prueba?: Envía el registro sin aceptar los términos y verifica el error y que no se llame a la API.
+   *   (Actualizada: ahora hay dos casillas separadas, cada una con su mensaje, como en el backend).
    */
   it('registrationWithoutTerms_shouldNotBeSent', async () => {
     // Arrange
@@ -56,7 +59,8 @@ describe('RegisterAccount', () => {
     await page.find('form').trigger('submit')
 
     // Assert
-    expect(page.text()).toContain('Debes aceptar los Términos y la Política de Privacidad.')
+    expect(page.text()).toContain('Debes aceptar los Términos y Condiciones.')
+    expect(page.text()).toContain('Debes aceptar la Política de Privacidad.')
     expect(requests).toBe(0)
   })
 })

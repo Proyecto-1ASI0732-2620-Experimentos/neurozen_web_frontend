@@ -227,7 +227,7 @@ export default {
     }
   },
   created() {
-    this.loadAll()
+    void this.loadAll()
   },
   methods: {
     async loadAll() {

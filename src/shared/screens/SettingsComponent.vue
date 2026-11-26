@@ -269,6 +269,10 @@ export default {
       return import.meta.env.VITE_API_MODE === 'static' ? this.$t('settings.demoMode') : this.$t('settings.apiMode')
     }
   },
+  beforeUnmount() {
+    // Evita mostrar «Configuración guardada» con el componente ya desmontado (error al salir rápido de Ajustes)
+    clearTimeout(this.saveTimer)
+  },
   created() {
     // Si se pide una pestaña que este rol no tiene, se abre la general
     if (!this.visibleTabs.some((t) => t.id === this.activeTab)) this.activeTab = 'general'

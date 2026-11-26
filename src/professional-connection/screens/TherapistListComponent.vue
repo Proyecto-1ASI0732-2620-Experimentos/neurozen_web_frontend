@@ -132,7 +132,7 @@ export default {
     }
   },
   created() {
-    this.loadTherapists()
+    void this.loadTherapists()
   },
   methods: {
     fee(price) {

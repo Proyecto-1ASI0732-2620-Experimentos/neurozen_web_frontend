@@ -195,7 +195,7 @@ export class AppointmentService {
         .map((s) => (typeof s === 'string' ? s : s && (s.time || s.startTime)))
         .filter((s) => typeof s === 'string' && /^\d{1,2}:\d{2}/.test(s))
         .map((s) => s.slice(0, 5))
-      return { slots: dropPastSlots([...new Set(slots)].sort(), date), source: 'api' }
+      return { slots: dropPastSlots([...new Set(slots)].sort((a, b) => a.localeCompare(b)), date), source: 'api' }
     } catch (error) {
       if (error && [401, 403].includes(error.status)) throw error
       if (!isScheduledDay(date, schedule)) return { slots: [], source: hasSchedule(schedule) ? 'schedule' : 'none' }

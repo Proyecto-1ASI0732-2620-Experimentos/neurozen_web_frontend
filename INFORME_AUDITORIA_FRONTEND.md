@@ -58,6 +58,20 @@
 
 ---
 
+## C0. Correcciones tras el primer análisis de SonarCloud (PR #5)
+
+El Quality Gate falló por incidencias en código nuevo. Todas corregidas:
+
+| Regla de Sonar | Dónde | Corrección |
+|---|---|---|
+| «Provide a compare function to avoid sorting elements alphabetically» (bug) | `BookSessionComponent.vue` (firstAvailable), `AppointmentService.js` (horas de la API) | `sort((a, b) => a.localeCompare(b))` |
+| «Promises must be awaited… or marked with `void`» | `BookSessionComponent.vue`, `BookAppointmentComponent.vue`, `TherapistDetailComponent.vue`, `TherapistListComponent.vue`, `DashboardComponent.vue`, `ZenBotWidget.vue` | `void` explícito (los métodos ya manejan sus errores), igual que el resto del proyecto |
+| «Remove this "===" check; it will always be false» | `BookSessionComponent.vue` (`canContinue`) | Reescrito con un mapa de validaciones por paso |
+| «Simplify this regular expression… super-linear backtracking» (hotspot) | `utils/scheduleParser.js` | Se normalizan los espacios antes y la expresión ya no tiene cuantificadores contiguos |
+| Prevención: expresiones regulares construidas con datos (posible hotspot) | `zenbotEngine.js`, `zenbotResources.js`, `scheduleParser.js` | Reemplazadas por comparaciones de texto; la negación usa una lista de palabras |
+| Cobertura del código nuevo | varios | 10 pruebas de integración nuevas (`auditCoverage.spec.js`): navegación del calendario, cancelar edición, 409, reserva directa, ajustes A-/A+, detalle del psicólogo, períodos del panel, controles de ZenBot |
+| Error real encontrado por las pruebas | `SettingsComponent.vue` | El aviso «Configuración guardada» se disparaba con el componente desmontado (error no controlado que también hacía fallar Vitest); se limpia el temporizador en `beforeUnmount` |
+
 ## C. Informe de pruebas
 
 Comandos reales de `package.json`:
@@ -66,7 +80,7 @@ Comandos reales de `package.json`:
 |---|---|
 | `npm ci` | OK (Node 22.23.5, npm 10.9.9) |
 | `npm run lint` | **OK, 0 errores / 0 advertencias** (sin reglas desactivadas) |
-| `npm run test:coverage` (unitarias + integración con MSW) | **48 archivos, 237 pruebas, 0 fallos** (línea base: 46 / 195). Cobertura de líneas 73,17 % → **75,31 %**; ramas 64,8 % → 67,9 % |
+| `npm run test:coverage` (unitarias + integración con MSW) | **49 archivos, 247 pruebas, 0 fallos** (línea base: 46 / 195). Cobertura de líneas 73,17 % → **78,97 %**; ramas 64,8 % → 70,6 %. Cobertura del código nuevo (líneas cambiadas): **94,8 %** |
 | `i18n.spec.js` | OK: es/en con exactamente las mismas claves |
 | `npm run build` | OK |
 

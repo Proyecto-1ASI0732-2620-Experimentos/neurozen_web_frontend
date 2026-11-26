@@ -300,22 +300,25 @@ export default {
     },
     firstAvailable() {
       if (this.serverNext && !this.emptyDays.has(this.serverNext)) return this.serverNext
-      const known = [...this.serverAvailable].filter((d) => !this.emptyDays.has(d)).sort()[0]
+      const known = [...this.serverAvailable].filter((d) => !this.emptyDays.has(d)).sort((a, b) => a.localeCompare(b))[0]
       const bySchedule = nextAvailableDate(null, this.schedule, { range: this.range, unavailable: this.emptyDays })
-      return [known, bySchedule].filter(Boolean).sort()[0] || null
+      return [known, bySchedule].filter(Boolean).sort((a, b) => a.localeCompare(b))[0] || null
     },
     nextAfterSelected() {
       return this.selectedDate ? nextAvailableDate(this.selectedDate, this.schedule, { range: this.range, unavailable: this.emptyDays }) : null
     },
     canContinue() {
-      if (this.currentStep === 'professional') return !!this.selectedProfessional
-      if (this.currentStep === 'datetime') return !!this.selectedDate && !!this.selectedTime && this.availableSlots.includes(this.selectedTime)
-      if (this.currentStep === 'sessionType') return !!this.selectedSessionType
-      return true
+      const checks = {
+        professional: () => !!this.selectedProfessional,
+        datetime: () => !!this.selectedDate && !!this.selectedTime && this.availableSlots.includes(this.selectedTime),
+        sessionType: () => !!this.selectedSessionType
+      }
+      const check = checks[this.currentStep]
+      return check ? check() : true
     }
   },
   created() {
-    this.loadInitialData()
+    void this.loadInitialData()
   },
   methods: {
     async loadInitialData() {
@@ -383,7 +386,7 @@ export default {
       const d = new Date(this.viewYear, this.viewMonth + delta, 1)
       this.viewYear = d.getFullYear()
       this.viewMonth = d.getMonth()
-      this.loadMonthAvailability()
+      void this.loadMonthAvailability()
     },
     /**
      * Pide al backend las horas libres del mes visible (dentro de la ventana de reserva). Los días sin horas
@@ -416,8 +419,8 @@ export default {
       const d = parseLocalDate(iso)
       this.viewYear = d.getFullYear()
       this.viewMonth = d.getMonth()
-      this.loadMonthAvailability()
-      this.selectDate(iso)
+      void this.loadMonthAvailability()
+      void this.selectDate(iso)
     },
     async selectDate(iso) {
       if (this.dayState(iso) !== 'available') return
@@ -459,7 +462,7 @@ export default {
     nextStep() {
       if (!this.canContinue || this.stepIndex >= STEPS.length - 1) return
       this.stepIndex++
-      if (this.currentStep === 'datetime') this.prepareCalendar()
+      if (this.currentStep === 'datetime') void this.prepareCalendar()
     },
     /** Al entrar al paso 2: muestra el mes de la próxima fecha disponible y carga su disponibilidad */
     async prepareCalendar() {
@@ -484,8 +487,8 @@ export default {
       this.stepIndex = DATETIME
       const d = parseLocalDate(this.selectedDate)
       if (d) { this.viewYear = d.getFullYear(); this.viewMonth = d.getMonth() }
-      this.loadMonthAvailability()
-      if (this.selectedDate) this.loadSlots(this.selectedDate)
+      void this.loadMonthAvailability()
+      if (this.selectedDate) void this.loadSlots(this.selectedDate)
       this.$nextTick(() => {
         const target = field === 'time' ? this.$refs.slots : this.$refs.calendar
         if (target) target.focus()

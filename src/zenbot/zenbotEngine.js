@@ -38,9 +38,9 @@ export function normalizeText(text = '') {
  */
 export function matches(text, keyword) {
   if (!keyword) return false
-  if (keyword.includes(' ')) return ` ${text} `.includes(` ${keyword} `) || new RegExp(`(^|\\s)${keyword}`).test(text)
-  if (keyword.length <= 4) return new RegExp(`(^|\\s)${keyword}(\\s|$)`).test(text)
-  return new RegExp(`(^|\\s)${keyword}`).test(text)
+  // Solo comparaciones de texto (sin RegExp construidas con datos): tiempo lineal y sin riesgo de inyección
+  if (!keyword.includes(' ') && keyword.length <= 4) return ` ${text} `.includes(` ${keyword} `)
+  return ` ${text}`.includes(` ${keyword}`)
 }
 
 const any = (text, list) => list.some((k) => matches(text, normalizeText(k)))
@@ -80,16 +80,17 @@ const PERSISTENCE_TERMS = [
 const AFFIRMATIVE = ['si', 'sí', 'a veces', 'tal vez', 'quizas', 'quizá', 'puede ser', 'creo que si', 'un poco', 'yes', 'maybe', 'sometimes', 'i think so', 'kind of']
 const NEGATIVE = ['no', 'para nada', 'no es eso', 'nunca', 'en absoluto', 'not really', 'no way', 'nope']
 const SAFE_NOW = ['estoy a salvo', 'ya estoy a salvo', 'estoy bien', 'ya estoy bien', 'estoy mejor', 'ya estoy mejor', 'estoy segura', 'estoy seguro', 'i am safe', 'im safe', 'i m safe', 'i am ok', 'i m ok', 'im ok', 'i feel better']
-const NEGATION_BEFORE = /(^|\s)(no|nunca|jamas|never|not|dont|don t|wouldn t|wouldnt)\s+(me\s+|i\s+|lo\s+)?(\w+\s+)?$/
+const NEGATION_WORDS = new Set(['no', 'nunca', 'jamas', 'never', 'not', 'dont', 'wouldnt', 'nor'])
 
 /** true si la coincidencia está negada justo antes («no quiero morir», «nunca me haría daño») */
 function negated(text, term) {
   const idx = ` ${text} `.indexOf(` ${term}`)
   if (idx < 0) return false
-  const before = ` ${text} `.slice(0, idx + 1)
   // Si el propio término empieza con "no" (no quiero vivir), no se considera negado
-  if (/^(no|not)\s/.test(term)) return false
-  return NEGATION_BEFORE.test(before)
+  if (term.startsWith('no ') || term.startsWith('not ')) return false
+  // Negación en las 3 palabras previas («no quiero morir», «nunca me haría daño», «i don t want to die»)
+  const previous = text.slice(0, Math.max(0, idx - 1)).split(' ').filter(Boolean).slice(-3)
+  return previous.some((w) => NEGATION_WORDS.has(w))
 }
 
 /**

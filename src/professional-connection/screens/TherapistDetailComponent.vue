@@ -80,10 +80,10 @@ export default {
     }
   },
   watch: {
-    '$route.params.id'(id) { if (id) this.loadTherapistData() }
+    '$route.params.id'(id) { if (id) void this.loadTherapistData() }
   },
   created() {
-    this.loadTherapistData()
+    void this.loadTherapistData()
   },
   methods: {
     fee(price) {

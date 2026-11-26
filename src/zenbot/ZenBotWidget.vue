@@ -264,7 +264,7 @@ export default {
           resourceQuery: reply.resourceQuery,
           resourceState: reply.resourceQuery ? 'loading' : null
         })
-        if (reply.resourceQuery) this.loadResourcesFor(msg)
+        if (reply.resourceQuery) void this.loadResourcesFor(msg)
         this.$nextTick(() => this.$refs.input && this.$refs.input.focus())
       }, reply.crisis || reply.check ? 120 : 450)
       this.timers.push(timer)

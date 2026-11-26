@@ -33,8 +33,11 @@ function to24h(hour, minutes, meridiem) {
  */
 export function parseAvailabilityText(text) {
   if (!text || typeof text !== 'string') return null
+  // Espacios colapsados a uno solo y sin espacios alrededor de los guiones: así la expresión siguiente no tiene
+  // cuantificadores contiguos (sin retroceso super-lineal)
   const t = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  const tm = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*(?:-|–|\s+a\s+|\s+to\s+)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/.exec(t)
+    .replace(/\s+/g, ' ').replace(/ ?[-–] ?/g, '-')
+  const tm = /(\d{1,2})(?::(\d{2}))? ?(am|pm)?(?:-| a | to )(\d{1,2})(?::(\d{2}))? ?(am|pm)?/.exec(t)
   if (!tm) return null
   const start = to24h(tm[1], tm[2], tm[3])
   const end = to24h(tm[4], tm[5], tm[6])
@@ -46,7 +49,8 @@ export function parseAvailabilityText(text) {
     const day = dayFromToken(tokens[i])
     if (!day) continue
     const isRange = ['a', 'to'].includes(tokens[i + 1]) && dayFromToken(tokens[i + 2])
-    const dashRange = new RegExp(`${tokens[i]}\\s*-\\s*${tokens[i + 1] || '#'}`).test(dayPart) && dayFromToken(tokens[i + 1])
+    // Los guiones ya vienen sin espacios ("lun-vie"): basta una comparación de texto (sin RegExp dinámica)
+    const dashRange = !!tokens[i + 1] && dayPart.includes(`${tokens[i]}-${tokens[i + 1]}`) && dayFromToken(tokens[i + 1])
     if (isRange || dashRange) {
       const endDay = isRange ? dayFromToken(tokens[i + 2]) : dayFromToken(tokens[i + 1])
       const a = WEEK_DAYS.indexOf(day)

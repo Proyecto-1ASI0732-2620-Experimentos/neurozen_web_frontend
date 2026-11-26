@@ -118,7 +118,7 @@ export default {
     }
   },
   created() {
-    this.loadTherapistData()
+    void this.loadTherapistData()
   },
   computed: {
     scheduleText() {
@@ -140,7 +140,7 @@ export default {
     },
     useDate(iso) {
       this.form.date = iso
-      this.loadSlots()
+      void this.loadSlots()
     },
     clock(time) {
       return formatClock(time, this.$i18n.locale)

@@ -33,7 +33,8 @@ const STOPWORDS = new Set(['para', 'como', 'estoy', 'tengo', 'mucho', 'mucha', '
 
 const MIN_SCORE = 2
 
-const hit = (haystack, term) => new RegExp(`(^|\\s)${term}`).test(haystack)
+/** ¿Alguna palabra del texto empieza por `term`? (comparación de texto, sin RegExp construidas con datos del usuario) */
+const hit = (haystack, term) => !!term && ` ${haystack}`.includes(` ${term}`)
 
 /**
  * Ordena los recursos por relevancia.

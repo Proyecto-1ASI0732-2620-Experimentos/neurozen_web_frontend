@@ -120,7 +120,8 @@ export default {
       error: '',
       searchQuery: '',
       appliedQuery: '',
-      selectedCategory: 'all',
+      // ?category=video permite enlazar directamente a una categoría (lo usa ZenBot: «Ver videos de bienestar»)
+      selectedCategory: ['audio', 'video', 'reading', 'exercises'].includes(this.$route?.query?.category) ? this.$route.query.category : 'all',
       recentlyViewed: readUserData(RECENT_KEY, []),
       // Plan activo del usuario (1 = Básico, 2 = Avanzado, 3 = Profesional); null = sin suscripción
       activePlanId: null,

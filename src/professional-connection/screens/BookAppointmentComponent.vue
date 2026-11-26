@@ -10,8 +10,8 @@
         <img data-fallback="/images-of-professionals/usuariodemo.jpg" :src="therapist.image" :alt="therapist.name" class="h-16 w-16 rounded-full object-cover" />
         <div class="min-w-0">
           <p class="font-bold text-foreground-light">{{ therapist.name }}</p>
-          <p class="text-sm text-primary">{{ therapist.specialty }}</p>
-          <p class="text-sm text-muted-light">${{ therapist.price }} / {{ $t('professionals.perSession') }}</p>
+          <p class="text-sm text-primary">{{ specialty(therapist.specialty) }}</p>
+          <p class="text-sm text-muted-light">{{ fee(therapist.price) ? `${fee(therapist.price)} / ${$t('professionals.perSession')}` : $t('professionals.feeToBeDefined') }}</p>
         </div>
       </div>
 
@@ -19,8 +19,14 @@
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label class="nz-label" for="ba-date">{{ $t('professionals.booking.selectDate') }}</label>
-            <input id="ba-date" v-model="form.date" type="date" class="nz-input" :class="{ 'nz-input-error': errors.date }" :min="minDate" @change="loadSlots" />
-            <p v-if="errors.date" class="nz-field-error">{{ errors.date }}</p>
+            <input id="ba-date" v-model="form.date" type="date" class="nz-input" :class="{ 'nz-input-error': errors.date }" :min="range.min" :max="range.max"
+              :aria-invalid="!!errors.date" aria-describedby="ba-date-msg" @change="loadSlots" />
+            <p v-if="errors.date" id="ba-date-msg" class="nz-field-error">{{ errors.date }}</p>
+            <p v-else-if="scheduleText" id="ba-date-msg" class="nz-hint">{{ $t('professionals.booking.attendsOn', { schedule: scheduleText }) }}</p>
+            <p v-else id="ba-date-msg" class="nz-hint">{{ $t('professionals.booking.noSchedule') }}</p>
+            <button v-if="dayHint" type="button" class="mt-1 text-sm font-semibold text-primary underline" @click="useDate(dayHint)">
+              {{ $t('professionals.booking.nextAvailable', { date: longDate(dayHint) }) }}
+            </button>
           </div>
           <div>
             <label class="nz-label" for="ba-type">{{ $t('professionals.booking.sessionType') }}</label>
@@ -39,6 +45,7 @@
               {{ clock(slot) }}
             </button>
           </div>
+          <p class="mt-2 text-xs text-muted-light">{{ $t('professionals.booking.timezone', { zone: timeZone }) }}<template v-if="slotsSource === 'schedule' && slots.length"> · {{ $t('professionals.booking.slotsFromSchedule') }}</template></p>
           <p v-if="errors.time" class="nz-field-error">{{ errors.time }}</p>
         </fieldset>
 
@@ -83,7 +90,10 @@ import { AppointmentService } from '../../services/AppointmentService.js'
 import { getUserId, session } from '../../services/session.js'
 import { toast } from '../../composables/useToast.js'
 import { isEmail, isPhone } from '../../utils/validation.js'
-import { toLocalISODate, formatClock } from '../../utils/date.js'
+import { toLocalISODate, formatClock, formatLongDate } from '../../utils/date.js'
+import { bookingRange, hasSchedule, isScheduledDay, nextAvailableDate } from '../../services/AppointmentService.js'
+import { availabilityText } from '../../services/ProfessionalService.js'
+import { formatFee, specialtyLabel } from '../../utils/professionalFormat.js'
 import { goToConfirmation } from '../bookingFlow.js'
 
 export default {
@@ -100,7 +110,9 @@ export default {
       loadingSlots: false,
       loadError: '',
       isSubmitting: false,
-      minDate: toLocalISODate(),
+      range: bookingRange(),
+      slotsSource: '',
+      dayHint: '',
       form: { date: '', time: '', type: 1, phone: session.user?.phone || '', email: session.user?.email || '', notes: '' },
       errors: {}
     }
@@ -108,7 +120,28 @@ export default {
   created() {
     this.loadTherapistData()
   },
+  computed: {
+    scheduleText() {
+      return hasSchedule(this.therapist?.availabilitySchedule) ? availabilityText(this.therapist.availabilitySchedule, this.$i18n.locale) : ''
+    },
+    timeZone() {
+      try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'local' } catch { return 'local' }
+    }
+  },
   methods: {
+    fee(price) {
+      return formatFee(price, this.$i18n.locale)
+    },
+    specialty(value) {
+      return specialtyLabel((k) => this.$t(k), value)
+    },
+    longDate(iso) {
+      return formatLongDate(iso, this.$i18n.locale)
+    },
+    useDate(iso) {
+      this.form.date = iso
+      this.loadSlots()
+    },
     clock(time) {
       return formatClock(time, this.$i18n.locale)
     },
@@ -129,18 +162,44 @@ export default {
         this.isLoading = false
       }
     },
+    /**
+     * A2: el selector nativo no permite deshabilitar días sueltos, así que se valida el día elegido contra el
+     * horario publicado y, si no hay horas, se ofrece la próxima fecha disponible (sin horarios inventados).
+     */
     async loadSlots() {
       this.form.time = ''
+      this.slots = []
+      this.dayHint = ''
+      this.errors = { ...this.errors, date: '' }
       if (!this.form.date) return
+      const schedule = this.therapist.availabilitySchedule
+      if (this.form.date < this.range.min || this.form.date > this.range.max) {
+        this.errors = { ...this.errors, date: this.$t('professionals.booking.outOfRange') }
+        return
+      }
+      if (hasSchedule(schedule) && !isScheduledDay(this.form.date, schedule)) {
+        this.errors = { ...this.errors, date: this.$t('professionals.booking.dayNotAvailable') }
+        this.dayHint = nextAvailableDate(this.form.date, schedule, { range: this.range }) || ''
+        return
+      }
       this.loadingSlots = true
-      this.slots = await this.appointmentService.getAvailableSlots(this.therapist.id, this.form.date)
-      this.loadingSlots = false
+      try {
+        const { slots, source } = await this.appointmentService.getSlotsForDate(this.therapist.id, this.form.date, schedule)
+        this.slots = slots
+        this.slotsSource = source
+        if (!slots.length) this.dayHint = nextAvailableDate(this.form.date, schedule, { range: this.range, unavailable: new Set([this.form.date]) }) || ''
+      } catch (error) {
+        this.errors = { ...this.errors, date: error.message }
+      } finally {
+        this.loadingSlots = false
+      }
     },
     validate() {
       const e = {}
       if (!this.form.date) e.date = this.$t('validation.required')
       else if (this.form.date < toLocalISODate()) e.date = this.$t('validation.pastDate')
-      if (!this.form.time) e.time = this.$t('validation.selectTime')
+      else if (this.errors.date) e.date = this.errors.date
+      if (!this.form.time || !this.slots.includes(this.form.time)) e.time = this.$t('validation.selectTime')
       if (!isPhone(this.form.phone)) e.phone = this.$t('validation.phone')
       if (!isEmail(this.form.email)) e.email = this.$t('validation.email')
       this.errors = e
@@ -160,7 +219,14 @@ export default {
         const type = this.types.find((t) => t.id === this.form.type)
         goToConfirmation(this.$router, created, { professionalId: this.therapist.id, date: this.form.date, time: this.form.time, duration: type?.duration, notes: this.form.notes })
       } catch (error) {
-        toast.error(this.$t('common.errorBookingAppointment', { error: error.message }))
+        if (error.status === 409) {
+          this.errors = { ...this.errors, time: this.$t('professionals.booking.slotTaken') }
+          const keep = this.errors
+          await this.loadSlots()
+          this.errors = { ...keep, ...this.errors, time: keep.time }
+        } else {
+          toast.error(this.$t('common.errorBookingAppointment', { error: error.message }))
+        }
       } finally {
         this.isSubmitting = false
       }
@@ -170,6 +236,6 @@ export default {
 </script>
 
 <style scoped>
-.slot { @apply rounded-lg border border-[#D6D2C7] bg-white px-3 py-2 text-sm font-semibold text-foreground-light transition-colors hover:border-primary; }
+.slot { @apply min-h-[44px] rounded-lg border border-[#D6D2C7] bg-white px-3 py-2 text-sm font-semibold text-foreground-light transition-colors hover:border-primary; }
 .slot-active { @apply border-primary bg-primary text-white; }
 </style>

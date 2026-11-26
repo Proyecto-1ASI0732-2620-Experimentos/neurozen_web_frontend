@@ -1,6 +1,6 @@
 <template>
   <footer class="mt-auto border-t border-[#E3DED2] bg-white">
-    <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+    <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:pr-24">
       <div>
         <div class="flex items-center gap-2.5">
           <img src="/neurozen1_logo.png" alt="" width="40" height="40" class="h-10 w-10 rounded-lg object-contain" />
@@ -24,22 +24,22 @@
         <ul class="space-y-2 text-sm">
           <li><router-link to="/settings" class="footer-link">{{ $t('header.settings') }}</router-link></li>
           <li v-if="isWorker"><router-link to="/appointments" class="footer-link">{{ $t('navigation.myAppointments') }}</router-link></li>
-          <li><a :href="`mailto:${$t('footer.contact.email')}`" class="footer-link">{{ $t('footer.links.contact') }}</a></li>
+          <li v-if="supportEmail"><a :href="`mailto:${supportEmail}`" class="footer-link">{{ $t('footer.links.contact') }}</a></li>
         </ul>
       </nav>
 
-      <div>
+      <!-- M4: se retiraron el teléfono +1 (555), la dirección «123 Wellness St» y el correo info@neurozen.com,
+           que eran de relleno. Solo se muestra un correo de soporte si se configura VITE_SUPPORT_EMAIL. -->
+      <div v-if="supportEmail">
         <h2 class="footer-title">{{ $t('footer.contact.title') }}</h2>
-        <ul class="space-y-2 text-sm text-muted-light">
-          <li class="flex items-center gap-2"><i class="fas fa-envelope w-4 text-primary" aria-hidden="true"></i>{{ $t('footer.contact.email') }}</li>
-          <li class="flex items-center gap-2"><i class="fas fa-phone w-4 text-primary" aria-hidden="true"></i>{{ $t('footer.contact.phone') }}</li>
-          <li class="flex items-center gap-2"><i class="fas fa-location-dot w-4 text-primary" aria-hidden="true"></i>{{ $t('footer.contact.address') }}</li>
-        </ul>
+        <p class="flex items-center gap-2 text-sm text-muted-light">
+          <i class="fas fa-envelope w-4 text-primary" aria-hidden="true"></i><a :href="`mailto:${supportEmail}`" class="footer-link">{{ supportEmail }}</a>
+        </p>
       </div>
     </div>
     <div class="border-t border-[#EEE9DD]">
       <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-muted-light sm:flex-row sm:px-6">
-        <p>{{ $t('footer.copyright') }}</p>
+        <p>{{ $t('footer.copyright', { year: currentYear }) }}</p>
         <p>v{{ version }}</p>
       </div>
     </div>
@@ -57,8 +57,12 @@
 </template>
 
 <script>
-/** FooterComponent - Enlaces útiles (solo rutas existentes), contacto y volver arriba. */
+/**
+ * FooterComponent - Enlaces útiles (solo rutas existentes), contacto y volver arriba.
+ * M4: sin datos de contacto ficticios y año del copyright calculado automáticamente.
+ */
 import { session } from '../../services/session.js'
+import { supportEmail } from '../../utils/contact.js'
 import { getRole, ROLES } from '../../services/roles.js'
 
 export default {
@@ -70,7 +74,7 @@ export default {
     }
   },
   data() {
-    return { showScrollTop: false, version: __APP_VERSION__ }
+    return { showScrollTop: false, version: __APP_VERSION__, supportEmail: supportEmail(), currentYear: new Date().getFullYear() }
   },
   mounted() {
     window.addEventListener('scroll', this.handleScroll, { passive: true })

@@ -21,17 +21,37 @@
               :aria-pressed="$i18n.locale === lang.code" @click="changeLanguage(lang.code)">{{ lang.label }}</button>
           </div>
         </div>
+        <!-- B2: tamaño de texto y contraste con A-/A+, vista previa, estado visible y restablecer -->
         <div class="nz-card space-y-5 p-5 sm:p-6">
-          <h2 class="text-lg font-bold">{{ $t('settings.display') }}</h2>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-lg font-bold">{{ $t('settings.display') }}</h2>
+            <button type="button" class="nz-btn-ghost px-3 py-2" :disabled="isDefaultDisplay" @click="resetDisplay">
+              <i class="fas fa-rotate-left" aria-hidden="true"></i>{{ $t('settings.resetDisplay') }}
+            </button>
+          </div>
           <div>
             <div class="flex items-baseline justify-between">
               <label class="nz-label" for="font-size">{{ $t('settings.fontSize') }}</label>
-              <span class="text-sm font-bold text-primary">{{ settings.general.fontSize }}px</span>
+              <span class="text-sm font-bold text-primary" aria-hidden="true">{{ settings.general.fontSize }}px</span>
             </div>
-            <input id="font-size" v-model.number="settings.general.fontSize" type="range" min="14" max="20" step="1" class="w-full accent-[#2D5A4A]" @change="save" />
+            <div class="flex items-center gap-3">
+              <button type="button" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-primary/40 bg-white text-sm font-extrabold text-primary hover:bg-primary/5 disabled:opacity-40"
+                :disabled="settings.general.fontSize <= fontMin" :aria-label="$t('settings.fontSmaller')" @click="stepFont(-1)">A-</button>
+              <input id="font-size" v-model.number="settings.general.fontSize" type="range" :min="fontMin" :max="fontMax" step="1" class="w-full accent-[#2D5A4A]"
+                :aria-valuetext="`${settings.general.fontSize} px`" @change="save" />
+              <button type="button" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-primary/40 bg-white text-lg font-extrabold text-primary hover:bg-primary/5 disabled:opacity-40"
+                :disabled="settings.general.fontSize >= fontMax" :aria-label="$t('settings.fontLarger')" @click="stepFont(1)">A+</button>
+            </div>
           </div>
-          <SettingToggle v-model="settings.general.reduceAnimations" :label="$t('settings.reduceAnimations')" :hint="$t('settings.reduceAnimationsHint')" @update:model-value="save" />
-          <SettingToggle v-model="settings.general.highContrast" :label="$t('settings.highContrast')" :hint="$t('settings.highContrastHint')" @update:model-value="save" />
+          <SettingToggle v-model="settings.general.reduceAnimations" :label="$t('settings.reduceAnimations')" :hint="$t('settings.reduceAnimationsHint')" :on-text="$t('settings.on')" :off-text="$t('settings.off')" @update:model-value="save" />
+          <SettingToggle v-model="settings.general.highContrast" :label="$t('settings.highContrast')" :hint="$t('settings.highContrastHint')" :on-text="$t('settings.on')" :off-text="$t('settings.off')" @update:model-value="save" />
+
+          <figure class="rounded-xl border border-dashed border-[#D6D2C7] bg-[#F7F3EA] p-4" aria-labelledby="preview-title">
+            <figcaption id="preview-title" class="text-sm font-semibold text-muted-light">{{ $t('settings.preview.title') }}</figcaption>
+            <p class="mt-2 font-bold text-foreground-light">{{ $t('settings.preview.heading') }}</p>
+            <p class="mt-1 text-foreground-light">{{ $t('settings.preview.body') }}</p>
+            <p class="nz-hint">{{ $t('settings.preview.hint') }}</p>
+          </figure>
         </div>
       </section>
 
@@ -82,7 +102,7 @@
               <label class="nz-label" for="cp-new">{{ $t('password.new') }}</label>
               <input id="cp-new" v-model="pwd.next" type="password" autocomplete="new-password" class="nz-input" :class="{ 'nz-input-error': pwdErrors.next }" />
               <p v-if="pwdErrors.next" class="nz-field-error">{{ pwdErrors.next }}</p>
-              <p v-else class="nz-hint">{{ $t('register.passwordRules') }}</p>
+              <PasswordChecklist :password="pwd.next" />
             </div>
             <div>
               <label class="nz-label" for="cp-confirm">{{ $t('auth.register.confirmPassword') }}</label>
@@ -124,7 +144,7 @@
               {{ $t(`settings.checks.${d.key}`) }}: <strong>{{ d.ok ? $t('settings.ok') : $t('settings.failed') }}</strong>
             </li>
           </ul>
-          <a class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline" :href="`mailto:${$t('footer.contact.email')}`">
+          <a v-if="supportEmail" class="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline" :href="`mailto:${supportEmail}`">
             <i class="fas fa-envelope" aria-hidden="true"></i>{{ $t('settings.contactSupport') }}
           </a>
         </div>
@@ -156,6 +176,7 @@
 import { defineComponent, h } from 'vue'
 import PageHeader from '../../components/ui/PageHeader.vue'
 import ConfirmDialog from '../../components/ui/ConfirmDialog.vue'
+import PasswordChecklist from '../../components/ui/PasswordChecklist.vue'
 import { loadSettings, saveSettings } from '../../services/preferences.js'
 import { setLocale } from '../../i18n/index.js'
 import { clearSession, getUserId, session } from '../../services/session.js'
@@ -164,19 +185,23 @@ import { getRole, ROLES } from '../../services/roles.js'
 import { isStrongPassword } from '../../utils/validation.js'
 import { HttpClient } from '../../services/HttpClient.js'
 import { toast } from '../../composables/useToast.js'
+import { supportEmail } from '../../utils/contact.js'
 
 const SettingToggle = defineComponent({
   name: 'SettingToggle',
-  props: { modelValue: Boolean, label: String, hint: String },
+  props: { modelValue: Boolean, label: String, hint: String, onText: { type: String, default: '' }, offText: { type: String, default: '' } },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h('div', { class: 'flex items-center justify-between gap-4' }, [
       h('div', [h('p', { class: 'text-sm font-semibold' }, props.label), props.hint ? h('p', { class: 'nz-hint' }, props.hint) : null]),
+      h('div', { class: 'flex shrink-0 items-center gap-2' }, [
+      props.onText ? h('span', { class: ['text-sm font-semibold', props.modelValue ? 'text-primary' : 'text-muted-light'], 'aria-hidden': 'true' }, props.modelValue ? props.onText : props.offText) : null,
       h('button', {
         type: 'button', role: 'switch', 'aria-checked': props.modelValue, 'aria-label': props.label,
-        class: ['relative h-7 w-12 shrink-0 rounded-full transition-colors', props.modelValue ? 'bg-primary' : 'bg-gray-300'],
+        class: ['relative h-7 w-12 shrink-0 rounded-full transition-colors', props.modelValue ? 'bg-primary' : 'bg-gray-500'],
         onClick: () => emit('update:modelValue', !props.modelValue)
       }, [h('span', { class: ['absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all', props.modelValue ? 'left-6' : 'left-1'] })])
+      ])
     ])
   }
 })
@@ -189,7 +214,7 @@ const defaults = () => ({
 
 export default {
   name: 'SettingsComponent',
-  components: { PageHeader, ConfirmDialog, SettingToggle },
+  components: { PageHeader, ConfirmDialog, SettingToggle, PasswordChecklist },
   data() {
     const saved = loadSettings() || {}
     const base = defaults()
@@ -214,7 +239,10 @@ export default {
         { id: 'security', icon: 'fas fa-key' },
         { id: 'about', icon: 'fas fa-circle-info' }
       ],
+      fontMin: 14,
+      fontMax: 20,
       version: __APP_VERSION__,
+      supportEmail: supportEmail(),
       diagnostics: [],
       diagnosing: false,
       showDeleteDialog: false,
@@ -232,6 +260,11 @@ export default {
     userEmail() {
       return session.user?.email || ''
     },
+    isDefaultDisplay() {
+      const d = defaults().general
+      const g = this.settings.general
+      return g.fontSize === d.fontSize && g.reduceAnimations === d.reduceAnimations && g.highContrast === d.highContrast
+    },
     apiModeLabel() {
       return import.meta.env.VITE_API_MODE === 'static' ? this.$t('settings.demoMode') : this.$t('settings.apiMode')
     }
@@ -245,6 +278,17 @@ export default {
       saveSettings(this.settings)
       clearTimeout(this.saveTimer)
       this.saveTimer = setTimeout(() => toast.success(this.$t('settings.configurationSaved'), { duration: 1800 }), 300)
+    },
+    stepFont(delta) {
+      const next = Math.min(this.fontMax, Math.max(this.fontMin, Number(this.settings.general.fontSize) + delta))
+      if (next === this.settings.general.fontSize) return
+      this.settings.general.fontSize = next
+      this.save()
+    },
+    /** Revierte tamaño de texto, animaciones y contraste a los valores predeterminados */
+    resetDisplay() {
+      this.settings.general = { ...this.settings.general, ...defaults().general }
+      this.save()
     },
     changeLanguage(code) {
       setLocale(code)

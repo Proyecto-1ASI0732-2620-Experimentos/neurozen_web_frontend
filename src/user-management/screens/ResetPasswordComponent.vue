@@ -14,9 +14,9 @@
       </div>
       <div>
         <label class="nz-label" for="rp-new">{{ $t('password.new') }}</label>
-        <input id="rp-new" v-model="password" type="password" autocomplete="new-password" class="nz-input" :class="{ 'nz-input-error': errors.password }" :aria-invalid="!!errors.password" />
+        <input id="rp-new" v-model="password" type="password" autocomplete="new-password" class="nz-input" :class="{ 'nz-input-error': errors.password }" :aria-invalid="!!errors.password" aria-describedby="rp-checklist" />
         <p v-if="errors.password" class="nz-field-error">{{ errors.password }}</p>
-        <p v-else class="nz-hint">{{ $t('register.passwordRules') }}</p>
+        <PasswordChecklist id="rp-checklist" :password="password" />
       </div>
       <div>
         <label class="nz-label" for="rp-confirm">{{ $t('auth.register.confirmPassword') }}</label>
@@ -37,10 +37,12 @@ import AuthLayout from '../../components/AuthLayout.vue'
 import { AuthService } from '../../services/AuthService.js'
 import { toast } from '../../composables/useToast.js'
 import { isStrongPassword } from '../../utils/validation.js'
+import PasswordChecklist from '../../components/ui/PasswordChecklist.vue'
+import { safeMessage } from '../../utils/text.js'
 
 export default {
   name: 'ResetPasswordComponent',
-  components: { AuthLayout },
+  components: { AuthLayout, PasswordChecklist },
   data() {
     return { password: '', confirm: '', errors: {}, errorMessage: '', loading: false }
   },
@@ -63,7 +65,7 @@ export default {
         toast.success(this.$t('password.reset.done'))
         this.$router.replace({ name: 'Login' })
       } catch (error) {
-        this.errorMessage = error.message
+        this.errorMessage = safeMessage(error, this.$t('errors.unknown'))
       } finally {
         this.loading = false
       }

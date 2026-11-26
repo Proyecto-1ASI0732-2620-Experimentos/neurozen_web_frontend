@@ -81,8 +81,15 @@ html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after 
 }
 
 /* Alto contraste (preferencia de Ajustes) */
-html.high-contrast { --color-text-secondary: #26302c; --color-border: #8a948f; }
+/* Antes solo cambiaba variables que casi ningún componente usa: el modo no tenía efecto visible (B2). */
+html.high-contrast { --color-text-secondary: #26302c; --color-border: #5b6762; }
 html.high-contrast body { color: #000; }
+html.high-contrast .text-muted-light, html.high-contrast .nz-hint, html.high-contrast .placeholder\:text-muted-light::placeholder { color: #26302c !important; }
+html.high-contrast .text-foreground-light { color: #000 !important; }
+html.high-contrast .nz-card, html.high-contrast .nz-input { border-color: #5b6762 !important; }
+html.high-contrast .nz-btn-secondary { border-color: #2d5a4a !important; }
+html.high-contrast a:not(.nz-btn-primary):not(.nz-btn-secondary) { text-decoration-line: underline; }
+html.high-contrast :focus-visible { outline: 3px solid #000 !important; outline-offset: 2px; }
 
 /* Iconos Material Symbols servidos localmente */
 .material-symbols-outlined {
@@ -100,10 +107,13 @@ html.high-contrast body { color: #000; }
 @layer components {
   /* Botones de la marca */
   .nz-btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold transition-colors duration-150 disabled:opacity-50;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold transition-colors duration-150 disabled:opacity-60;
   }
-  .nz-btn-primary { @apply nz-btn bg-primary text-white hover:bg-primary-strong; }
-  .nz-btn-secondary { @apply nz-btn border border-primary/30 bg-white text-primary hover:bg-primary/5; }
+  .nz-btn-primary { @apply nz-btn bg-primary text-white hover:bg-primary-strong active:bg-[#1B382D]; }
+  /* Deshabilitado con color sólido (antes opacity-50): texto blanco sobre #4A6B5F = 5.9:1 (M3) */
+  .nz-btn-primary:disabled { @apply bg-[#4A6B5F] text-white opacity-100 hover:bg-[#4A6B5F]; }
+  .nz-btn-primary:focus-visible, .nz-btn-danger:focus-visible { outline-color: #1A6F78; outline-offset: 3px; }
+  .nz-btn-secondary { @apply nz-btn border border-primary/40 bg-white text-primary hover:bg-primary/5 active:bg-primary/10; }
   .nz-btn-ghost { @apply nz-btn text-primary hover:bg-primary/10; }
   .nz-btn-danger { @apply nz-btn bg-red-700 text-white hover:bg-red-800; }
 
@@ -114,8 +124,9 @@ html.high-contrast body { color: #000; }
   .nz-label { @apply mb-1.5 block text-sm font-semibold text-foreground-light; }
   .nz-input { @apply w-full rounded-lg border-[#D6D2C7] bg-white px-3.5 py-2.5 text-sm text-foreground-light placeholder:text-muted-light focus:border-primary focus:ring-primary disabled:bg-gray-50; }
   .nz-input-error { @apply border-red-600 focus:border-red-600 focus:ring-red-600; }
-  .nz-field-error { @apply mt-1 text-xs font-medium text-red-700; }
-  .nz-hint { @apply mt-1 text-xs text-muted-light; }
+  /* M6: textos de ayuda y errores a 14 px (antes 12 px) con contraste ≥ 4.5:1 */
+  .nz-field-error { @apply mt-1 text-sm font-medium leading-snug text-red-700; }
+  .nz-hint { @apply mt-1 text-sm leading-snug text-muted-light; }
 
   /* Contenedor de página */
   .nz-page { @apply mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8; }

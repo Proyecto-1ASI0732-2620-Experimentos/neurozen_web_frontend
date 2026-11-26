@@ -23,8 +23,9 @@
       </div>
       <div>
         <label class="nz-label" for="fp-email">{{ $t('auth.login.email') }}</label>
-        <input id="fp-email" v-model.trim="email" type="email" autocomplete="email" class="nz-input" :class="{ 'nz-input-error': error }" :aria-invalid="!!error" />
-        <p v-if="error" class="nz-field-error">{{ error }}</p>
+        <input id="fp-email" v-model.trim="email" type="email" autocomplete="email" class="nz-input" :class="{ 'nz-input-error': error }" :aria-invalid="!!error" aria-describedby="fp-email-msg" />
+        <p v-if="error" id="fp-email-msg" class="nz-field-error">{{ error }}</p>
+        <p v-else id="fp-email-msg" class="nz-hint">{{ $t('password.forgot.emailHint') }}</p>
       </div>
       <button type="submit" class="nz-btn-primary w-full py-3" :disabled="loading">
         <span v-if="loading" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
@@ -42,6 +43,7 @@
 import AuthLayout from '../../components/AuthLayout.vue'
 import { AuthService } from '../../services/AuthService.js'
 import { isEmail } from '../../utils/validation.js'
+import { safeMessage } from '../../utils/text.js'
 
 export default {
   name: 'ForgotPasswordComponent',
@@ -60,7 +62,7 @@ export default {
         this.demoToken = response?.demoResetToken || null
         this.sent = true
       } catch (error) {
-        this.errorMessage = error.message
+        this.errorMessage = safeMessage(error, this.$t('errors.unknown'))
       } finally {
         this.loading = false
       }

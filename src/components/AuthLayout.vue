@@ -14,7 +14,7 @@
           <li class="flex gap-3"><i class="fas fa-user-doctor mt-1 w-5" aria-hidden="true"></i>{{ $t('auth.brand.point3') }}</li>
         </ul>
       </div>
-      <p class="text-sm text-white/60">{{ $t('footer.copyright') }}</p>
+      <p class="text-sm text-white/80">{{ $t('footer.copyright', { year: new Date().getFullYear() }) }}</p>
       <!-- Ondas de respiración: el único elemento decorativo -->
       <svg class="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 text-white/10" viewBox="0 0 200 200" aria-hidden="true">
         <circle cx="100" cy="100" r="40" fill="none" stroke="currentColor" stroke-width="2" />

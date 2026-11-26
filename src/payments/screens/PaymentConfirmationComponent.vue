@@ -21,7 +21,7 @@
         </dl>
         <div class="flex items-center justify-between p-5">
           <span class="font-semibold">{{ $t('professionals.booking.total') }}</span>
-          <span class="text-2xl font-extrabold text-primary">{{ professional ? `$${professional.price}` : '—' }}</span>
+          <span class="text-2xl font-extrabold text-primary">{{ professional && professional.price ? `$${professional.price}` : $t('professionals.feeToBeDefined') }}</span>
         </div>
       </section>
 

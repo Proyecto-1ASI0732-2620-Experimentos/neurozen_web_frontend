@@ -11,6 +11,7 @@ import { t } from '../i18n/index.js'
 import { normalizeRole, normalizeVerification, ROLES } from './roles.js'
 import { ProfessionalService } from './ProfessionalService.js'
 import { normalizeFullName } from '../utils/validation.js'
+import { cleanText } from '../utils/text.js'
 
 /**
  * Normaliza el usuario devuelto por el backend al formato usado por la UI.
@@ -21,17 +22,19 @@ export function normalizeUser(raw = {}, fallback = {}) {
   const user = raw.user || raw
   const first = user.firstName || ''
   const last = user.lastName || ''
+  // cleanText: un "null" o "undefined" del backend no se muestra como nombre (A4)
   const fullName =
-    [user.fullName, user.name, [first, last].filter(Boolean).join(' '), fallback.name]
-      .find((v) => v && !String(v).includes('@')) || ''
+    [user.fullName, user.name, [cleanText(first), cleanText(last)].filter(Boolean).join(' '), fallback.name]
+      .map(cleanText)
+      .find((v) => v && !v.includes('@')) || ''
   return {
     id: user.id ?? user.userId ?? fallback.id ?? null,
     name: fullName,
     fullName,
     email: user.email || fallback.email || '',
     username: user.username || user.email || fallback.email || '',
-    firstName: first || fullName.split(' ')[0] || '',
-    lastName: last || fullName.split(' ').slice(1).join(' '),
+    firstName: cleanText(first) || fullName.split(' ')[0] || '',
+    lastName: cleanText(last) || fullName.split(' ').slice(1).join(' '),
     avatar: user.avatarUrl || user.avatar || user.profileImage || '',
     phone: user.phoneNumber || user.phone || '',
     address: user.address || '',

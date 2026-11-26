@@ -18,13 +18,21 @@ export const SPECIALTIES = ['clinical', 'organizational', 'educational', 'family
 export const WEEK_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 const SHORT_DAYS = { monday: 'Lun', tuesday: 'Mar', wednesday: 'Mié', thursday: 'Jue', friday: 'Vie', saturday: 'Sáb', sunday: 'Dom' }
+const SHORT_DAYS_EN = { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun' }
 
-/** Texto legible de la disponibilidad; lo usa el directorio para mostrar y filtrar */
-export function availabilityText(schedule) {
+/**
+ * Texto legible de la disponibilidad; lo usa el directorio para mostrar y filtrar.
+ * Sin `locale` (o 'es') usa las abreviaturas en español que se envían al backend en `availability`;
+ * con 'en' muestra los días en inglés (antes la interfaz en inglés mostraba «Lun, Mar…»).
+ */
+export function availabilityText(schedule, locale = 'es') {
   if (!schedule || !schedule.days?.length) return ''
-  const days = WEEK_DAYS.filter((d) => schedule.days.includes(d)).map((d) => SHORT_DAYS[d]).join(', ')
+  const names = locale === 'en' ? SHORT_DAYS_EN : SHORT_DAYS
+  const days = WEEK_DAYS.filter((d) => schedule.days.includes(d)).map((d) => names[d]).join(', ')
   return `${days} · ${schedule.start} - ${schedule.end}`
 }
+
+export { parseAvailabilityText } from '../utils/scheduleParser.js'
 
 /**
  * Pasos para completar el perfil (verificación + 3 datos que el paciente necesita).

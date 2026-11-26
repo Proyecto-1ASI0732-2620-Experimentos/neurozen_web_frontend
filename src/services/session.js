@@ -91,7 +91,7 @@ export function getDisplayName(user = state.user) {
     [user.firstName, user.lastName].filter(Boolean).join(' '),
     user.username
   ]
-  const found = candidates.find((c) => c && !String(c).includes('@'))
+  const found = candidates.find((c) => c && !String(c).includes('@') && !/^(null|undefined)(\s+(null|undefined))*$/i.test(String(c).trim()))
   return found || (user.email ? user.email.split('@')[0] : '')
 }
 
@@ -123,6 +123,12 @@ export function clearSession() {
     s.removeItem(USER_KEY)
   })
   localStorage.removeItem(LEGACY_USER_KEY)
+  // La conversación con ZenBot puede contener información sensible: se borra al cerrar sesión
+  try {
+    Object.keys(sessionStorage).filter((k) => k.startsWith('neurozen_zenbot')).forEach((k) => sessionStorage.removeItem(k))
+  } catch {
+    /* sin acceso al almacenamiento */
+  }
   state.token = null
   state.user = null
 }

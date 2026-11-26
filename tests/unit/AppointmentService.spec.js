@@ -28,7 +28,9 @@ describe('AppointmentService', () => {
   /**
    * NOTA DE PRUEBA:
    * - ¿Por qué se realizó esta prueba?: Al reservar para hoy no se deben ofrecer horas que ya pasaron.
-   * - ¿Qué hace esta prueba?: Fija las 12:30, simula que la API no da horarios y verifica que todos sean posteriores.
+   * - ¿Qué hace esta prueba?: Fija las 12:30, simula que la API no da horarios (404) y verifica que las horas derivadas
+   *   del horario publicado del profesional (sábado 09:00-17:00) sean todas posteriores. Actualizada: ya no existen
+   *   horarios fijos inventados; sin horario publicado no se ofrecen horas.
    */
   it('todaySlots_shouldNotIncludePastHours', async () => {
     // Arrange
@@ -37,7 +39,7 @@ describe('AppointmentService', () => {
     server.use(http.get(API + '/professionals/:id/available-slots', () => HttpResponse.json({}, { status: 404 })))
 
     // Act
-    const slots = await new AppointmentService().getAvailableSlots(1, '2026-10-10')
+    const slots = await new AppointmentService().getAvailableSlots(1, '2026-10-10', { days: ['saturday'], start: '09:00', end: '17:00' })
 
     // Assert
     expect(slots.length).toBeGreaterThan(0)

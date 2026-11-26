@@ -24,7 +24,12 @@ export default {
   props: {
     chartData: { type: Array, default: () => [] },
     period: { type: String, default: 'week' },
-    averageStress: { type: Number, default: 50 }
+    /** Promedio expresado en porcentaje de la escala (solo para el color) */
+    averageStress: { type: Number, default: 50 },
+    /** Máximo de la escala del eje Y (10 para desencadenantes, 100 para datos del backend) */
+    scaleMax: { type: Number, default: 100 },
+    /** Nombre de la escala para lectores de pantalla y tooltip */
+    scaleLabel: { type: String, default: '' }
   },
   computed: {
     labels() {
@@ -36,8 +41,8 @@ export default {
       return '#C0392B'
     },
     ariaLabel() {
-      const values = this.chartData.map((d, i) => `${this.labels[i]}: ${d.value}`).join(', ')
-      return `${this.$t('dashboard.chart.stressLevel')} — ${values}`
+      const values = this.chartData.map((d, i) => `${this.labels[i]}: ${d.value == null ? this.$t('dashboard.chart.noRecords') : `${d.value}/${this.scaleMax}`}`).join(', ')
+      return `${this.scaleLabel || this.$t('dashboard.chart.stressLevel')} — ${values}`
     }
   },
   watch: {
@@ -60,11 +65,13 @@ export default {
       const canvas = this.$refs.chartCanvas
       if (!canvas) return
       const values = this.chartData.map((d) => d.value)
-      if (this.chart) {
+      if (this.chart && this.chart.data) {
         this.chart.data.labels = this.labels
         this.chart.data.datasets[0].data = values
         this.chart.data.datasets[0].borderColor = this.color
         this.chart.data.datasets[0].backgroundColor = `${this.color}1F`
+        const y = this.chart.options?.scales?.y
+        if (y) { y.max = this.scaleMax; y.ticks.stepSize = this.scaleMax / 5 }
         this.chart.update()
         return
       }
@@ -81,7 +88,8 @@ export default {
             borderWidth: 3,
             pointRadius: 3,
             pointHoverRadius: 6,
-            pointBackgroundColor: '#fff'
+            pointBackgroundColor: '#fff',
+            spanGaps: true
           }]
         },
         options: {
@@ -92,12 +100,12 @@ export default {
             legend: { display: false },
             tooltip: {
               displayColors: false,
-              callbacks: { label: (ctx) => `${this.$t('dashboard.chart.stressLevelShort')}: ${ctx.parsed.y}` }
+              callbacks: { label: (ctx) => `${this.scaleLabel || this.$t('dashboard.chart.stressLevelShort')}: ${ctx.parsed.y}/${this.scaleMax}` }
             }
           },
           scales: {
             x: { grid: { display: false }, ticks: { color: '#5B6762', font: { family: 'Manrope', weight: '600' } } },
-            y: { min: 0, max: 100, ticks: { stepSize: 25, color: '#8A948F' }, grid: { color: 'rgba(31,42,38,0.06)' } }
+            y: { min: 0, max: this.scaleMax, ticks: { stepSize: this.scaleMax / 5, color: '#5B6762' }, grid: { color: 'rgba(31,42,38,0.06)' } }
           }
         }
       })

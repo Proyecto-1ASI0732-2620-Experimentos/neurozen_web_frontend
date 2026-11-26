@@ -11,6 +11,7 @@
           <div>
             <h1 class="text-2xl font-extrabold text-foreground-light">{{ $t('pro.status.pendingTitle') }}</h1>
             <p class="mt-1 text-amber-900">{{ $t('pro.status.pendingText') }}</p>
+            <p class="mt-2 text-sm font-semibold text-amber-900">{{ $t('register.psychologist.verificationTime') }}</p>
           </div>
         </div>
         <ol class="space-y-4 p-6">
@@ -87,7 +88,7 @@
       </section>
 
       <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
-        <a :href="`mailto:${$t('footer.contact.email')}`" class="nz-btn-ghost"><i class="fas fa-envelope" aria-hidden="true"></i>{{ $t('settings.contactSupport') }}</a>
+        <a v-if="supportEmail" :href="`mailto:${supportEmail}`" class="nz-btn-ghost"><i class="fas fa-envelope" aria-hidden="true"></i>{{ $t('settings.contactSupport') }}</a>
         <button v-if="profile.verificationStatus === 'pending'" type="button" class="nz-btn-secondary" :disabled="loading" @click="refresh">
           <i class="fas fa-rotate-right" aria-hidden="true"></i>{{ $t('pro.status.checkAgain') }}
         </button>
@@ -113,12 +114,14 @@ import AvailabilityEditor from '../components/AvailabilityEditor.vue'
 import { hasAvailability, defaultAvailability, availabilityErrorKey, availabilityServerError } from '../availability.js'
 import { fieldErrors } from '../../services/ApiError.js'
 import { normalizeLicenseNumber, isLicenseDigits, onlyDigits, fullNameError, normalizeFullName } from '../../utils/validation.js'
+import { supportEmail } from '../../utils/contact.js'
 
 export default {
   name: 'ProStatusComponent',
   components: { LoadingState, ErrorState, AvailabilityEditor },
   data() {
     return {
+      supportEmail: supportEmail(),
       loading: true, error: '', profile: null, saving: false, errors: {}, serverAvailabilityError: '', specialties: SPECIALTIES,
       form: { fullName: '', specialty: '', licenseNumber: '', availabilitySchedule: defaultAvailability() }
     }

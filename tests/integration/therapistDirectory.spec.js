@@ -34,7 +34,7 @@ describe('TherapistDirectory', () => {
    * NOTA DE PRUEBA:
    * - ¿Por qué se realizó esta prueba?: La reserva directa desde el perfil debe usar el mismo contrato que el asistente:
    *   paciente real, hora en UTC y los datos de contacto en las notas.
-   * - ¿Qué hace esta prueba?: Reserva el día 20 a las 09:00 y verifica lo que recibe la API y la redirección a la confirmación.
+   * - ¿Qué hace esta prueba?: Reserva el miércoles 21 a las 09:00 (día que atiende) y verifica lo que recibe la API y la redirección a la confirmación.
    */
   it('directBooking_shouldSendPatientTimeAndContact', async () => {
     // Arrange
@@ -50,7 +50,7 @@ describe('TherapistDirectory', () => {
     await waitFor(() => expect(page.find('#ba-date').exists()).toBe(true))
 
     // Act
-    await page.find('#ba-date').setValue('2026-10-20')
+    await page.find('#ba-date').setValue('2026-10-21')
     await page.find('#ba-date').trigger('change')
     await waitFor(() => expect(page.find('button.slot').exists()).toBe(true))
     await page.find('button.slot').trigger('click')
@@ -59,7 +59,7 @@ describe('TherapistDirectory', () => {
 
     // Assert
     await waitFor(() => expect(body).not.toBeNull())
-    expect(body).toMatchObject({ patientId: 7, professionalId: 1, appointmentDateTime: '2026-10-20T14:00:00.000Z' })
+    expect(body).toMatchObject({ patientId: 7, professionalId: 1, appointmentDateTime: '2026-10-21T14:00:00.000Z' })
     expect(body.notasAdicionales).toContain('987654321')
     await waitFor(() => expect(router.currentRoute.value.path).toBe('/appointment-confirmation/555'))
   })

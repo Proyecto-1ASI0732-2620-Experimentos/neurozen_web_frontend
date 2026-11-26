@@ -3,12 +3,13 @@ import { http, HttpResponse } from 'msw'
 import { server, API } from '../mocks/server.js'
 import { openPage, loginAs, waitFor, button } from '../helpers.js'
 
-// Recorre los pasos 1 a 3 del asistente: profesional → día 20 a las 09:00 → tipo de sesión
+// Recorre los pasos 1 a 3 del asistente: profesional → miércoles 21 a las 09:00 (el profesional
+// de prueba atiende lunes y miércoles) → tipo de cita
 async function completeSteps(page) {
   await waitFor(() => expect(page.text()).toContain('Dra. Elena Ramírez'))
   await page.find('[role="radio"]').trigger('click')
   await button(page, 'Siguiente').trigger('click')
-  await page.findAll('.grid-cols-7 button').find((b) => b.text() === '20').trigger('click')
+  await page.findAll('.grid-cols-7 button').find((b) => b.text() === '21').trigger('click')
   await waitFor(() => expect(page.find('button.slot').exists()).toBe(true))
   await page.find('button.slot').trigger('click')
   await button(page, 'Siguiente').trigger('click')
@@ -21,7 +22,7 @@ describe('BookSession', () => {
    * NOTA DE PRUEBA:
    * - ¿Por qué se realizó esta prueba?: Reservar con un profesional es el flujo de negocio más importante.
    * - ¿Qué hace esta prueba?: Recorre los 4 pasos y verifica que la API reciba la cita correcta (paciente 7,
-   *   profesional 1, 09:00 Lima = 14:00 UTC) y que se muestre la confirmación.
+   *   profesional 1, miércoles 21 a las 09:00 Lima = 14:00 UTC) y que se muestre la confirmación.
    */
   it('fullFlow_bookASession', async () => {
     // Arrange
@@ -37,11 +38,11 @@ describe('BookSession', () => {
 
     // Act
     await completeSteps(page)
-    await button(page, 'Confirmar Reserva').trigger('click')
+    await button(page, 'Confirmar cita').trigger('click')
 
     // Assert
     await waitFor(() => expect(sent).not.toBeNull())
-    expect(sent).toMatchObject({ patientId: 7, professionalId: 1, appointmentDateTime: '2026-10-20T14:00:00.000Z' })
+    expect(sent).toMatchObject({ patientId: 7, professionalId: 1, appointmentDateTime: '2026-10-21T14:00:00.000Z' })
     await waitFor(() => expect(router.currentRoute.value.path).toBe('/appointment-confirmation/555'))
   })
 
@@ -61,12 +62,12 @@ describe('BookSession', () => {
 
     // Act
     await page.find('#bs-notes').setValue('Prefiero por la mañana')
-    await button(page, 'Confirmar Reserva').trigger('click')
+    await button(page, 'Confirmar cita').trigger('click')
 
     // Assert
     await waitFor(() => expect(page.text()).toContain('Error al reservar la cita'))
     expect(router.currentRoute.value.name).toBe('BookSession')
     expect(page.find('#bs-notes').element.value).toBe('Prefiero por la mañana')
-    expect(button(page, 'Confirmar Reserva').element.disabled).toBe(false)
+    expect(button(page, 'Confirmar cita').element.disabled).toBe(false)
   })
 })

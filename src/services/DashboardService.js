@@ -1,14 +1,19 @@
 /**
- * DashboardService - Estadísticas de estrés del Dashboard.
+ * DashboardService - Estadísticas del Panel de Inicio.
  *
- * Orden de prioridad de datos:
- *  1. user.stressData del backend (si existe)
- *  2. Estadísticas calculadas a partir de los triggers registrados por el usuario
- *  3. Datos de demostración, ESTABLES por usuario (antes cambiaban con cada clic)
- *     y marcados con source = 'demo' para avisar en la interfaz.
+ * SOLO se muestran datos reales de la cuenta. Orden de prioridad:
+ *  1. user.stressData que devuelva el backend (escala 0-100 del backend), si existe.
+ *  2. Estadísticas calculadas con los desencadenantes registrados por el usuario
+ *     (intensidad percibida en su escala original 1-10; NO es una medición clínica).
+ *  3. Sin datos → { source: 'empty' }. La interfaz muestra un estado inicial (no hay datos de ejemplo).
  *
- * @author Juan Carlos Angulo
- * @version 2.0.0
+ * Antes (v2) se generaban "datos de demostración" estables por usuario cuando no había registros,
+ * lo que hacía que un usuario nuevo viera estadísticas y recomendaciones que parecían propias.
+ *
+ * Si la consulta de desencadenantes falla, se lanza el error para que la interfaz distinga
+ * "error al cargar" de "aún no hay datos".
+ *
+ * @version 3.0.0
  */
 import { HttpClient } from './HttpClient.js'
 import { StressTriggerService } from './StressTriggerService.js'
@@ -17,21 +22,11 @@ import { getUserId } from './session.js'
 const WEEK_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 const DAY_HOURS = ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00']
 
-const avg = (arr) => (arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0)
+/** Escala de los desencadenantes (slider del formulario de registro) */
+export const TRIGGER_SCALE_MAX = 10
 
-/** PRNG determinista (mulberry32) para que la demo no cambie en cada recarga */
-function seeded(seedText) {
-  let h = 1779033703 ^ seedText.length
-  for (let i = 0; i < seedText.length; i++) {
-    h = Math.imul(h ^ seedText.charCodeAt(i), 3432918353)
-    h = (h << 13) | (h >>> 19)
-  }
-  return () => {
-    h = Math.imul(h ^ (h >>> 16), 2246822507)
-    h = Math.imul(h ^ (h >>> 13), 3266489909)
-    return ((h ^= h >>> 16) >>> 0) / 4294967296
-  }
-}
+const avg = (arr) => (arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : null)
+const round1 = (n) => (n == null ? null : Math.round(n * 10) / 10)
 
 export class DashboardService {
   constructor() {
@@ -40,43 +35,51 @@ export class DashboardService {
     this.cache = null
   }
 
+  /** Invalida la caché (p. ej. al volver al panel tras registrar algo) */
+  reset() {
+    this.cache = null
+  }
+
   /** Carga la fuente de datos una vez; los cambios de período reutilizan la caché */
   async _loadSource() {
     if (this.cache) return this.cache
     const userId = getUserId()
-    let source = { type: 'demo', userId }
+    if (userId == null) return { type: 'empty' }
 
-    if (userId != null) {
-      try {
-        const user = HttpClient.extractData(await this.httpClient.get(`/api/v1/users/${userId}`))
-        if (user && user.stressData && Array.isArray(user.stressData.weeklyData)) {
-          source = { type: 'user', userId, stressData: user.stressData }
-        }
-      } catch {
-        /* se intenta con triggers */
+    try {
+      const user = HttpClient.extractData(await this.httpClient.get(`/api/v1/users/${userId}`))
+      const sd = user && user.stressData
+      if (sd && Array.isArray(sd.weeklyData) && sd.weeklyData.length) {
+        this.cache = { type: 'user', stressData: sd }
+        return this.cache
       }
-      if (source.type === 'demo') {
-        try {
-          const triggers = await this.triggerService.getStressTriggers(userId)
-          if (triggers.length) source = { type: 'triggers', userId, triggers }
-        } catch {
-          /* se usa demo */
-        }
-      }
+    } catch {
+      /* el perfil es opcional: se intenta con los desencadenantes */
     }
-    this.cache = source
-    return source
+
+    // Si esta llamada falla, el error llega a la interfaz (estado de error, no estado vacío)
+    const triggers = await this.triggerService.getStressTriggers(userId)
+    this.cache = triggers.some((t) => t.triggeredAt) ? { type: 'triggers', triggers } : { type: 'empty' }
+    return this.cache
   }
 
   async getStressData(period = 'week') {
     const source = await this._loadSource()
-    if (source.type === 'user' && period === 'week') {
-      return { ...source.stressData, source: 'user' }
+    if (source.type === 'user') {
+      const sd = source.stressData
+      return {
+        source: 'user',
+        scaleMax: 100,
+        currentLevel: Number(sd.currentLevel) || 0,
+        average: Number(sd.average) || 0,
+        peakHours: sd.peakHours || null,
+        weeklyChange: typeof sd.weeklyChange === 'number' ? sd.weeklyChange : null,
+        weeklyData: sd.weeklyData,
+        totalTriggers: null
+      }
     }
-    if (source.type === 'triggers') {
-      return { ...this._fromTriggers(source.triggers, period), source: 'triggers' }
-    }
-    return { ...this._demo(period, String(source.userId ?? 'guest')), source: 'demo' }
+    if (source.type === 'triggers') return { source: 'triggers', ...this._fromTriggers(source.triggers, period) }
+    return { source: 'empty' }
   }
 
   /** Compatibilidad con el nombre anterior */
@@ -84,70 +87,58 @@ export class DashboardService {
     return this.getStressData(period)
   }
 
-  _fromTriggers(triggers, period) {
-    const now = new Date()
-    const dated = triggers.filter((t) => t.triggeredAt)
-    const level = (t) => t.stressLevel * 10
+  /**
+   * Estadísticas a partir de los desencadenantes (escala 1-10).
+   * Los intervalos sin registros quedan en null (el gráfico no los dibuja como "0").
+   */
+  _fromTriggers(triggers, period, now = new Date()) {
+    const dated = triggers.filter((t) => t.triggeredAt instanceof Date && !Number.isNaN(t.triggeredAt.getTime()))
+    const level = (t) => t.stressLevel
+    const daysAgo = (n) => { const d = new Date(now); d.setDate(now.getDate() - n); return d }
+    let inPeriod
     let buckets
 
     if (period === 'day') {
+      const from = daysAgo(1)
+      inPeriod = dated.filter((t) => t.triggeredAt > from && t.triggeredAt <= now)
       buckets = DAY_HOURS.map((label, i) => {
-        const from = 6 + i * 3
-        const values = dated.filter((t) => { const h = t.triggeredAt.getHours(); return h >= from && h < from + 3 }).map(level)
-        return { day: label, value: Math.round(avg(values)) }
+        const start = 6 + i * 3
+        const values = inPeriod.filter((t) => { const h = t.triggeredAt.getHours(); return h >= start && h < start + 3 }).map(level)
+        return { day: label, value: round1(avg(values)) }
       })
     } else if (period === 'month') {
+      inPeriod = dated.filter((t) => t.triggeredAt > daysAgo(28) && t.triggeredAt <= now)
       buckets = [3, 2, 1, 0].map((weeksAgo, i) => {
-        const end = new Date(now); end.setDate(now.getDate() - weeksAgo * 7)
-        const start = new Date(end); start.setDate(end.getDate() - 7)
-        const values = dated.filter((t) => t.triggeredAt > start && t.triggeredAt <= end).map(level)
-        return { day: `week${i + 1}`, value: Math.round(avg(values)) }
+        const end = daysAgo(weeksAgo * 7)
+        const start = daysAgo(weeksAgo * 7 + 7)
+        const values = inPeriod.filter((t) => t.triggeredAt > start && t.triggeredAt <= end).map(level)
+        return { day: `week${i + 1}`, value: round1(avg(values)) }
       })
     } else {
+      inPeriod = dated.filter((t) => t.triggeredAt > daysAgo(7) && t.triggeredAt <= now)
       buckets = WEEK_DAYS.map((day, i) => {
-        const values = dated.filter((t) => (t.triggeredAt.getDay() + 6) % 7 === i).map(level)
-        return { day, value: Math.round(avg(values)) }
+        const values = inPeriod.filter((t) => (t.triggeredAt.getDay() + 6) % 7 === i).map(level)
+        return { day, value: round1(avg(values)) }
       })
     }
 
-    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)
-    const twoWeeksAgo = new Date(now); twoWeeksAgo.setDate(now.getDate() - 14)
-    const thisWeek = avg(dated.filter((t) => t.triggeredAt > weekAgo).map(level))
-    const lastWeek = avg(dated.filter((t) => t.triggeredAt > twoWeeksAgo && t.triggeredAt <= weekAgo).map(level))
-    const peak = [...dated].sort((a, b) => b.stressLevel - a.stressLevel)[0]
+    const thisWeek = avg(dated.filter((t) => t.triggeredAt > daysAgo(7)).map(level))
+    const lastWeek = avg(dated.filter((t) => t.triggeredAt > daysAgo(14) && t.triggeredAt <= daysAgo(7)).map(level))
+    const latest = [...dated].sort((a, b) => b.triggeredAt - a.triggeredAt)[0]
+    const peak = [...inPeriod].sort((a, b) => b.stressLevel - a.stressLevel)[0]
     const peakHour = peak ? peak.triggeredAt.getHours() : null
 
     return {
-      currentLevel: dated.length ? level(dated[0]) : 0,
-      average: Math.round(avg(dated.map(level))),
-      peakHours: peakHour != null ? `${String(peakHour).padStart(2, '0')}:00 - ${String((peakHour + 2) % 24).padStart(2, '0')}:00` : '--',
-      weeklyChange: thisWeek && lastWeek ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100) : 0,
+      scaleMax: TRIGGER_SCALE_MAX,
+      currentLevel: latest ? latest.stressLevel : null,
+      lastRecordedAt: latest ? latest.triggeredAt : null,
+      average: round1(avg(inPeriod.map(level))),
+      peakHours: peakHour != null ? `${String(peakHour).padStart(2, '0')}:00 - ${String((peakHour + 2) % 24).padStart(2, '0')}:00` : null,
+      // Solo se compara si hay registros en ambas semanas (antes se mostraba 0 % como si fuera real)
+      weeklyChange: thisWeek != null && lastWeek != null && lastWeek > 0 ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100) : null,
       weeklyData: buckets,
+      periodCount: inPeriod.length,
       totalTriggers: dated.length
-    }
-  }
-
-  _demo(period, seedKey) {
-    const rand = seeded(`${seedKey}-${period}`)
-    const base = 45 + rand() * 25
-    const patterns = {
-      day: { labels: DAY_HOURS, factors: [0.6, 0.85, 0.95, 1.2, 1.05, 0.7] },
-      week: { labels: WEEK_DAYS, factors: [0.9, 1.0, 1.1, 1.2, 1.1, 0.7, 0.6] },
-      month: { labels: ['week1', 'week2', 'week3', 'week4'], factors: [0.85, 1.0, 1.1, 0.9] }
-    }
-    const { labels, factors } = patterns[period] || patterns.week
-    const data = labels.map((day, i) => ({
-      day,
-      value: Math.round(Math.max(10, Math.min(100, base * factors[i] + (rand() - 0.5) * 12)))
-    }))
-    const peak = data.reduce((m, d) => (d.value > m.value ? d : m))
-    const todayIndex = period === 'week' ? (new Date().getDay() + 6) % 7 : Math.floor(rand() * data.length)
-    return {
-      currentLevel: data[Math.min(todayIndex, data.length - 1)].value,
-      average: Math.round(avg(data.map((d) => d.value))),
-      peakHours: period === 'day' ? peak.day : '14:00 - 16:00',
-      weeklyChange: Math.round((rand() - 0.5) * 20),
-      weeklyData: data
     }
   }
 }

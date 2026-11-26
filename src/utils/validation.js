@@ -38,8 +38,31 @@ export const isCvv = (v) => /^\d{3,4}$/.test(String(v || ''))
 
 export const minLength = (v, n) => String(v || '').trim().length >= n
 
-/** Contraseña con reglas de complejidad: mínimo 8 caracteres, al menos una letra y un número */
-export const isStrongPassword = (v) => /^(?=.*[A-Za-zÁÉÍÓÚÑáéíóúñ])(?=.*\d).{8,}$/.test(String(v || ''))
+/** Longitud mínima de la contraseña (PasswordPolicy del backend) */
+export const PASSWORD_MIN_LENGTH = 8
+
+/** Máximo de bytes UTF-8 (límite de BCrypt en PasswordPolicy del backend) */
+export const PASSWORD_MAX_BYTES = 72
+
+const utf8Length = (value) => new TextEncoder().encode(value).length
+
+/**
+ * Requisitos de la contraseña, uno por uno (checklist del registro, M6). Copia exacta de
+ * PasswordPolicy.cs del backend: longitud ≥ 8 en unidades UTF-16 (string.Length), al menos una letra Unicode
+ * (char.IsLetter → \p{L}), al menos un dígito decimal Unicode (char.IsDigit → \p{Nd}) y como máximo 72 bytes UTF-8.
+ */
+export function passwordChecks(v) {
+  const value = String(v || '')
+  return {
+    length: value.length >= PASSWORD_MIN_LENGTH,
+    letter: /\p{L}/u.test(value),
+    number: /\p{Nd}/u.test(value),
+    maxBytes: utf8Length(value) <= PASSWORD_MAX_BYTES
+  }
+}
+
+/** Contraseña válida según la política del backend */
+export const isStrongPassword = (v) => Object.values(passwordChecks(v)).every(Boolean)
 
 /**
  * Número de colegiatura del CPsP. Acepta solo dígitos (3 a 6) o con el prefijo

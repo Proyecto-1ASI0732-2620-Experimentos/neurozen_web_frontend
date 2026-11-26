@@ -15,13 +15,13 @@
           <img v-if="professional" :src="professional.image" :alt="professional.name" class="h-14 w-14 rounded-full object-cover" />
           <div>
             <p class="font-bold">{{ professional ? professional.name : $t('appointments.professionalFallback') }}</p>
-            <p v-if="professional" class="text-sm text-primary">{{ professional.specialty }}</p>
+            <p v-if="professional" class="text-sm text-primary">{{ $te(`specialties.${professional.specialty}`) ? $t(`specialties.${professional.specialty}`) : professional.specialty }}</p>
           </div>
         </div>
         <dl class="grid gap-4 p-5 sm:grid-cols-3">
           <div><dt class="text-sm text-muted-light">{{ $t('professionals.booking.dateTime') }}</dt><dd class="font-semibold">{{ dateText }}</dd></div>
           <div><dt class="text-sm text-muted-light">{{ $t('appointments.duration') }}</dt><dd class="font-semibold">{{ appointment.duration }} min</dd></div>
-          <div><dt class="text-sm text-muted-light">{{ $t('appointments.cost') }}</dt><dd class="font-semibold">{{ professional ? `$${professional.price}` : '—' }}</dd></div>
+          <div><dt class="text-sm text-muted-light">{{ $t('appointments.cost') }}</dt><dd class="font-semibold">{{ professional && professional.price ? `$${professional.price}` : $t('professionals.feeToBeDefined') }}</dd></div>
         </dl>
         <div v-if="appointment.notes" class="p-5">
           <p class="text-sm text-muted-light">{{ $t('professionals.booking.notes') }}</p>

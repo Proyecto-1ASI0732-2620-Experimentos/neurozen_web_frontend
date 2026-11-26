@@ -13,7 +13,7 @@
     "logout": "Cerrar Sesión",
     "login": "Iniciar Sesión",
     "register": "Registrarse",
-    "bookSession": "Reservar sesión",
+    "bookSession": "Reservar cita",
     "directory": "Directorio",
     "myAppointments": "Mis citas"
   },
@@ -40,7 +40,7 @@
   },
   "footer": {
     "company": "NeuroZen",
-    "description": "Plataforma líder en gestión del estrés y bienestar mental",
+    "description": "Plataforma para la gestión del estrés laboral y el bienestar emocional.",
     "links": {
       "about": "Acerca de",
       "contact": "Contacto",
@@ -50,10 +50,7 @@
       "blog": "Blog"
     },
     "contact": {
-      "title": "Contacto",
-      "email": "info{'@'}neurozen.com",
-      "phone": "+1 (555) 123-4567",
-      "address": "123 Wellness St, Health City, HC 12345"
+      "title": "Contacto"
     },
     "social": {
       "title": "Síguenos",
@@ -62,7 +59,7 @@
       "instagram": "Instagram",
       "linkedin": "LinkedIn"
     },
-    "copyright": "© 2025 NeuroZen. Todos los derechos reservados.",
+    "copyright": "© {year} NeuroZen. Todos los derechos reservados.",
     "backToTop": "Volver arriba",
     "explore": "Explorar"
   },
@@ -91,7 +88,7 @@
     "welcome": "Bienvenido de vuelta",
     "quickActions": {
       "title": "Acciones Rápidas",
-      "bookSession": "Reservar Sesión",
+      "bookSession": "Reservar cita",
       "viewProfile": "Ver Perfil",
       "settings": "Configuración",
       "stressLevel": "Nivel de Estrés",
@@ -103,7 +100,8 @@
       "todayStress": "Estrés de Hoy",
       "weeklyAverage": "Promedio Semanal",
       "sessionsCompleted": "Sesiones Completadas",
-      "streakDays": "Días Consecutivos"
+      "streakDays": "Días Consecutivos",
+      "subtitle": "Basadas en los desencadenantes que registras."
     },
     "periods": {
       "day": "Día",
@@ -123,7 +121,9 @@
       "stressLevel": "Nivel de Estrés",
       "stressLevelShort": "Estrés",
       "averageStress": "Promedio de Estrés",
-      "peakStressHours": "Horas Pico de Estrés"
+      "peakStressHours": "Horas Pico de Estrés",
+      "lastRecord": "Último registro",
+      "noRecords": "sin registros"
     },
     "stressLevels": {
       "veryLow": "Muy Bajo",
@@ -151,8 +151,8 @@
         "description": "Audio, videos y artículos"
       },
       "bookSession": {
-        "title": "Reservar Sesión",
-        "description": "Agendar cita con profesional"
+        "title": "Reservar cita",
+        "description": "Agenda una cita con un profesional"
       },
       "myProfile": {
         "title": "Mi Perfil",
@@ -164,7 +164,7 @@
       },
       "myAppointments": {
         "title": "Mis citas",
-        "description": "Consulta tus próximas sesiones"
+        "description": "Consulta tus próximas citas"
       }
     },
     "insights": {
@@ -175,10 +175,32 @@
       "loadingData": "Error al cargar los datos del dashboard: {error}",
       "updatingData": "Error al actualizar los datos: {error}"
     },
-    "demoNotice": "Aún no hay registros suficientes: se muestran datos de ejemplo.",
-    "demoCta": "Registra tu primer desencadenante",
     "periodLabel": "Período",
-    "vsPrevious": "respecto al período anterior"
+    "vsPrevious": "respecto al período anterior",
+    "welcomeNew": "Te damos la bienvenida",
+    "loading": "Cargando tu panel…",
+    "empty": {
+      "title": "Empecemos a conocer cómo te sientes",
+      "text": "Aún no tienes registros. Tu panel mostrará estadísticas y recomendaciones cuando tengas tus propios datos; nunca verás datos de ejemplo como si fueran tuyos.",
+      "step1": "Haz el test de estrés percibido (PSS-10): 10 preguntas, unos 3 minutos.",
+      "step2": "Registra cómo te sientes cuando una situación del trabajo te genere estrés.",
+      "takeTest": "Hacer el test",
+      "logFeeling": "Registrar cómo me siento",
+      "privacy": "Tus registros son privados y solo se usan para tu seguimiento."
+    },
+    "noTriggers": {
+      "title": "Aún no registraste desencadenantes",
+      "text": "Cuando registres situaciones que te generen estrés, aquí verás su evolución."
+    },
+    "scale": {
+      "triggers": "Intensidad percibida (escala 1-10)",
+      "backend": "Índice de estrés (escala 0-100)",
+      "triggersNote": "La intensidad (1-10) es la que eliges al registrar cada situación. Es un registro personal, no una medición clínica, y no se compara con el test PSS-10.",
+      "pssNormalized": "{value}/100 normalizado",
+      "pssNote": "El PSS-10 se puntúa de 0 a 40. El valor normalizado (puntaje ÷ 40 × 100) solo facilita la lectura; es orientativo, no un diagnóstico."
+    },
+    "notEnoughToCompare": "Aún no hay registros suficientes para comparar con la semana anterior.",
+    "noRecordsInPeriod": "No tienes registros en este período. Prueba con otro período o registra un desencadenante."
   },
   "auth": {
     "login": {
@@ -196,7 +218,9 @@
       "passwordPlaceholder": "Contraseña",
       "subtitle": "Inicia sesión para continuar con tu bienestar.",
       "sessionExpired": "Tu sesión expiró. Vuelve a iniciar sesión.",
-      "forgotPasswordInfo": "La recuperación de contraseña aún no está disponible. Escríbenos desde Ajustes > Acerca de > Contactar soporte."
+      "forgotPasswordInfo": "Si olvidaste tu contraseña, usa «¿Olvidaste tu contraseña?» para recibir un enlace de recuperación.",
+      "emailHint": "Usa el correo con el que creaste tu cuenta.",
+      "passwordHint": "Distingue mayúsculas y minúsculas. Puedes mostrarla con el ícono del ojo."
     },
     "register": {
       "title": "Crear Cuenta",
@@ -222,7 +246,7 @@
       "headline": "Gestiona el estrés laboral con herramientas que caben en tu jornada.",
       "point1": "Ejercicios de respiración guiada y pausas activas",
       "point2": "Registra lo que te estresa y descubre tus patrones",
-      "point3": "Reserva sesiones con profesionales de salud mental"
+      "point3": "Reserva citas con profesionales de salud mental"
     },
     "errors": {
       "invalidCredentials": "Correo o contraseña incorrectos.",
@@ -481,19 +505,19 @@
   },
   "professionals": {
     "title": "Conexión Profesional",
-    "bookSession": "Reservar Sesión",
+    "bookSession": "Reservar cita",
     "findTherapist": "Encontrar Terapeuta",
     "myAppointments": "Mis Citas",
     "booking": {
-      "title": "Reservar Sesión",
+      "title": "Reservar cita",
       "selectDate": "Seleccionar Fecha",
       "selectTime": "Seleccionar Hora",
       "selectProfessional": "Seleccionar Profesional",
-      "sessionType": "Tipo de Sesión",
-      "confirm": "Confirmar Reserva",
-      "summary": "Resumen de la Reserva",
+      "sessionType": "Tipo de cita",
+      "confirm": "Confirmar cita",
+      "summary": "Resumen de la cita",
       "with": "Con {name}",
-      "wizardSubtitle": "Elige profesional, fecha, hora y tipo de sesión.",
+      "wizardSubtitle": "Elige profesional, fecha, hora y tipo de cita.",
       "progress": "Progreso de la reserva",
       "steps": {
         "professional": "Profesional",
@@ -510,7 +534,33 @@
       "total": "Total",
       "booking": "Reservando…",
       "phone": "Teléfono de contacto",
-      "email": "Correo de confirmación"
+      "email": "Correo de confirmación",
+      "date": "Fecha",
+      "time": "Hora",
+      "editDate": "Editar fecha",
+      "editTime": "Editar hora",
+      "editingNotice": "Estás cambiando la fecha u hora. El profesional, el tipo de cita y tus notas se conservan.",
+      "saveAndReturn": "Volver al resumen",
+      "cancelEdit": "Cancelar cambio",
+      "prevMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "legend": "Leyenda del calendario",
+      "dayState": {
+        "available": "Disponible",
+        "selected": "Seleccionado",
+        "unavailable": "Sin horarios",
+        "outOfRange": "Fuera del rango permitido"
+      },
+      "nextAvailable": "Próxima fecha disponible: {date}",
+      "pickThisDate": "Elegir esta fecha",
+      "noSchedule": "Este profesional aún no publicó su horario de atención, por lo que no hay fechas para reservar.",
+      "chooseAnother": "Elegir otro profesional",
+      "attendsOn": "Atiende: {schedule}",
+      "dayNotAvailable": "El profesional no atiende ese día.",
+      "outOfRange": "Elige una fecha entre hoy y los próximos 90 días.",
+      "timezone": "Horario en tu zona horaria ({zone})",
+      "slotsFromSchedule": "Horas según el horario publicado por el profesional. Te confirmará la cita.",
+      "slotTaken": "Esa hora ya no está disponible. Elige otra; tus demás datos se conservan."
     },
     "book": "Reservar",
     "viewProfile": "Ver perfil",
@@ -528,15 +578,30 @@
       "weekends": "Fines de semana",
       "evenings": "Por la tarde-noche",
       "empty": "No hay profesionales que coincidan",
-      "emptyHint": "Prueba con otros filtros."
+      "emptyHint": "Prueba con otros filtros.",
+      "filters": "Filtros del directorio",
+      "feeRange": "Tarifa por cita (USD)",
+      "feeMin": "Tarifa mínima",
+      "feeMax": "Tarifa máxima",
+      "feeMinShort": "Mín.",
+      "feeMaxShort": "Máx.",
+      "feeHint": "Con un rango activo no se muestran profesionales con tarifa por definir.",
+      "feeRangeError": "La tarifa mínima no puede ser mayor que la máxima.",
+      "resultsCount": "{count} profesional encontrado | {count} profesionales encontrados",
+      "clearFilters": "Limpiar filtros"
     },
     "profile": {
       "title": "Perfil del profesional",
       "biography": "Biografía",
       "reviews": "Reseñas",
       "noReviews": "Todavía no hay reseñas.",
-      "rate": "Tarifa"
-    }
+      "rate": "Tarifa",
+      "verifiedLicense": "Colegiatura verificada N.º {number}"
+    },
+    "feeToBeDefined": "Tarifa por definir",
+    "noReviewsYet": "Sin valoraciones aún",
+    "reviewsCount": "{count} valoración | {count} valoraciones",
+    "experienceYears": "{count} año de experiencia | {count} años de experiencia"
   },
   "profile": {
     "title": "Perfil de Usuario",
@@ -573,9 +638,9 @@
     "reduceAnimations": "Reducir animaciones",
     "reduceAnimationsHint": "Minimiza transiciones y movimientos.",
     "highContrast": "Alto contraste",
-    "highContrastHint": "Oscurece textos secundarios y bordes.",
+    "highContrastHint": "Oscurece textos secundarios, bordes y subraya los enlaces.",
     "notificationsNote": "Tus preferencias se guardan ahora y se aplicarán cuando el servicio de recordatorios esté disponible.",
-    "sessionReminders": "Recordatorios de sesiones",
+    "sessionReminders": "Recordatorios de citas",
     "reminderTime": "Avisarme",
     "minutesBefore": "{m} minutos antes",
     "breathingReminders": "Recordatorios de respiración",
@@ -603,7 +668,18 @@
       "storage": "Almacenamiento local",
       "api": "Servidor de NeuroZen"
     },
-    "contactSupport": "Contactar soporte"
+    "contactSupport": "Contactar soporte",
+    "resetDisplay": "Restablecer",
+    "fontSmaller": "Reducir tamaño de texto (A-)",
+    "fontLarger": "Aumentar tamaño de texto (A+)",
+    "on": "Activado",
+    "off": "Desactivado",
+    "preview": {
+      "title": "Vista previa",
+      "heading": "Así se verá el texto de NeuroZen",
+      "body": "Respira profundo: inhala 4 segundos, sostén 4 y exhala 6.",
+      "hint": "Texto de ayuda de ejemplo."
+    }
   },
   "payment": {
     "confirmation": {
@@ -708,7 +784,7 @@
       "title": "Preferencias",
       "notifications": {
         "title": "Notificaciones",
-        "sessionReminders": "Recordatorios de sesiones",
+        "sessionReminders": "Recordatorios de citas",
         "breathingReminders": "Recordatorios de respiración",
         "weeklyUpdates": "Actualizaciones semanales"
       },
@@ -935,12 +1011,12 @@
     },
     "list": {
       "title": "Mis citas",
-      "subtitle": "Tus sesiones con profesionales.",
+      "subtitle": "Tus citas con profesionales.",
       "upcoming": "Próximas",
       "past": "Anteriores",
       "none": "Ninguna.",
       "empty": "Aún no tienes citas",
-      "emptyHint": "Reserva una sesión con un profesional cuando lo necesites."
+      "emptyHint": "Reserva una cita con un profesional cuando lo necesites."
     },
     "actions": {
       "cancel": "Cancelar cita",
@@ -951,7 +1027,7 @@
     },
     "cancelDialog": {
       "title": "¿Cancelar tu cita?",
-      "message": "Se cancelará tu sesión con {name}.",
+      "message": "Se cancelará tu cita con {name}.",
       "keep": "Mantener cita",
       "done": "Cita cancelada"
     },
@@ -960,8 +1036,8 @@
       "message": "{name} verá este resumen de tu semana para preparar la sesión."
     },
     "reviewDialog": {
-      "title": "Califica tu sesión",
-      "message": "¿Cómo fue tu sesión con {name}?",
+      "title": "Califica tu cita",
+      "message": "¿Cómo fue tu cita con {name}?",
       "rating": "Valoración",
       "comment": "Comentario (opcional)",
       "placeholder": "Cuéntanos tu experiencia…",
@@ -972,7 +1048,7 @@
   },
   "payments": {
     "receipt": {
-      "title": "Comprobante de reserva",
+      "title": "Comprobante de la cita",
       "cardMessage": "Registramos tu preferencia de pago con tarjeta.",
       "cashMessage": "Pagarás en efectivo al profesional.",
       "reference": "Referencia",
@@ -1046,14 +1122,14 @@
     },
     "user": {
       "title": "Busco apoyo",
-      "description": "Gestiona tu estrés laboral con herramientas, recursos y sesiones con profesionales.",
+      "description": "Gestiona tu estrés laboral con herramientas, recursos y citas con profesionales.",
       "formTitle": "Crea tu cuenta",
       "formSubtitle": "Solo te pedimos lo esencial; personalizarás tu experiencia después.",
       "submit": "Crear cuenta"
     },
     "psychologist": {
       "title": "Soy psicólogo",
-      "description": "Ofrece sesiones a trabajadores que buscan apoyo. Tu colegiatura será verificada.",
+      "description": "Ofrece citas a trabajadores que buscan apoyo. Tu colegiatura será verificada.",
       "badge": "Requiere verificación de colegiatura",
       "formTitle": "Registro de psicólogo",
       "formSubtitle": "Crea tu cuenta profesional para atender en NeuroZen.",
@@ -1064,7 +1140,8 @@
       "license": "Número de colegiatura (CPsP)",
       "licenseHint": "Lo usaremos para verificar que estás habilitado para ejercer.",
       "submit": "Enviar solicitud",
-      "successLogin": "Solicitud enviada. Inicia sesión para ver el estado de tu verificación."
+      "successLogin": "Solicitud enviada. Inicia sesión para ver el estado de tu verificación.",
+      "verificationTime": "La verificación suele tomar de 1 a 2 días hábiles. Te notificaremos por correo electrónico cuando tu cuenta haya sido revisada."
     },
     "dni": "DNI",
     "dniPlaceholder": "8 dígitos",
@@ -1136,7 +1213,7 @@
       "steps": {
         "license": "Colegiatura verificada",
         "bio": "Biografía profesional (mín. 30 caracteres)",
-        "pricing": "Años de experiencia y tarifa por sesión",
+        "pricing": "Años de experiencia y tarifa por cita",
         "availability": "Disponibilidad semanal"
       }
     },
@@ -1192,7 +1269,7 @@
       "noUpcomingHint": "Cuando un paciente reserve contigo, aparecerá aquí."
     },
     "patients": {
-      "subtitle": "Personas que han reservado sesiones contigo.",
+      "subtitle": "Personas que han reservado citas contigo.",
       "search": "Buscar paciente",
       "filter": "Filtrar pacientes",
       "filters": {
@@ -1205,7 +1282,7 @@
       "noNext": "Sin cita próxima",
       "history": "Historial de citas",
       "empty": "Aún no tienes pacientes",
-      "emptyHint": "Tus pacientes aparecerán cuando reserven una sesión contigo."
+      "emptyHint": "Tus pacientes aparecerán cuando reserven una cita contigo."
     },
     "schedule": {
       "subtitle": "Gestiona tus citas y tu disponibilidad semanal.",
@@ -1257,7 +1334,7 @@
       "bioPlaceholder": "Cuéntales a los pacientes tu enfoque, formación y en qué puedes ayudarles…",
       "bioHint": "Mínimo 30 caracteres.",
       "experience": "Años de experiencia",
-      "price": "Tarifa por sesión (USD)",
+      "price": "Tarifa por cita (USD)",
       "errors": {
         "experience": "Ingresa un valor entre 0 y 60.",
         "price": "Ingresa un valor entre 0 y 1000."
@@ -1344,18 +1421,12 @@
   },
   "zenbot": {
     "open": "Abrir ZenBot, tu asistente",
-    "subtitle": "Asistente de NeuroZen",
+    "subtitle": "Tu asistente de bienestar",
     "restart": "Reiniciar conversación",
     "typing": "ZenBot está escribiendo…",
     "placeholder": "Escribe cómo te sientes…",
     "send": "Enviar",
-    "disclaimer": "ZenBot da respuestas automáticas y no reemplaza a un profesional. Ante una emergencia, llama al 106 (SAMU).",
-    "quick": {
-      "stressed": "Me siento estresado",
-      "sleep": "No puedo dormir",
-      "work": "Mucha carga de trabajo",
-      "specialist": "Quiero hablar con un psicólogo"
-    },
+    "disclaimer": "ZenBot ofrece orientación automática: no diagnostica ni reemplaza a un profesional, y no puede contactar a servicios de emergencia por ti.",
     "links": {
       "breathing": "Respiración guiada",
       "trigger": "Registrar desencadenante",
@@ -1369,34 +1440,173 @@
     },
     "crisis": {
       "line113": "Línea 113, opción 5 (salud mental, gratuita, 24 h)",
-      "samu": "SAMU 106 (emergencias)"
+      "samu": "SAMU 106 (emergencias médicas)",
+      "title": "Si estás en peligro, busca ayuda ahora:",
+      "region": "Estas líneas son de Perú. Si estás en otro país, llama al número de emergencias local.",
+      "limits": "ZenBot no puede llamar ni avisar a nadie por ti. Si puedes, busca ahora la compañía de una persona de confianza y no te quedes a solas."
     },
     "answers": {
-      "welcome": "¡Hola! Soy ZenBot 🌿 Estoy aquí para orientarte con tu estrés laboral. Cuéntame cómo te sientes o elige una opción.",
-      "empty": "Escríbeme algo y te ayudo.",
-      "crisis": "Siento mucho que estés pasando por esto. No estás solo/a y tu vida importa. Por favor, busca ayuda ahora mismo: llama gratis a la Línea 113 (opción 5) o, si estás en peligro inmediato, al SAMU 106. También puedes hablar hoy con un especialista de NeuroZen.",
-      "sad": "Lamento que te sientas así; tus emociones son válidas. Hablar con un profesional puede ayudarte mucho. Mientras tanto, un ejercicio de respiración puede darte un momento de calma.",
-      "anxiety": "Entiendo, el estrés puede ser agotador. Te propongo dos cosas: un ejercicio de respiración guiada de pocos minutos y registrar qué lo provocó, para descubrir tus patrones.",
-      "sleep": "Dormir mal aumenta el estrés. Intenta desconectarte de las pantallas antes de dormir y prueba la respiración 4-7-8, que ayuda a relajarte. En la biblioteca tienes recursos sobre el descanso.",
-      "work": "La carga laboral es una de las causas más comunes de estrés. Programar pausas activas en tu jornada y registrar las situaciones difíciles te ayudará a manejarla mejor.",
-      "breathing": "¡Buena idea! La respiración guiada reduce la tensión en pocos minutos. Tenemos tres ejercicios: consciente, cuadrada y 4-7-8.",
-      "breaks": "Las pausas activas son descansos cortos para moverte y estirarte durante la jornada. Puedes configurar cada cuánto hacerlas.",
-      "trigger": "Registrar lo que te estresa (cuándo, qué pasó y con qué intensidad) te ayuda a encontrar patrones. Tus registros alimentan tus estadísticas.",
-      "test": "El test de autoevaluación tiene 10 preguntas sobre el último mes y te da una orientación sobre tu nivel de estrés.",
-      "resources": "En la biblioteca encontrarás audios, videos, lecturas y ejercicios para tu bienestar.",
-      "appointments": "En «Mis citas» puedes ver tus sesiones, cancelarlas, compartir un informe con tu psicólogo y calificar las sesiones atendidas.",
-      "specialist": "Hablar con un profesional es una gran decisión. Todos nuestros psicólogos tienen la colegiatura verificada. Puedes reservar una sesión en pocos pasos.",
-      "subscription": "Tenemos planes Básico, Avanzado y Profesional. Puedes ver qué incluye cada uno en la sección de suscripciones.",
-      "thanks": "¡De nada! Aquí estaré cuando me necesites. 🌿",
-      "bye": "¡Hasta pronto! Recuerda tomarte un momento para ti hoy.",
-      "help": "Puedo orientarte sobre estrés, ansiedad, sueño o carga de trabajo, y llevarte a las herramientas de NeuroZen: respiración, pausas activas, registro de estrés, recursos o un especialista.",
-      "greeting": "¡Hola! ¿Cómo te sientes hoy? Puedes contarme qué te preocupa.",
-      "fallback": "No estoy seguro de haberte entendido. Prueba con otras palabras o elige una opción de abajo.",
-      "fallbackSpecialist": "Parece que tu situación necesita una atención más personal de la que puedo darte. Te recomiendo hablar con uno de nuestros especialistas."
+      "welcome": "¡Hola! Soy ZenBot, tu asistente de bienestar de NeuroZen. Estoy aquí para ayudarte a comprender cómo te sientes, gestionar el estrés y encontrar recursos que puedan ayudarte.\nElige una opción o escríbeme con tus propias palabras.",
+      "empty": "Escríbeme lo que quieras contarme y te ayudo.",
+      "crisis": "Gracias por decírmelo; lo que sientes es muy serio y mereces ayuda ahora mismo. Tu vida importa. Si estás en peligro inmediato o piensas hacerte daño, llama ya a una de estas líneas o a emergencias, y busca a alguien de confianza que pueda estar contigo.",
+      "fallback": "No estoy seguro de haberte entendido. ¿Puedes contármelo con otras palabras? También puedes tocar el botón de opciones para ver temas con los que te puedo ayudar.",
+      "fallbackSpecialist": "Parece que tu situación merece una atención más personal de la que yo puedo darte. Si quieres, puedes hablar con uno de nuestros psicólogos; mientras tanto, sigo aquí.",
+      "crisisOngoing": "Sigo aquí contigo. Lo más importante ahora es tu seguridad: por favor, comunícate con una de estas líneas o con alguien de confianza. Cuando estés a salvo, cuéntame y seguimos.",
+      "afterCrisis": "Me alegra leer que estás a salvo. Si quieres, puedes hablar con un psicólogo de NeuroZen para tener apoyo en los próximos días. Aquí sigo si necesitas algo más.",
+      "riskCheck": "Lo que escribes suena muy difícil y quiero entenderte bien. ¿Estás pensando en hacerte daño o en quitarte la vida? Puedes responderme con sinceridad; no voy a juzgarte.",
+      "supportAfterCheck": "Gracias por aclarármelo. Aun así, sentirte así de sobrepasado/a merece atención: hablar con un profesional puede ayudarte a aliviar esa carga. También puedo acompañarte con un ejercicio de respiración ahora.",
+      "supportSuggestion": "Por lo que me cuentas, esto viene afectándote de forma persistente. No puedo hacer un diagnóstico, pero hablar con un psicólogo puede ayudarte mucho; puedes ver el directorio o reservar una cita.",
+      "more": "Claro, aquí tienes otras opciones de la biblioteca relacionadas con lo que conversamos."
+    },
+    "close": "Cerrar ZenBot",
+    "history": "Conversación con ZenBot",
+    "you": "Tú",
+    "inputLabel": "Escribe tu mensaje para ZenBot",
+    "showOptions": "Mostrar opciones de conversación",
+    "startersLabel": "Opciones para empezar",
+    "actionsLabel": "Accesos de NeuroZen",
+    "starters": {
+      "stress": "Estoy sintiendo mucho estrés",
+      "work": "Tengo problemas relacionados con mi trabajo",
+      "anxiety": "Me siento ansioso o preocupado",
+      "sleep": "Tengo dificultades para dormir",
+      "burnout": "Me siento agotado emocionalmente",
+      "relax": "Quiero aprender a relajarme",
+      "levels": "Quiero conocer mis niveles de estrés",
+      "talk": "Necesito hablar sobre cómo me siento",
+      "videos": "Quiero encontrar ejercicios o videos de bienestar",
+      "professional": "Necesito ayuda profesional"
+    },
+    "actions": {
+      "assessment": "Hacer el test PSS-10",
+      "trigger": "Registrar un desencadenante",
+      "stats": "Ver mis estadísticas",
+      "breathing": "Ejercicio de respiración",
+      "breaks": "Pausas activas",
+      "videos": "Ver videos de bienestar",
+      "resources": "Biblioteca de recursos",
+      "directory": "Ver psicólogos",
+      "book": "Reservar una cita",
+      "appointments": "Mis citas",
+      "plans": "Ver planes"
+    },
+    "resources": {
+      "loading": "Buscando recursos de NeuroZen para ti…",
+      "intro": "Estos recursos de NeuroZen pueden ayudarte:",
+      "listLabel": "Recursos recomendados",
+      "none": "No encontré en la biblioteca un recurso específico para esto. Puedes explorar la biblioteca completa o probar un ejercicio de respiración.",
+      "error": "No pude cargar la biblioteca de recursos en este momento. Revisa tu conexión e inténtalo de nuevo; tu conversación se conserva.",
+      "watch": "Ver video",
+      "open": "Abrir recurso",
+      "minutes": "{n} min"
+    },
+    "replies": {
+      "stress": {
+        "0": "Entiendo. Sentir mucho estrés agota, y está bien que quieras hacer algo al respecto. Podemos empezar por bajar la tensión del momento y luego ver qué lo está provocando.",
+        "1": "Gracias por contármelo. Cuando el estrés se acumula, cuesta pensar con claridad; ir paso a paso ayuda. Te propongo algunas herramientas para empezar."
+      },
+      "work": {
+        "0": "Entiendo. Cuando las preocupaciones del trabajo continúan incluso después de terminar la jornada, puede resultar difícil descansar. Podemos empezar identificando qué situaciones te generan más presión y probar algunas técnicas para ayudarte a desconectar.",
+        "1": "El trabajo es una de las fuentes de estrés más comunes, y no tienes que resolverlo todo de golpe. Ver con calma qué situaciones pesan más es un buen primer paso."
+      },
+      "anxiety": {
+        "0": "Sentirte ansioso o preocupado puede ser muy incómodo. Una respiración lenta ayuda a que el cuerpo se calme, y anotar qué disparó la preocupación te permite verla con más perspectiva.",
+        "1": "Es comprensible sentir nervios cuando hay muchas cosas en juego. Probemos primero algo que te dé un poco de calma ahora mismo."
+      },
+      "sleep": {
+        "0": "Dormir mal aumenta el estrés y hace que todo se sienta más pesado. Desconectarte de las pantallas un rato antes de dormir y una respiración lenta, como la 4-7-8, pueden ayudarte a relajarte.",
+        "1": "El descanso es clave para tu bienestar. Mantener horarios regulares y una rutina tranquila antes de dormir suele ayudar; te dejo algunas opciones de NeuroZen."
+      },
+      "burnout": {
+        "0": "Sentirte agotado emocionalmente es una señal de que llevas mucho tiempo dando más de lo que recuperas. Mereces pausas reales, no solo seguir aguantando.",
+        "1": "Ese cansancio que no se va con dormir puede ser muy frustrante. Pequeños descansos durante la jornada y revisar tu nivel de estrés pueden ser un buen comienzo."
+      },
+      "relax": {
+        "0": "¡Buena idea! Aprender a relajarte es una habilidad que se entrena. La respiración guiada es una forma sencilla de empezar: tenemos ejercicios de respiración consciente, cuadrada y 4-7-8.",
+        "1": "Relajarte unos minutos al día marca la diferencia. Te comparto ejercicios y videos de NeuroZen para practicar."
+      },
+      "focus": {
+        "0": "Cuando hay estrés, concentrarse cuesta más. Alternar bloques de trabajo con pausas breves y unas respiraciones profundas ayuda a recuperar la atención."
+      },
+      "assessment": {
+        "0": "El test PSS-10 tiene 10 preguntas sobre el último mes y te da una orientación sobre tu nivel de estrés percibido (de 0 a 40). No es un diagnóstico, pero te ayuda a conocerte mejor. Tu último resultado y tus registros aparecen en tu panel."
+      },
+      "stats": {
+        "0": "En tu panel de inicio verás tus estadísticas a partir de tus propios registros y de tu último test. Si aún no tienes registros, puedes empezar anotando cómo te sientes."
+      },
+      "triggers": {
+        "0": "Registrar lo que te estresa (cuándo pasó, qué ocurrió y con qué intensidad) te ayuda a descubrir patrones y a decidir qué cambiar."
+      },
+      "breaks": {
+        "0": "Las pausas activas son descansos cortos para moverte y estirarte durante la jornada. Puedes configurar cada cuánto hacerlas."
+      },
+      "resources": {
+        "0": "¡Claro! Busqué en la biblioteca de NeuroZen ejercicios y videos de bienestar que pueden servirte."
+      },
+      "talk": {
+        "0": "Aquí estoy para escucharte. Puedes contarme lo que quieras, a tu ritmo.",
+        "1": "Gracias por querer compartirlo. Ponerle palabras a lo que sientes ya es un paso importante."
+      },
+      "sad": {
+        "0": "Lamento que te sientas así; tus emociones son válidas y no tienes que cargar con ellas en soledad."
+      },
+      "professional": {
+        "0": "Buscar apoyo profesional es una gran decisión. Todos los psicólogos de NeuroZen tienen la colegiatura verificada. Puedes ver sus perfiles o reservar una cita en pocos pasos; nada se reserva sin tu confirmación."
+      },
+      "booking": {
+        "0": "Puedes reservar una cita eligiendo profesional, fecha, hora y tipo de cita. Solo verás los días en los que el profesional atiende, y nada se confirma sin tu aprobación."
+      },
+      "appointments": {
+        "0": "En «Mis citas» puedes ver tus citas, cancelarlas, compartir un informe con tu psicólogo y calificar las citas atendidas. Cualquier cancelación te pedirá confirmación."
+      },
+      "subscription": {
+        "0": "Tenemos planes Básico, Avanzado y Profesional. Puedes ver qué incluye cada uno en la sección de suscripciones."
+      },
+      "thanks": {
+        "0": "¡Con gusto! Aquí estaré cuando me necesites. 🌿"
+      },
+      "bye": {
+        "0": "¡Hasta pronto! Recuerda regalarte un momento para ti hoy."
+      },
+      "help": {
+        "0": "Puedo orientarte sobre estrés, ansiedad, sueño, agotamiento o carga laboral, recomendarte recursos de la biblioteca y llevarte a las herramientas de NeuroZen: test PSS-10, registro de desencadenantes, respiración, pausas activas o un psicólogo."
+      },
+      "greeting": {
+        "0": "¡Hola! ¿Cómo te sientes hoy? Puedes contarme lo que tengas en mente o elegir una de las opciones."
+      }
+    },
+    "followUps": {
+      "stress": "¿Qué es lo que más te está generando estrés en este momento?",
+      "work": "¿Qué es lo que más te está generando presión?",
+      "anxiety": "¿Hay algo en particular que te preocupe o es una sensación más general?",
+      "sleep": "¿Te cuesta conciliar el sueño o te despiertas durante la noche?",
+      "burnout": "¿Desde hace cuánto te sientes así?",
+      "talk": "¿Qué es lo que más te pesa hoy?",
+      "sad": "¿Quieres contarme un poco más sobre lo que te tiene así?"
+    },
+    "continue": {
+      "stress": "Gracias por explicármelo. Tiene sentido que eso te genere estrés. Algo que suele ayudar es separar lo que depende de ti de lo que no, y darte pausas cortas para respirar. Registrar estas situaciones te permitirá ver patrones.",
+      "work": "Gracias por contármelo. Cuando las responsabilidades del trabajo se acumulan, es normal sentir que no alcanza el tiempo. Puede ayudarte priorizar lo urgente, poner límites a tu horario y anotar las situaciones que más presión te generan para hablarlas o ajustarlas.",
+      "anxiety": "Entiendo. Poner en palabras lo que te preocupa ya ayuda a darle forma. Cuando aparezca la preocupación, prueba una respiración lenta y pregúntate qué parte está bajo tu control.",
+      "sleep": "Gracias por el detalle. Una rutina tranquila antes de dormir, evitar pantallas y cafeína por la noche, y una respiración lenta al acostarte pueden ayudarte. Si se mantiene en el tiempo, vale la pena consultarlo con un profesional.",
+      "burnout": "Gracias por contármelo. Cuando el agotamiento se prolonga, conviene no esperar a que pase solo: descansos reales, revisar tu carga y, si lo necesitas, apoyo profesional pueden ayudarte a recuperar energía.",
+      "talk": "Te leo. Gracias por confiarme algo así. Lo que sientes es importante. Si quieres, puedo sugerirte algo que te ayude ahora o un espacio para conversarlo con un profesional.",
+      "sad": "Gracias por confiármelo. Si esa tristeza se mantiene o te pesa mucho, hablar con un psicólogo puede ayudarte. Mientras tanto, estoy aquí.",
+      "relax": "Perfecto. Practicar unos minutos cada día es lo que más ayuda; empieza con el ejercicio que te resulte más cómodo.",
+      "focus": "Entiendo. Divide la tarea en partes pequeñas y haz una pausa breve entre cada una; así es más fácil retomar la concentración.",
+      "assessment": "Cuando completes el test, tu resultado aparecerá en tu panel junto con su escala (0-40).",
+      "stats": "Tus estadísticas se actualizan con cada registro que haces.",
+      "triggers": "Cuantos más registros tengas, mejor podrás ver qué situaciones se repiten.",
+      "breaks": "Programar pausas cortas cada cierto tiempo ayuda a cuidar tu cuerpo y tu mente durante la jornada.",
+      "resources": "Si quieres, puedo buscar otros recursos: escríbeme «otro».",
+      "professional": "Cuando quieras, puedes reservar desde aquí; nada se confirma sin tu aprobación.",
+      "booking": "Cuando elijas una fecha disponible, verás las horas libres del profesional.",
+      "appointments": "Desde «Mis citas» puedes revisar el estado de cada cita.",
+      "subscription": "Si tienes dudas sobre un plan, revisa su detalle en la sección de suscripciones."
     }
   },
   "onboardingProfile": {
-    "step": "Último paso",
+    "step": "Paso opcional",
     "title": "Cuéntanos un poco de ti",
     "subtitle": "Es opcional: nos ayuda a personalizar tus recomendaciones.",
     "age": "Edad",
@@ -1421,8 +1631,10 @@
       }
     },
     "privacy": "Estos datos solo se usan para personalizar tu experiencia.",
-    "continue": "Continuar al test",
-    "saveError": "No pudimos guardar tus datos, pero puedes continuar."
+    "continue": "Guardar y continuar al test",
+    "saveError": "No pudimos guardar tus datos, pero puedes continuar.",
+    "skip": "Omitir",
+    "skipHint": "Puedes omitir este paso; tus datos del registro ya están guardados."
   },
   "assessment": {
     "title": "Test de autoevaluación de estrés",
@@ -1487,7 +1699,8 @@
       "submit": "Enviar enlace",
       "sent": "Si existe una cuenta con {email}, recibirás un correo con el enlace en unos minutos.",
       "demoNote": "Modo demostración: no se envían correos. Usa este enlace para continuar:",
-      "demoLink": "Restablecer contraseña"
+      "demoLink": "Restablecer contraseña",
+      "emailHint": "Te enviaremos un enlace para crear una nueva contraseña si el correo está registrado."
     },
     "reset": {
       "title": "Crea una nueva contraseña",
@@ -1503,6 +1716,15 @@
       "done": "Contraseña actualizada",
       "wrongCurrent": "La contraseña actual no es correcta.",
       "samePassword": "La nueva contraseña debe ser distinta de la actual."
+    },
+    "checklist": {
+      "title": "Tu contraseña debe tener:",
+      "length": "Al menos 8 caracteres",
+      "letter": "Al menos una letra",
+      "number": "Al menos un número",
+      "met": "cumplido",
+      "pending": "pendiente",
+      "maxBytes": "Como máximo 72 bytes (las tildes y los emojis ocupan más de uno)"
     }
   },
   "account": {

@@ -13,7 +13,7 @@
     "logout": "Logout",
     "login": "Login",
     "register": "Register",
-    "bookSession": "Book a session",
+    "bookSession": "Book an appointment",
     "directory": "Directory",
     "myAppointments": "My appointments"
   },
@@ -40,7 +40,7 @@
   },
   "footer": {
     "company": "NeuroZen",
-    "description": "Leading platform for stress management and mental wellness",
+    "description": "Platform for managing work stress and emotional wellbeing.",
     "links": {
       "about": "About",
       "contact": "Contact",
@@ -50,10 +50,7 @@
       "blog": "Blog"
     },
     "contact": {
-      "title": "Contact",
-      "email": "info{'@'}neurozen.com",
-      "phone": "+1 (555) 123-4567",
-      "address": "123 Wellness St, Health City, HC 12345"
+      "title": "Contact"
     },
     "social": {
       "title": "Follow Us",
@@ -62,7 +59,7 @@
       "instagram": "Instagram",
       "linkedin": "LinkedIn"
     },
-    "copyright": "© 2025 NeuroZen. All rights reserved.",
+    "copyright": "© {year} NeuroZen. All rights reserved.",
     "backToTop": "Back to top",
     "explore": "Explore"
   },
@@ -91,7 +88,7 @@
     "welcome": "Welcome back",
     "quickActions": {
       "title": "Quick Actions",
-      "bookSession": "Book Session",
+      "bookSession": "Book appointment",
       "viewProfile": "View Profile",
       "settings": "Settings",
       "stressLevel": "Stress Level",
@@ -103,7 +100,8 @@
       "todayStress": "Today's Stress",
       "weeklyAverage": "Weekly Average",
       "sessionsCompleted": "Sessions Completed",
-      "streakDays": "Streak Days"
+      "streakDays": "Streak Days",
+      "subtitle": "Based on the triggers you log."
     },
     "periods": {
       "day": "Day",
@@ -123,7 +121,9 @@
       "stressLevel": "Stress Level",
       "stressLevelShort": "Stress",
       "averageStress": "Average Stress",
-      "peakStressHours": "Peak Stress Hours"
+      "peakStressHours": "Peak Stress Hours",
+      "lastRecord": "Latest record",
+      "noRecords": "no records"
     },
     "stressLevels": {
       "veryLow": "Very Low",
@@ -151,8 +151,8 @@
         "description": "Audio, videos and articles"
       },
       "bookSession": {
-        "title": "Book Session",
-        "description": "Schedule appointment with professional"
+        "title": "Book appointment",
+        "description": "Schedule an appointment with a professional"
       },
       "myProfile": {
         "title": "My Profile",
@@ -164,7 +164,7 @@
       },
       "myAppointments": {
         "title": "My appointments",
-        "description": "See your upcoming sessions"
+        "description": "See your upcoming appointments"
       }
     },
     "insights": {
@@ -175,10 +175,32 @@
       "loadingData": "Error loading dashboard data: {error}",
       "updatingData": "Error updating data: {error}"
     },
-    "demoNotice": "Not enough records yet: sample data is shown.",
-    "demoCta": "Log your first trigger",
     "periodLabel": "Period",
-    "vsPrevious": "vs. previous period"
+    "vsPrevious": "vs. previous period",
+    "welcomeNew": "Welcome",
+    "loading": "Loading your dashboard…",
+    "empty": {
+      "title": "Let's start understanding how you feel",
+      "text": "You don't have any records yet. Your dashboard will show statistics and recommendations once you have your own data; you will never see sample data presented as yours.",
+      "step1": "Take the Perceived Stress Scale test (PSS-10): 10 questions, about 3 minutes.",
+      "step2": "Log how you feel when a work situation causes you stress.",
+      "takeTest": "Take the test",
+      "logFeeling": "Log how I feel",
+      "privacy": "Your records are private and only used for your own tracking."
+    },
+    "noTriggers": {
+      "title": "You haven't logged any triggers yet",
+      "text": "When you log situations that cause you stress, you'll see how they evolve here."
+    },
+    "scale": {
+      "triggers": "Perceived intensity (1-10 scale)",
+      "backend": "Stress index (0-100 scale)",
+      "triggersNote": "Intensity (1-10) is what you choose when logging each situation. It is a personal record, not a clinical measurement, and it is not compared with the PSS-10 test.",
+      "pssNormalized": "{value}/100 normalized",
+      "pssNote": "The PSS-10 is scored from 0 to 40. The normalized value (score ÷ 40 × 100) only makes it easier to read; it is guidance, not a diagnosis."
+    },
+    "notEnoughToCompare": "There aren't enough records yet to compare with the previous week.",
+    "noRecordsInPeriod": "You have no records in this period. Try another period or log a trigger."
   },
   "auth": {
     "login": {
@@ -196,7 +218,9 @@
       "passwordPlaceholder": "Password",
       "subtitle": "Sign in to continue your wellbeing journey.",
       "sessionExpired": "Your session expired. Please sign in again.",
-      "forgotPasswordInfo": "Password recovery isn't available yet. Contact us from Settings > About > Contact support."
+      "forgotPasswordInfo": "If you forgot your password, use “Forgot your password?” to get a recovery link.",
+      "emailHint": "Use the email you signed up with.",
+      "passwordHint": "Passwords are case-sensitive. You can show it with the eye icon."
     },
     "register": {
       "title": "Create Account",
@@ -222,7 +246,7 @@
       "headline": "Manage work stress with tools that fit into your day.",
       "point1": "Guided breathing and active breaks",
       "point2": "Log what stresses you and spot your patterns",
-      "point3": "Book sessions with mental health professionals"
+      "point3": "Book appointments with mental health professionals"
     },
     "errors": {
       "invalidCredentials": "Incorrect email or password.",
@@ -481,19 +505,19 @@
   },
   "professionals": {
     "title": "Professional Connection",
-    "bookSession": "Book Session",
+    "bookSession": "Book appointment",
     "findTherapist": "Find Therapist",
     "myAppointments": "My Appointments",
     "booking": {
-      "title": "Book Session",
+      "title": "Book appointment",
       "selectDate": "Select Date",
       "selectTime": "Select Time",
       "selectProfessional": "Select Professional",
-      "sessionType": "Session Type",
-      "confirm": "Confirm Booking",
-      "summary": "Booking Summary",
+      "sessionType": "Appointment type",
+      "confirm": "Confirm appointment",
+      "summary": "Appointment summary",
       "with": "With {name}",
-      "wizardSubtitle": "Choose professional, date, time and session type.",
+      "wizardSubtitle": "Choose professional, date, time and appointment type.",
       "progress": "Booking progress",
       "steps": {
         "professional": "Professional",
@@ -510,7 +534,33 @@
       "total": "Total",
       "booking": "Booking…",
       "phone": "Contact phone",
-      "email": "Confirmation email"
+      "email": "Confirmation email",
+      "date": "Date",
+      "time": "Time",
+      "editDate": "Edit date",
+      "editTime": "Edit time",
+      "editingNotice": "You are changing the date or time. The professional, appointment type and your notes are kept.",
+      "saveAndReturn": "Back to summary",
+      "cancelEdit": "Cancel change",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "legend": "Calendar legend",
+      "dayState": {
+        "available": "Available",
+        "selected": "Selected",
+        "unavailable": "No times",
+        "outOfRange": "Outside the allowed range"
+      },
+      "nextAvailable": "Next available date: {date}",
+      "pickThisDate": "Choose this date",
+      "noSchedule": "This professional hasn't published their schedule yet, so there are no dates to book.",
+      "chooseAnother": "Choose another professional",
+      "attendsOn": "Available: {schedule}",
+      "dayNotAvailable": "The professional doesn't work on that day.",
+      "outOfRange": "Choose a date between today and the next 90 days.",
+      "timezone": "Times shown in your time zone ({zone})",
+      "slotsFromSchedule": "Times based on the professional's published schedule. They will confirm the appointment.",
+      "slotTaken": "That time is no longer available. Choose another one; the rest of your details are kept."
     },
     "book": "Book",
     "viewProfile": "View profile",
@@ -528,15 +578,30 @@
       "weekends": "Weekends",
       "evenings": "Evenings",
       "empty": "No matching professionals",
-      "emptyHint": "Try other filters."
+      "emptyHint": "Try other filters.",
+      "filters": "Directory filters",
+      "feeRange": "Fee per appointment (USD)",
+      "feeMin": "Minimum fee",
+      "feeMax": "Maximum fee",
+      "feeMinShort": "Min",
+      "feeMaxShort": "Max",
+      "feeHint": "With an active range, professionals whose fee is not defined are hidden.",
+      "feeRangeError": "The minimum fee can't be greater than the maximum.",
+      "resultsCount": "{count} professional found | {count} professionals found",
+      "clearFilters": "Clear filters"
     },
     "profile": {
       "title": "Professional profile",
       "biography": "Biography",
       "reviews": "Reviews",
       "noReviews": "No reviews yet.",
-      "rate": "Rate"
-    }
+      "rate": "Rate",
+      "verifiedLicense": "Verified license No. {number}"
+    },
+    "feeToBeDefined": "Fee to be defined",
+    "noReviewsYet": "No reviews yet",
+    "reviewsCount": "{count} review | {count} reviews",
+    "experienceYears": "{count} year of experience | {count} years of experience"
   },
   "profile": {
     "title": "User Profile",
@@ -573,9 +638,9 @@
     "reduceAnimations": "Reduce motion",
     "reduceAnimationsHint": "Minimizes transitions and motion.",
     "highContrast": "High contrast",
-    "highContrastHint": "Darkens secondary text and borders.",
+    "highContrastHint": "Darkens secondary text and borders, and underlines links.",
     "notificationsNote": "Your preferences are saved now and will apply once the reminder service is available.",
-    "sessionReminders": "Session reminders",
+    "sessionReminders": "Appointment reminders",
     "reminderTime": "Remind me",
     "minutesBefore": "{m} minutes before",
     "breathingReminders": "Breathing reminders",
@@ -603,7 +668,18 @@
       "storage": "Local storage",
       "api": "NeuroZen server"
     },
-    "contactSupport": "Contact support"
+    "contactSupport": "Contact support",
+    "resetDisplay": "Reset",
+    "fontSmaller": "Decrease text size (A-)",
+    "fontLarger": "Increase text size (A+)",
+    "on": "On",
+    "off": "Off",
+    "preview": {
+      "title": "Preview",
+      "heading": "This is how NeuroZen text will look",
+      "body": "Take a deep breath: inhale for 4 seconds, hold for 4 and exhale for 6.",
+      "hint": "Sample help text."
+    }
   },
   "payment": {
     "confirmation": {
@@ -708,7 +784,7 @@
       "title": "Preferences",
       "notifications": {
         "title": "Notifications",
-        "sessionReminders": "Session reminders",
+        "sessionReminders": "Appointment reminders",
         "breathingReminders": "Breathing reminders",
         "weeklyUpdates": "Weekly updates"
       },
@@ -935,12 +1011,12 @@
     },
     "list": {
       "title": "My appointments",
-      "subtitle": "Your sessions with professionals.",
+      "subtitle": "Your appointments with professionals.",
       "upcoming": "Upcoming",
       "past": "Past",
       "none": "None.",
       "empty": "You have no appointments yet",
-      "emptyHint": "Book a session with a professional whenever you need."
+      "emptyHint": "Book an appointment with a professional whenever you need."
     },
     "actions": {
       "cancel": "Cancel appointment",
@@ -951,7 +1027,7 @@
     },
     "cancelDialog": {
       "title": "Cancel your appointment?",
-      "message": "Your session with {name} will be cancelled.",
+      "message": "Your appointment with {name} will be cancelled.",
       "keep": "Keep appointment",
       "done": "Appointment cancelled"
     },
@@ -960,8 +1036,8 @@
       "message": "{name} will see this summary of your week to prepare the session."
     },
     "reviewDialog": {
-      "title": "Rate your session",
-      "message": "How was your session with {name}?",
+      "title": "Rate your appointment",
+      "message": "How was your appointment with {name}?",
       "rating": "Rating",
       "comment": "Comment (optional)",
       "placeholder": "Tell us about your experience…",
@@ -972,7 +1048,7 @@
   },
   "payments": {
     "receipt": {
-      "title": "Booking receipt",
+      "title": "Appointment receipt",
       "cardMessage": "We recorded your card payment preference.",
       "cashMessage": "You'll pay the professional in cash.",
       "reference": "Reference",
@@ -1046,14 +1122,14 @@
     },
     "user": {
       "title": "I'm looking for support",
-      "description": "Manage your work stress with tools, resources and sessions with professionals.",
+      "description": "Manage your work stress with tools, resources and appointments with professionals.",
       "formTitle": "Create your account",
       "formSubtitle": "We only ask for the essentials; you'll personalize your experience later.",
       "submit": "Create account"
     },
     "psychologist": {
       "title": "I'm a psychologist",
-      "description": "Offer sessions to workers seeking support. Your license will be verified.",
+      "description": "Offer appointments to workers seeking support. Your license will be verified.",
       "badge": "License verification required",
       "formTitle": "Psychologist registration",
       "formSubtitle": "Create your professional account to see clients on NeuroZen.",
@@ -1064,7 +1140,8 @@
       "license": "License number (CPsP)",
       "licenseHint": "We'll use it to verify you're licensed to practice.",
       "submit": "Submit application",
-      "successLogin": "Application sent. Sign in to see your verification status."
+      "successLogin": "Application sent. Sign in to see your verification status.",
+      "verificationTime": "Verification usually takes 1 to 2 business days. We will notify you by email once your account has been reviewed."
     },
     "dni": "DNI (national ID)",
     "dniPlaceholder": "8 digits",
@@ -1136,7 +1213,7 @@
       "steps": {
         "license": "License verified",
         "bio": "Professional bio (min. 30 characters)",
-        "pricing": "Years of experience and session rate",
+        "pricing": "Years of experience and fee per appointment",
         "availability": "Weekly availability"
       }
     },
@@ -1192,7 +1269,7 @@
       "noUpcomingHint": "When a client books with you, it will appear here."
     },
     "patients": {
-      "subtitle": "People who have booked sessions with you.",
+      "subtitle": "People who have booked appointments with you.",
       "search": "Search client",
       "filter": "Filter clients",
       "filters": {
@@ -1205,7 +1282,7 @@
       "noNext": "No upcoming session",
       "history": "Appointment history",
       "empty": "You have no clients yet",
-      "emptyHint": "Your clients will appear when they book a session with you."
+      "emptyHint": "Your clients will appear when they book an appointment with you."
     },
     "schedule": {
       "subtitle": "Manage your appointments and weekly availability.",
@@ -1257,7 +1334,7 @@
       "bioPlaceholder": "Tell clients about your approach, training and how you can help…",
       "bioHint": "At least 30 characters.",
       "experience": "Years of experience",
-      "price": "Rate per session (USD)",
+      "price": "Fee per appointment (USD)",
       "errors": {
         "experience": "Enter a value between 0 and 60.",
         "price": "Enter a value between 0 and 1000."
@@ -1344,18 +1421,12 @@
   },
   "zenbot": {
     "open": "Open ZenBot, your assistant",
-    "subtitle": "NeuroZen assistant",
+    "subtitle": "Your wellbeing assistant",
     "restart": "Restart conversation",
     "typing": "ZenBot is typing…",
     "placeholder": "Tell me how you feel…",
     "send": "Send",
-    "disclaimer": "ZenBot gives automatic answers and doesn't replace a professional. In an emergency, call your local emergency number.",
-    "quick": {
-      "stressed": "I feel stressed",
-      "sleep": "I can't sleep",
-      "work": "Too much workload",
-      "specialist": "I want to talk to a psychologist"
-    },
+    "disclaimer": "ZenBot gives automated guidance: it doesn't diagnose or replace a professional, and it can't contact emergency services for you.",
     "links": {
       "breathing": "Guided breathing",
       "trigger": "Log a trigger",
@@ -1368,35 +1439,174 @@
       "test": "Stress test"
     },
     "crisis": {
-      "line113": "Peru mental health line: 113, option 5",
-      "samu": "SAMU 106 (emergencies)"
+      "line113": "Línea 113, option 5 (mental health, free, 24/7)",
+      "samu": "SAMU 106 (medical emergencies)",
+      "title": "If you are in danger, get help now:",
+      "region": "These lines are in Peru. If you are in another country, call your local emergency number.",
+      "limits": "ZenBot can't call or notify anyone for you. If you can, reach out to someone you trust right now and don't stay alone."
     },
     "answers": {
-      "welcome": "Hi! I'm ZenBot 🌿 I'm here to guide you with work stress. Tell me how you feel or pick an option.",
-      "empty": "Write something and I'll help.",
-      "crisis": "I'm really sorry you're going through this. You're not alone and your life matters. Please reach out for help right now: call a crisis line or, if you're in immediate danger, your local emergency number. You can also talk to a NeuroZen specialist today.",
-      "sad": "I'm sorry you feel this way; your feelings are valid. Talking to a professional can really help. Meanwhile, a breathing exercise can give you a moment of calm.",
-      "anxiety": "I understand, stress can be exhausting. Two suggestions: a few minutes of guided breathing, and logging what caused it so you can spot your patterns.",
-      "sleep": "Poor sleep increases stress. Try disconnecting from screens before bed and practice 4-7-8 breathing, which helps you relax. The library has resources about rest.",
-      "work": "Workload is one of the most common causes of stress. Scheduling active breaks during your day and logging difficult situations will help you manage it.",
-      "breathing": "Great idea! Guided breathing reduces tension in minutes. We have three exercises: mindful, box and 4-7-8.",
-      "breaks": "Active breaks are short pauses to move and stretch during your workday. You can set how often to take them.",
-      "trigger": "Logging what stresses you (when, what happened, how intense) helps you find patterns. Your logs feed your statistics.",
-      "test": "The self-assessment has 10 questions about the last month and gives you guidance on your stress level.",
-      "resources": "In the library you'll find audio, videos, readings and exercises for your wellbeing.",
-      "appointments": "In “My appointments” you can see your sessions, cancel them, share a report with your psychologist and rate completed sessions.",
-      "specialist": "Talking to a professional is a great decision. All our psychologists have verified licenses. You can book a session in a few steps.",
-      "subscription": "We have Basic, Advanced and Professional plans. You can see what each includes in the subscriptions section.",
-      "thanks": "You're welcome! I'll be here when you need me. 🌿",
-      "bye": "See you soon! Remember to take a moment for yourself today.",
-      "help": "I can guide you about stress, anxiety, sleep or workload, and take you to NeuroZen's tools: breathing, active breaks, stress log, resources or a specialist.",
-      "greeting": "Hi! How are you feeling today? You can tell me what's on your mind.",
-      "fallback": "I'm not sure I understood. Try other words or pick an option below.",
-      "fallbackSpecialist": "It seems your situation needs more personal attention than I can give. I recommend talking to one of our specialists."
+      "welcome": "Hi! I'm ZenBot, your NeuroZen wellbeing assistant. I'm here to help you understand how you feel, manage stress and find resources that can help you.\nChoose an option or write to me in your own words.",
+      "empty": "Write whatever you'd like to tell me and I'll help.",
+      "crisis": "Thank you for telling me; what you're feeling is very serious and you deserve help right now. Your life matters. If you are in immediate danger or thinking about hurting yourself, call one of these lines or emergency services now, and reach out to someone you trust who can be with you.",
+      "fallback": "I'm not sure I understood. Could you tell me in other words? You can also tap the options button to see topics I can help with.",
+      "fallbackSpecialist": "It seems your situation deserves more personal attention than I can give. If you'd like, you can talk to one of our psychologists; meanwhile, I'm still here.",
+      "crisisOngoing": "I'm still here with you. The most important thing right now is your safety: please contact one of these lines or someone you trust. When you are safe, tell me and we'll continue.",
+      "afterCrisis": "I'm glad to read that you're safe. If you'd like, you can talk to a NeuroZen psychologist for support over the next few days. I'm here if you need anything else.",
+      "riskCheck": "What you're writing sounds really hard and I want to understand you well. Are you thinking about hurting yourself or ending your life? You can answer honestly; I won't judge you.",
+      "supportAfterCheck": "Thanks for clarifying. Even so, feeling this overwhelmed deserves attention: talking to a professional can help ease that weight. I can also guide you through a breathing exercise right now.",
+      "supportSuggestion": "From what you tell me, this has been affecting you persistently. I can't make a diagnosis, but talking to a psychologist can help a lot; you can see the directory or book an appointment.",
+      "more": "Sure, here are other options from the library related to what we talked about."
+    },
+    "close": "Close ZenBot",
+    "history": "Conversation with ZenBot",
+    "you": "You",
+    "inputLabel": "Type your message to ZenBot",
+    "showOptions": "Show conversation options",
+    "startersLabel": "Options to get started",
+    "actionsLabel": "NeuroZen shortcuts",
+    "starters": {
+      "stress": "I'm feeling a lot of stress",
+      "work": "I have problems related to my job",
+      "anxiety": "I feel anxious or worried",
+      "sleep": "I have trouble sleeping",
+      "burnout": "I feel emotionally exhausted",
+      "relax": "I want to learn to relax",
+      "levels": "I want to know my stress levels",
+      "talk": "I need to talk about how I feel",
+      "videos": "I want to find wellbeing exercises or videos",
+      "professional": "I need professional help"
+    },
+    "actions": {
+      "assessment": "Take the PSS-10 test",
+      "trigger": "Log a trigger",
+      "stats": "See my statistics",
+      "breathing": "Breathing exercise",
+      "breaks": "Active breaks",
+      "videos": "Watch wellbeing videos",
+      "resources": "Resource library",
+      "directory": "See psychologists",
+      "book": "Book an appointment",
+      "appointments": "My appointments",
+      "plans": "See plans"
+    },
+    "resources": {
+      "loading": "Looking for NeuroZen resources for you…",
+      "intro": "These NeuroZen resources may help you:",
+      "listLabel": "Recommended resources",
+      "none": "I couldn't find a specific resource for this in the library. You can explore the full library or try a breathing exercise.",
+      "error": "I couldn't load the resource library right now. Check your connection and try again; your conversation is kept.",
+      "watch": "Watch video",
+      "open": "Open resource",
+      "minutes": "{n} min"
+    },
+    "replies": {
+      "stress": {
+        "0": "I understand. Feeling a lot of stress is exhausting, and it's good that you want to do something about it. We can start by easing the tension of the moment and then look at what's causing it.",
+        "1": "Thanks for telling me. When stress builds up, it's hard to think clearly; going step by step helps. Here are some tools to get started."
+      },
+      "work": {
+        "0": "I understand. When work worries continue even after the workday ends, it can be hard to rest. We can start by identifying which situations put the most pressure on you and try some techniques to help you disconnect.",
+        "1": "Work is one of the most common sources of stress, and you don't have to solve everything at once. Calmly looking at which situations weigh the most is a good first step."
+      },
+      "anxiety": {
+        "0": "Feeling anxious or worried can be very uncomfortable. Slow breathing helps your body calm down, and writing down what triggered the worry lets you see it with more perspective.",
+        "1": "It's understandable to feel nervous when a lot is at stake. Let's first try something that gives you a bit of calm right now."
+      },
+      "sleep": {
+        "0": "Sleeping badly increases stress and makes everything feel heavier. Disconnecting from screens a while before bed and slow breathing, like 4-7-8, can help you relax.",
+        "1": "Rest is key to your wellbeing. Keeping regular hours and a calm routine before bed usually helps; here are some NeuroZen options."
+      },
+      "burnout": {
+        "0": "Feeling emotionally exhausted is a sign that you've been giving more than you recover for a long time. You deserve real breaks, not just pushing through.",
+        "1": "That tiredness that doesn't go away with sleep can be very frustrating. Short breaks during the day and checking your stress level can be a good start."
+      },
+      "relax": {
+        "0": "Great idea! Relaxing is a skill you can train. Guided breathing is an easy way to start: we have mindful, box and 4-7-8 breathing exercises.",
+        "1": "Relaxing for a few minutes a day makes a difference. Here are NeuroZen exercises and videos to practice."
+      },
+      "focus": {
+        "0": "When you're stressed, focusing is harder. Alternating work blocks with short breaks and a few deep breaths helps you regain attention."
+      },
+      "assessment": {
+        "0": "The PSS-10 test has 10 questions about the last month and gives you guidance on your perceived stress level (0 to 40). It's not a diagnosis, but it helps you understand yourself better. Your latest result and records appear on your dashboard."
+      },
+      "stats": {
+        "0": "On your dashboard you'll see statistics based on your own records and your latest test. If you don't have records yet, you can start by logging how you feel."
+      },
+      "triggers": {
+        "0": "Logging what stresses you (when it happened, what occurred and how intense it was) helps you discover patterns and decide what to change."
+      },
+      "breaks": {
+        "0": "Active breaks are short pauses to move and stretch during the workday. You can set how often to take them."
+      },
+      "resources": {
+        "0": "Sure! I looked in the NeuroZen library for wellbeing exercises and videos that may help you."
+      },
+      "talk": {
+        "0": "I'm here to listen. You can tell me whatever you want, at your own pace.",
+        "1": "Thank you for wanting to share it. Putting words to what you feel is already an important step."
+      },
+      "sad": {
+        "0": "I'm sorry you feel this way; your emotions are valid and you don't have to carry them alone."
+      },
+      "professional": {
+        "0": "Seeking professional support is a great decision. All NeuroZen psychologists have verified licenses. You can see their profiles or book an appointment in a few steps; nothing is booked without your confirmation."
+      },
+      "booking": {
+        "0": "You can book an appointment by choosing a professional, date, time and appointment type. You'll only see the days the professional works, and nothing is confirmed without your approval."
+      },
+      "appointments": {
+        "0": "In “My appointments” you can see your appointments, cancel them, share a report with your psychologist and rate completed appointments. Any cancellation will ask for confirmation."
+      },
+      "subscription": {
+        "0": "We have Basic, Advanced and Professional plans. You can see what each includes in the subscriptions section."
+      },
+      "thanks": {
+        "0": "You're welcome! I'll be here when you need me. 🌿"
+      },
+      "bye": {
+        "0": "See you soon! Remember to take a moment for yourself today."
+      },
+      "help": {
+        "0": "I can guide you about stress, anxiety, sleep, exhaustion or workload, recommend resources from the library and take you to NeuroZen tools: PSS-10 test, trigger log, breathing, active breaks or a psychologist."
+      },
+      "greeting": {
+        "0": "Hi! How are you feeling today? You can tell me what's on your mind or choose one of the options."
+      }
+    },
+    "followUps": {
+      "stress": "What is causing you the most stress right now?",
+      "work": "What is putting the most pressure on you?",
+      "anxiety": "Is there something in particular worrying you, or is it a more general feeling?",
+      "sleep": "Do you have trouble falling asleep or do you wake up during the night?",
+      "burnout": "How long have you been feeling like this?",
+      "talk": "What is weighing on you the most today?",
+      "sad": "Would you like to tell me a bit more about what's making you feel this way?"
+    },
+    "continue": {
+      "stress": "Thanks for explaining. It makes sense that this stresses you. Something that usually helps is separating what depends on you from what doesn't, and taking short breaks to breathe. Logging these situations will let you see patterns.",
+      "work": "Thanks for telling me. When work responsibilities pile up, it's normal to feel there isn't enough time. It may help to prioritize what's urgent, set limits on your hours and log the situations that put the most pressure on you so you can discuss or adjust them.",
+      "anxiety": "I understand. Putting your worry into words already helps give it shape. When the worry comes up, try slow breathing and ask yourself which part is under your control.",
+      "sleep": "Thanks for the detail. A calm routine before bed, avoiding screens and caffeine at night, and slow breathing when you lie down can help. If it continues over time, it's worth talking to a professional.",
+      "burnout": "Thanks for telling me. When exhaustion lasts, it's better not to wait for it to pass on its own: real breaks, reviewing your workload and, if you need it, professional support can help you recover energy.",
+      "talk": "I hear you. Thank you for trusting me with this. What you feel matters. If you'd like, I can suggest something that helps right now or a space to talk it through with a professional.",
+      "sad": "Thank you for trusting me with this. If that sadness persists or weighs on you a lot, talking to a psychologist can help. Meanwhile, I'm here.",
+      "relax": "Perfect. Practicing a few minutes every day is what helps most; start with the exercise that feels most comfortable.",
+      "focus": "I understand. Split the task into small parts and take a short break between each one; that makes it easier to regain focus.",
+      "assessment": "When you complete the test, your result will appear on your dashboard with its scale (0-40).",
+      "stats": "Your statistics update with every record you log.",
+      "triggers": "The more records you have, the better you'll see which situations repeat.",
+      "breaks": "Scheduling short breaks regularly helps take care of your body and mind during the workday.",
+      "resources": "If you'd like, I can look for other resources: type “another”.",
+      "professional": "Whenever you want, you can book from here; nothing is confirmed without your approval.",
+      "booking": "When you choose an available date, you'll see the professional's free times.",
+      "appointments": "From “My appointments” you can check the status of each appointment.",
+      "subscription": "If you have questions about a plan, check its details in the subscriptions section."
     }
   },
   "onboardingProfile": {
-    "step": "Last step",
+    "step": "Optional step",
     "title": "Tell us a bit about you",
     "subtitle": "It's optional: it helps us personalize your recommendations.",
     "age": "Age",
@@ -1421,8 +1631,10 @@
       }
     },
     "privacy": "This data is only used to personalize your experience.",
-    "continue": "Continue to the test",
-    "saveError": "We couldn't save your data, but you can continue."
+    "continue": "Save and continue to the test",
+    "saveError": "We couldn't save your data, but you can continue.",
+    "skip": "Skip",
+    "skipHint": "You can skip this step; your sign-up details are already saved."
   },
   "assessment": {
     "title": "Stress self-assessment",
@@ -1487,7 +1699,8 @@
       "submit": "Send link",
       "sent": "If an account exists for {email}, you'll receive an email with the link in a few minutes.",
       "demoNote": "Demo mode: no emails are sent. Use this link to continue:",
-      "demoLink": "Reset password"
+      "demoLink": "Reset password",
+      "emailHint": "We'll send you a link to create a new password if the email is registered."
     },
     "reset": {
       "title": "Create a new password",
@@ -1503,6 +1716,15 @@
       "done": "Password updated",
       "wrongCurrent": "The current password is incorrect.",
       "samePassword": "The new password must be different from the current one."
+    },
+    "checklist": {
+      "title": "Your password must have:",
+      "length": "At least 8 characters",
+      "letter": "At least one letter",
+      "number": "At least one number",
+      "met": "met",
+      "pending": "pending",
+      "maxBytes": "At most 72 bytes (accented letters and emojis take more than one)"
     }
   },
   "account": {

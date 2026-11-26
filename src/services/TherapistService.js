@@ -6,19 +6,43 @@ import { HttpClient } from './HttpClient.js'
 import { normalizeVerification, VERIFICATION } from './roles.js'
 import { ApiError } from './ApiError.js'
 import { t } from '../i18n/index.js'
+import { parseAvailabilityText } from '../utils/scheduleParser.js'
 
 const DEFAULT_AVATAR = '/images-of-professionals/usuariodemo.jpg'
 
-/** Unifica los posibles nombres de campo del backend */
+/** Número positivo o null (un valor ausente NO se interpreta como 0) */
+function positiveOrNull(value) {
+  if (value === null || value === undefined || value === '') return null
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+/** Cantidad de reseñas (entero >= 0) o null si el backend no la envía */
+function countOrNull(value) {
+  if (value === null || value === undefined || value === '') return null
+  const n = Number(value)
+  return Number.isFinite(n) && n >= 0 ? Math.round(n) : null
+}
+
+/**
+ * Unifica los posibles nombres de campo del backend (M2).
+ *  - price: tarifa real (> 0) o null → la interfaz muestra «Tarifa por definir» (antes null/0 se mostraba como $0).
+ *  - rating: solo si hay valoraciones reales; con 0 reseñas → null («Sin valoraciones aún»).
+ *  - experienceYears: años de experiencia si el backend los envía.
+ */
 export function normalizeProfessional(raw = {}) {
+  const reviews = countOrNull(raw.reviews ?? raw.reviewsCount ?? raw.reviewCount)
+  const rawRating = positiveOrNull(raw.rating ?? raw.averageRating)
+  const experienceYears = positiveOrNull(raw.experienceYears ?? raw.yearsOfExperience)
   return {
     id: raw.id ?? raw.professionalId,
     name: raw.name || raw.fullName || [raw.firstName, raw.lastName].filter(Boolean).join(' ') || '—',
     specialty: raw.specialty || raw.specialization || '',
-    experience: raw.experience || (raw.yearsOfExperience ? `${raw.yearsOfExperience}` : ''),
-    rating: Number(raw.rating) || 0,
-    reviews: Number(raw.reviews ?? raw.reviewsCount) || 0,
-    price: Number(raw.price ?? raw.pricePerSession ?? raw.sessionPrice) || 0,
+    experience: typeof raw.experience === 'string' ? raw.experience : '',
+    experienceYears,
+    rating: reviews === 0 ? null : (rawRating != null ? Math.min(5, rawRating) : null),
+    reviews,
+    price: positiveOrNull(raw.price ?? raw.pricePerSession ?? raw.sessionPrice),
     availability: raw.availability || '',
     bio: raw.bio || raw.biography || raw.description || '',
     image: raw.image || raw.photoUrl || raw.avatarUrl || DEFAULT_AVATAR,
@@ -28,7 +52,9 @@ export function normalizeProfessional(raw = {}) {
     // Los profesionales cargados antes de existir la verificación se consideran verificados
     verificationStatus: raw.verificationStatus ? normalizeVerification(raw.verificationStatus) : VERIFICATION.VERIFIED,
     rejectionReason: raw.rejectionReason || '',
-    availabilitySchedule: raw.availabilitySchedule || null,
+    // Horario estructurado del backend; si solo hay texto (perfiles antiguos o «Lun, Mié · 09:00 - 13:00», el formato
+    // que guarda el propio frontend), se interpreta. Si no es interpretable queda en null (no se inventa).
+    availabilitySchedule: (raw.availabilitySchedule && raw.availabilitySchedule.days?.length ? raw.availabilitySchedule : null) || parseAvailabilityText(raw.availability),
     createdAt: raw.createdAt || null
   }
 }

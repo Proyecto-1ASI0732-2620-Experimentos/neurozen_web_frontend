@@ -9,8 +9,10 @@
         <section class="nz-card flex flex-col items-center gap-5 p-6 text-center sm:flex-row sm:text-left">
           <img data-fallback="/images-of-professionals/usuariodemo.jpg" :src="therapist.image" :alt="therapist.name" class="h-32 w-32 rounded-full object-cover ring-4 ring-primary/10" />
           <div>
-            <p class="text-lg font-semibold text-primary">{{ therapist.specialty }}</p>
+            <p class="text-lg font-semibold text-primary">{{ specialty(therapist.specialty) }}</p>
+            <p v-if="therapist.experienceYears" class="text-muted-light">{{ $tc('professionals.experienceYears', therapist.experienceYears, { count: therapist.experienceYears }) }}</p>
             <p v-if="therapist.experience" class="text-muted-light">{{ therapist.experience }}</p>
+            <p v-if="therapist.licenseNumber" class="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-green-800"><i class="fas fa-circle-check" aria-hidden="true"></i>{{ $t('professionals.profile.verifiedLicense', { number: therapist.licenseNumber }) }}</p>
             <StarRating class="mt-2" :value="therapist.rating" :count="therapist.reviews" />
           </div>
         </section>
@@ -41,8 +43,8 @@
 
       <aside class="nz-card h-fit space-y-4 p-5 lg:sticky lg:top-[calc(var(--header-height)+1rem)]">
         <dl class="space-y-3 text-sm">
-          <div><dt class="text-muted-light">{{ $t('professionals.profile.rate') }}</dt><dd class="text-2xl font-extrabold text-foreground-light">${{ therapist.price }} <span class="text-sm font-medium text-muted-light">/ {{ $t('professionals.perSession') }}</span></dd></div>
-          <div v-if="therapist.availability"><dt class="text-muted-light">{{ $t('professionals.directory.availability') }}</dt><dd class="font-semibold">{{ therapist.availability }}</dd></div>
+          <div><dt class="text-muted-light">{{ $t('professionals.profile.rate') }}</dt><dd v-if="fee(therapist.price)" class="text-2xl font-extrabold text-foreground-light">{{ fee(therapist.price) }} <span class="text-sm font-medium text-muted-light">/ {{ $t('professionals.perSession') }}</span></dd><dd v-else class="font-semibold text-muted-light">{{ $t('professionals.feeToBeDefined') }}</dd></div>
+          <div v-if="availability"><dt class="text-muted-light">{{ $t('professionals.directory.availability') }}</dt><dd class="font-semibold">{{ availability }}</dd></div>
         </dl>
         <router-link :to="{ name: 'BookAppointment', params: { id: therapist.id } }" class="nz-btn-primary w-full py-3">
           <i class="fas fa-calendar-plus" aria-hidden="true"></i>{{ $t('professionals.book') }}
@@ -61,6 +63,8 @@ import EmptyState from '../../components/ui/EmptyState.vue'
 import StarRating from '../../components/StarRating.vue'
 import { TherapistService } from '../../services/TherapistService.js'
 import { formatRelative } from '../../utils/date.js'
+import { availabilityText } from '../../services/ProfessionalService.js'
+import { formatFee, specialtyLabel } from '../../utils/professionalFormat.js'
 
 export default {
   name: 'TherapistDetailComponent',
@@ -68,13 +72,26 @@ export default {
   data() {
     return { therapist: null, reviews: [], isLoading: true, errorMessage: '', service: new TherapistService() }
   },
+  computed: {
+    availability() {
+      const t = this.therapist
+      if (!t) return ''
+      return t.availabilitySchedule?.days?.length ? availabilityText(t.availabilitySchedule, this.$i18n.locale) : (t.availability || '')
+    }
+  },
   watch: {
-    '$route.params.id'(id) { if (id) this.loadTherapistData() }
+    '$route.params.id'(id) { if (id) void this.loadTherapistData() }
   },
   created() {
-    this.loadTherapistData()
+    void this.loadTherapistData()
   },
   methods: {
+    fee(price) {
+      return formatFee(price, this.$i18n.locale)
+    },
+    specialty(value) {
+      return specialtyLabel((k) => this.$t(k), value)
+    },
     async loadTherapistData() {
       this.isLoading = true
       this.errorMessage = ''

@@ -17,7 +17,8 @@ export default {
         'background-dark': '#11211c',
         'text-light': '#374151',
         'text-dark': '#E5E7EB',
-        'muted-light': '#6B7280',
+        // #6B7280 no llegaba a 4.5:1 sobre los fondos beige (#F7F3EA 4.37, #F1E9D4 3.99); #5B6762 = 5.3 / 4.9 (M6)
+        'muted-light': '#5B6762',
         'muted-dark': '#9CA3AF',
         'input-light': '#ffffff',
         'input-dark': '#2a2a2a',

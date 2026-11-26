@@ -15,6 +15,7 @@ import { StaticAPIAdapter } from './StaticAPIAdapter.js'
 import { getToken, notifyUnauthorized, notifyProfessionalNotVerified } from './session.js'
 import { t } from '../i18n/index.js'
 import { ApiError, isNotVerifiedBody, PROFESSIONAL_NOT_VERIFIED } from './ApiError.js'
+import { cleanText } from '../utils/text.js'
 
 export { ApiError }
 
@@ -49,12 +50,17 @@ async function parseBody(response) {
   }
 }
 
-function serverMessage(body) {
+/**
+ * Mensaje legible del cuerpo de error del backend. A4: descarta valores técnicos ("null", objetos,
+ * números…) para que nunca aparezcan en la interfaz; si no queda texto, se usa el mensaje por estado.
+ */
+export function serverMessage(body) {
   if (!body) return ''
-  if (typeof body === 'string') return body.slice(0, 200)
-  let msg = body.message || body.title || body.error || ''
+  if (typeof body === 'string') return cleanText(body.slice(0, 200))
+  if (typeof body !== 'object') return ''
+  let msg = cleanText(body.message) || cleanText(body.title) || cleanText(body.error) || cleanText(body.detail)
   if (body.errors && typeof body.errors === 'object') {
-    const list = Object.values(body.errors).flat().filter(Boolean)
+    const list = Object.values(body.errors).flat().map(cleanText).filter(Boolean)
     if (list.length) msg = msg ? `${msg}: ${list.join(' ')}` : list.join(' ')
   }
   return msg

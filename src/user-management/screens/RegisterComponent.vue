@@ -33,7 +33,8 @@
       <p class="mt-2 text-muted-light">{{ $t(`register.${accountType}.formSubtitle`) }}</p>
 
       <div v-if="isPsychologist" class="mt-6 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="note">
-        <i class="fas fa-circle-info mt-0.5" aria-hidden="true"></i>{{ $t('register.psychologist.verificationNote') }}
+        <i class="fas fa-circle-info mt-0.5" aria-hidden="true"></i>
+        <span>{{ $t('register.psychologist.verificationNote') }} <strong class="mt-1 block font-semibold">{{ $t('register.psychologist.verificationTime') }}</strong></span>
       </div>
       <div v-if="errorMessage" class="mt-6 flex gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
         <i class="fas fa-circle-exclamation mt-0.5" aria-hidden="true"></i>{{ errorMessage }}
@@ -88,9 +89,9 @@
         <div>
           <label class="nz-label" for="password">{{ $t('auth.register.password') }}</label>
           <input id="password" v-model="form.password" type="password" autocomplete="new-password" class="nz-input" :class="{ 'nz-input-error': errors.password }"
-            :disabled="isLoading" :aria-invalid="!!errors.password" aria-describedby="password-hint" @blur="touch('password')" />
+            :disabled="isLoading" :aria-invalid="!!errors.password" aria-describedby="password-hint password-checklist" @blur="touch('password')" />
           <p v-if="errors.password" id="password-hint" class="nz-field-error">{{ errors.password }}</p>
-          <p v-else id="password-hint" class="nz-hint">{{ $t('register.passwordRules') }}</p>
+          <PasswordChecklist id="password-checklist" :password="form.password" />
         </div>
         <div>
           <label class="nz-label" for="confirm">{{ $t('auth.register.confirmPassword') }}</label>
@@ -157,6 +158,8 @@
  */
 import AuthLayout from '../../components/AuthLayout.vue'
 import TermsDialog from '../../components/ui/TermsDialog.vue'
+import PasswordChecklist from '../../components/ui/PasswordChecklist.vue'
+import { safeMessage } from '../../utils/text.js'
 import { AuthService } from '../../services/AuthService.js'
 import { fieldErrors } from '../../services/ApiError.js'
 import { SPECIALTIES } from '../../services/ProfessionalService.js'
@@ -187,7 +190,7 @@ const THROTTLE_SECONDS = 30
 
 export default {
   name: 'RegisterComponent',
-  components: { AuthLayout, TermsDialog },
+  components: { AuthLayout, TermsDialog, PasswordChecklist },
   data() {
     return {
       form: emptyForm(),
@@ -312,20 +315,20 @@ export default {
           const target = formFieldFor(field)
           if (target) server[target] = message
         })
-        this.errorMessage = Object.keys(server).length ? this.$t('validation.fixErrors') : error.message
+        this.errorMessage = Object.keys(server).length ? this.$t('validation.fixErrors') : safeMessage(error, this.$t('errors.validation'))
       } else if (error.status === 409) {
         const message = String(error.message || '')
         if (/dni/i.test(message)) server.dni = this.$t('register.errors.dniInUse')
         else if (/colegiatura|license/i.test(message)) server.licenseNumber = this.$t('register.errors.licenseInUse')
         else if (/correo|email/i.test(message)) server.email = this.$t('auth.errors.emailInUse')
-        else this.errorMessage = message || this.$t('errors.conflict')
+        else this.errorMessage = safeMessage(message, this.$t('errors.conflict'))
       } else if (error.status === 429) {
         this.errorMessage = this.$t('register.errors.tooManyAttempts')
         this.isThrottled = true
         clearTimeout(this.throttleTimer)
         this.throttleTimer = setTimeout(() => { this.isThrottled = false }, THROTTLE_SECONDS * 1000)
       } else {
-        this.errorMessage = error.message
+        this.errorMessage = safeMessage(error, this.$t('errors.unknown'))
       }
       this.serverErrors = server
       this._lastValues = { ...this.form }

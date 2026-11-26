@@ -16,9 +16,10 @@
         <input
           id="email" v-model.trim="formData.email" type="email" autocomplete="email" class="nz-input"
           :class="{ 'nz-input-error': errors.email }" :placeholder="$t('auth.login.emailPlaceholder')"
-          :disabled="isLoading" :aria-invalid="!!errors.email" aria-describedby="email-error"
+          :disabled="isLoading" :aria-invalid="!!errors.email" aria-describedby="email-msg"
         />
-        <p v-if="errors.email" id="email-error" class="nz-field-error">{{ errors.email }}</p>
+        <p v-if="errors.email" id="email-msg" class="nz-field-error">{{ errors.email }}</p>
+        <p v-else id="email-msg" class="nz-hint">{{ $t('auth.login.emailHint') }}</p>
       </div>
       <div>
         <label class="nz-label" for="password">{{ $t('auth.login.password') }}</label>
@@ -26,14 +27,15 @@
           <input
             id="password" v-model="formData.password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password"
             class="nz-input pr-11" :class="{ 'nz-input-error': errors.password }" :placeholder="$t('auth.login.passwordPlaceholder')"
-            :disabled="isLoading" :aria-invalid="!!errors.password" aria-describedby="password-error"
+            :disabled="isLoading" :aria-invalid="!!errors.password" aria-describedby="password-msg"
           />
           <button type="button" class="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-light hover:text-primary"
             :aria-label="showPassword ? $t('auth.hidePassword') : $t('auth.showPassword')" @click="showPassword = !showPassword">
             <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
           </button>
         </div>
-        <p v-if="errors.password" id="password-error" class="nz-field-error">{{ errors.password }}</p>
+        <p v-if="errors.password" id="password-msg" class="nz-field-error">{{ errors.password }}</p>
+        <p v-else id="password-msg" class="nz-hint">{{ $t('auth.login.passwordHint') }}</p>
       </div>
 
       <div class="flex flex-wrap items-center justify-between gap-2">
@@ -69,6 +71,7 @@ import AuthLayout from '../../components/AuthLayout.vue'
 import { AuthService } from '../../services/AuthService.js'
 import { isEmail } from '../../utils/validation.js'
 import { homeRouteFor } from '../../services/roles.js'
+import { safeMessage } from '../../utils/text.js'
 
 export default {
   name: 'LoginComponent',
@@ -102,7 +105,8 @@ export default {
         const redirect = this.$route.query.redirect
         this.$router.replace(typeof redirect === 'string' && redirect.startsWith('/') ? redirect : homeRouteFor(user))
       } catch (error) {
-        this.errorMessage = error.message
+        // A4: nunca se muestra un valor técnico (null, undefined…) como mensaje
+        this.errorMessage = safeMessage(error, this.$t('errors.unknown'))
       } finally {
         this.isLoading = false
       }

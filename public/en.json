@@ -1417,7 +1417,17 @@
       "pendingHint": "Review pending applications"
     },
     "dni": "DNI",
-    "dniMissing": "Not registered"
+    "dniMissing": "Not registered",
+    "refresh": {
+      "button": "Check for new requests",
+      "checking": "Checking…",
+      "lastUpdated": "Updated at {time}",
+      "auto": "checks automatically every {seconds} s",
+      "newRequests": "{count} new psychologist request | {count} new psychologist requests",
+      "newBadge": "New",
+      "seePending": "See pending",
+      "upToDate": "No new requests"
+    }
   },
   "zenbot": {
     "open": "Open ZenBot, your assistant",

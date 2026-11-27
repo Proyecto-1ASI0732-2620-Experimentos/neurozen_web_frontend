@@ -1417,7 +1417,17 @@
       "pendingHint": "Revisa las solicitudes pendientes"
     },
     "dni": "DNI",
-    "dniMissing": "No registrado"
+    "dniMissing": "No registrado",
+    "refresh": {
+      "button": "Comprobar nuevas solicitudes",
+      "checking": "Comprobando…",
+      "lastUpdated": "Actualizado a las {time}",
+      "auto": "se revisa sola cada {seconds} s",
+      "newRequests": "{count} nueva solicitud de psicólogo | {count} nuevas solicitudes de psicólogos",
+      "newBadge": "Nueva",
+      "seePending": "Ver pendientes",
+      "upToDate": "No hay solicitudes nuevas"
+    }
   },
   "zenbot": {
     "open": "Abrir ZenBot, tu asistente",

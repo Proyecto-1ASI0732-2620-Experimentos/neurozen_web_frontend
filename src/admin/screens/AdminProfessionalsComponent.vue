@@ -14,6 +14,22 @@
       </a>
     </section>
 
+    <!-- Actualización de solicitudes sin recargar la página -->
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm text-muted-light" aria-live="polite" data-testid="admin-last-update">
+        <template v-if="lastUpdated">{{ $t('admin.refresh.lastUpdated', { time: clock(lastUpdated) }) }} · {{ $t('admin.refresh.auto', { seconds: autoSeconds }) }}</template>
+      </p>
+      <button type="button" class="nz-btn-secondary" :disabled="loading || refreshing" data-testid="admin-refresh" @click="refresh()">
+        <i class="fas fa-rotate-right" :class="{ 'animate-spin': refreshing }" aria-hidden="true"></i>
+        {{ refreshing ? $t('admin.refresh.checking') : $t('admin.refresh.button') }}
+      </button>
+    </div>
+
+    <div v-if="newIds.length" class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="status">
+      <span><i class="fas fa-bell mr-2" aria-hidden="true"></i>{{ $tc('admin.refresh.newRequests', newIds.length, { count: newIds.length }) }}</span>
+      <button v-if="activeTab !== 'pending'" type="button" class="font-semibold underline" @click="activeTab = 'pending'">{{ $t('admin.refresh.seePending') }}</button>
+    </div>
+
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div class="inline-flex rounded-full bg-primary/10 p-1" role="radiogroup" :aria-label="$t('admin.filter')">
         <button v-for="tab in tabs" :key="tab" type="button" role="radio" :aria-checked="activeTab === tab"
@@ -40,6 +56,7 @@
             <p class="text-sm text-muted-light">{{ p.email }}</p>
             <p class="mt-1 text-sm text-primary">{{ specialtyLabel(p.specialty) }}</p>
           </div>
+          <span v-if="newIds.includes(p.id)" class="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white" :data-testid="`new-${p.id}`">{{ $t('admin.refresh.newBadge') }}</span>
           <span class="rounded-full px-3 py-1 text-xs font-bold" :class="statusStyle(p.verificationStatus)">{{ $t(`admin.status.${p.verificationStatus}`) }}</span>
         </div>
 
@@ -113,6 +130,11 @@
  *   3. confirma que el nombre coincide y que el estado es "HABILITADO",
  *   4. aprueba (el psicólogo ya puede recibir citas) o rechaza indicando el motivo.
  * El botón Aprobar solo se habilita cuando ambas comprobaciones están marcadas.
+ *
+ * Actualización sin recargar la página: botón «Comprobar nuevas solicitudes» y consulta automática cada
+ * AUTO_REFRESH_SECONDS mientras la pestaña está visible (se pausa si está oculta, si hay un diálogo abierto o
+ * una aprobación en curso). Las solicitudes que llegan se marcan como «Nueva» y se avisa con un mensaje.
+ * Las casillas ya marcadas por el administrador se conservan.
  */
 import PageHeader from '../../components/ui/PageHeader.vue'
 import LoadingState from '../../components/ui/LoadingState.vue'
@@ -123,6 +145,9 @@ import UserAvatar from '../../components/ui/UserAvatar.vue'
 import { AdminService, CPSP_PORTAL_URL } from '../../services/AdminService.js'
 import { formatShortDate } from '../../utils/date.js'
 import { toast } from '../../composables/useToast.js'
+
+/** Cada cuántos segundos se buscan nuevas solicitudes automáticamente */
+const AUTO_REFRESH_SECONDS = 60
 
 export default {
   name: 'AdminProfessionalsComponent',
@@ -145,7 +170,12 @@ export default {
       reasonPreset: '',
       rejectReason: '',
       reasonError: '',
-      reasonPresets: ['notFound', 'nameMismatch', 'notEnabled', 'notClinical']
+      reasonPresets: ['notFound', 'nameMismatch', 'notEnabled', 'notClinical'],
+      refreshing: false,
+      lastUpdated: null,
+      newIds: [],
+      autoSeconds: AUTO_REFRESH_SECONDS,
+      timer: null
     }
   },
   computed: {
@@ -162,22 +192,70 @@ export default {
     }
   },
   created() {
-    this.load()
+    void this.load()
+  },
+  mounted() {
+    this.timer = setInterval(this.autoRefresh, AUTO_REFRESH_SECONDS * 1000)
+    document.addEventListener('visibilitychange', this.onVisibility)
+  },
+  beforeUnmount() {
+    clearInterval(this.timer)
+    document.removeEventListener('visibilitychange', this.onVisibility)
   },
   methods: {
     async load() {
       this.loading = true
       this.error = ''
       try {
-        this.professionals = await this.service.getProfessionals()
-        this.professionals.forEach((p) => {
-          if (!this.checklist[p.id]) this.checklist[p.id] = { nameMatches: false, enabled: false }
-        })
+        this.setProfessionals(await this.service.getProfessionals())
       } catch (error) {
         this.error = error.message
       } finally {
         this.loading = false
       }
+    },
+    setProfessionals(list) {
+      this.professionals = list
+      this.professionals.forEach((p) => {
+        if (!this.checklist[p.id]) this.checklist[p.id] = { nameMatches: false, enabled: false }
+      })
+      this.lastUpdated = new Date()
+    },
+    /**
+     * Vuelve a pedir las solicitudes sin ocultar la lista. Devuelve cuántas solicitudes pendientes nuevas llegaron.
+     * @param {{ silent?: boolean }} options silent: consulta automática (solo avisa si hay novedades o error nuevo)
+     */
+    async refresh({ silent = false } = {}) {
+      if (this.refreshing || this.loading) return 0
+      this.refreshing = true
+      const known = new Set(this.professionals.map((p) => String(p.id)))
+      try {
+        const list = await this.service.getProfessionals()
+        const arrived = list.filter((p) => p.verificationStatus === 'pending' && !known.has(String(p.id))).map((p) => p.id)
+        this.setProfessionals(list)
+        this.error = ''
+        // Las marcas «Nueva» se acumulan hasta que se resuelven las solicitudes
+        this.newIds = [...new Set([...this.newIds, ...arrived])].filter((id) => list.some((p) => p.id === id && p.verificationStatus === 'pending'))
+        if (arrived.length) toast.info(this.$tc('admin.refresh.newRequests', arrived.length, { count: arrived.length }))
+        else if (!silent) toast.success(this.$t('admin.refresh.upToDate'), { duration: 2000 })
+        return arrived.length
+      } catch (error) {
+        if (!silent) toast.error(error.message)
+        return 0
+      } finally {
+        this.refreshing = false
+      }
+    },
+    /** Consulta automática: solo si la pestaña está visible y el administrador no está en medio de una acción */
+    autoRefresh() {
+      if (document.visibilityState === 'hidden' || this.toApprove || this.toReject || this.busyId) return
+      void this.refresh({ silent: true })
+    },
+    onVisibility() {
+      if (document.visibilityState === 'visible') this.autoRefresh()
+    },
+    clock(date) {
+      return date.toLocaleTimeString(this.$i18n.locale === 'en' ? 'en-US' : 'es-ES', { hour: '2-digit', minute: '2-digit' })
     },
     countFor(tab) {
       return this.professionals.filter((p) => p.verificationStatus === tab).length
@@ -216,6 +294,7 @@ export default {
       try {
         await this.service.verifyProfessional(p.id)
         p.verificationStatus = 'verified'
+        this.newIds = this.newIds.filter((id) => id !== p.id)
         toast.success(this.$t('admin.approved', { name: p.name }))
         this.toApprove = null
       } catch (error) {
@@ -234,6 +313,7 @@ export default {
       try {
         await this.service.rejectProfessional(p.id, this.rejectReason)
         p.verificationStatus = 'rejected'
+        this.newIds = this.newIds.filter((id) => id !== p.id)
         p.rejectionReason = this.rejectReason.trim()
         toast.success(this.$t('admin.rejected', { name: p.name }))
         this.toReject = null
